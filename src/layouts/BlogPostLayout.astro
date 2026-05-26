@@ -43,6 +43,8 @@ const seriesSlug = isPart ? slug.split("/")[0] : null;
 let seriesPosts = [];
 let seriesTitle = "";
 let sortedSeriesParts = [];
+let seriesNavigationList = [];
+let currentItemIndex = -1;
 let currentPartIndex = -1;
 let prevPost = null;
 let nextPost = null;
@@ -70,13 +72,31 @@ if (seriesSlug) {
     });
   });
   
+  if (indexPost) {
+    seriesNavigationList.push({
+      id: indexPost.id,
+      isIndex: true,
+      data: indexPost.data
+    });
+  }
+  
+  sortedSeriesParts.forEach((p) => {
+    seriesNavigationList.push({
+      id: p.id,
+      isIndex: false,
+      data: p.data
+    });
+  });
+  
   const representative = indexPost ?? sortedSeriesParts[0];
   seriesTitle = representative?.data.series || indexPost?.data.title || "Blog Series";
   
+  currentItemIndex = seriesNavigationList.findIndex((p) => p.id === slug);
   currentPartIndex = sortedSeriesParts.findIndex((p) => p.id === slug);
-  prevPost = currentPartIndex > 0 ? sortedSeriesParts[currentPartIndex - 1] : null;
-  nextPost = currentPartIndex !== -1 && currentPartIndex < sortedSeriesParts.length - 1 
-    ? sortedSeriesParts[currentPartIndex + 1] 
+  
+  prevPost = currentItemIndex > 0 ? seriesNavigationList[currentItemIndex - 1] : null;
+  nextPost = currentItemIndex !== -1 && currentItemIndex < seriesNavigationList.length - 1 
+    ? seriesNavigationList[currentItemIndex + 1] 
     : null;
 }
 
@@ -152,7 +172,7 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
 
       <div class="flex-1 min-w-0">
         {
-          seriesSlug && sortedSeriesParts.length > 0 && (
+          seriesSlug && seriesNavigationList.length > 0 && (
             <div class="glass-card mb-8 p-6 rounded-2xl border border-border bg-bg-card/30">
               <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
                 <div class="flex items-center gap-3">
@@ -160,12 +180,12 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
                   <div>
                     <h3 class="text-sm font-semibold text-text-primary">
                       Part of Series:{" "}
-                      <a href={`/series/${seriesSlug}`} class="text-accent-light hover:underline font-bold">
+                      <a href={`/blog/${seriesSlug}/index`} class="text-accent-light hover:underline font-bold">
                         {seriesTitle}
                       </a>
                     </h3>
                     <p class="text-xs text-text-tertiary">
-                      Part {currentPartIndex + 1} of {sortedSeriesParts.length}
+                      {currentPartIndex === -1 ? "Introduction & Master Index" : `Part ${currentPartIndex + 1} of ${sortedSeriesParts.length}`}
                     </p>
                   </div>
                 </div>
@@ -179,20 +199,20 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
                   </svg>
                 </summary>
                 <ol class="mt-3 space-y-2 border-t border-border/50 pt-3 text-sm">
-                  {sortedSeriesParts.map((part, index) => {
-                    const isCurrent = part.id === slug;
+                  {seriesNavigationList.map((item, index) => {
+                    const isCurrent = item.id === slug;
                     return (
                       <li class="flex items-center gap-2">
                         <span class={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isCurrent ? 'bg-accent/20 text-accent-light' : 'bg-bg-tertiary text-text-tertiary'}`}>
-                          {index + 1}
+                          {item.isIndex ? "📖" : index}
                         </span>
                         {isCurrent ? (
                           <span class="font-medium text-text-primary flex-1">
-                            {part.data.title} <span class="text-xs text-accent-light font-normal">(You are here)</span>
+                            {item.isIndex ? "Introduction & Master Index" : item.data.title} <span class="text-xs text-accent-light font-normal">(You are here)</span>
                           </span>
                         ) : (
-                          <a href={`/blog/${part.id}`} class="text-text-secondary hover:text-accent-light hover:underline flex-1 transition-colors">
-                            {part.data.title}
+                          <a href={`/blog/${item.id}`} class="text-text-secondary hover:text-accent-light hover:underline flex-1 transition-colors">
+                            {item.isIndex ? "Introduction & Master Index" : item.data.title}
                           </a>
                         )}
                       </li>
@@ -215,7 +235,7 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
                 <a href={`/blog/${prevPost.id}`} class="glass-card p-4 rounded-xl border border-border flex flex-col items-start gap-1 group hover:-translate-y-0.5 transition-all">
                   <span class="text-xs text-text-tertiary font-medium">← Previous Part</span>
                   <span class="text-sm font-semibold text-text-primary group-hover:text-accent-light line-clamp-1 transition-colors">
-                    {prevPost.data.title}
+                    {prevPost.isIndex ? "Introduction & Master Index" : prevPost.data.title}
                   </span>
                 </a>
               ) : (
@@ -226,7 +246,7 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
                 <a href={`/blog/${nextPost.id}`} class="glass-card p-4 rounded-xl border border-border flex flex-col items-end gap-1 group hover:-translate-y-0.5 transition-all text-right">
                   <span class="text-xs text-text-tertiary font-medium font-semibold">Next Part →</span>
                   <span class="text-sm font-semibold text-text-primary group-hover:text-accent-light line-clamp-1 transition-colors">
-                    {nextPost.data.title}
+                    {nextPost.isIndex ? "Introduction & Master Index" : nextPost.data.title}
                   </span>
                 </a>
               ) : (
@@ -272,7 +292,7 @@ const formattedUpdatedDate = updatedDate?.toLocaleDateString("en-US", {
   </article>
 
   <!-- Client-side Mermaid diagrams rendering script -->
-  <script is:inline>
+  <script is:inline data-astro-rerun>
     (function() {
       // Find all potential Astro-wrapped Mermaid code blocks
       const blocks = document.querySelectorAll('pre code.language-mermaid, pre[data-language="mermaid"], .language-mermaid');

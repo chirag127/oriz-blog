@@ -1,8 +1,8 @@
 ---
-title: "Part 14: Continuous Integration & Deployment (CI/CD) with GitHub Actions"
-description: "Your master directory of GitHub Actions courses, DevOps manuals, and pipeline setups to automate linting, type-checking, multi-job tests, and container registry publishing."
+title: "Part 14: Continuous Integration & Deployment with GitHub Actions"
+description: "Master DevOps automation. Learn parallel pipeline designs, caching strategies, container registry packaging, and secure secrets management."
 pubDate: 2026-05-26
-tags: ["CI-CD", "GitHub Actions", "DevOps", "Automation", "Pipelines", "Workflow Caching"]
+tags: ["CI-CD", "GitHub Actions", "DevOps", "Automation", "Security"]
 category: "Career Guide"
 author: "Chirag Singhal"
 series: "The 2026 IT Career Blueprint"
@@ -10,174 +10,179 @@ part: 14
 draft: false
 ---
 
-# Part 14: Continuous Integration & Deployment (CI/CD) with GitHub Actions
+# Part 14: Continuous Integration & Deployment with GitHub Actions
 
 *[← Back to Master Index](/blog/it-career-guide)*
 
 ---
 
-## 1. Introduction: The Pipeline of Automated Delivery
+## 1. Core Concept Refresher: The CI/CD Pipeline & GitHub Runner Architecture
 
-In legacy development environments, testing and deploying software are manual, high-risk operational chores. Developers write code locally, compile it manually, execute a few quick tests in their console, and then copy the files to production via FTP or log into a server to run a manual `git pull`. 
+In modern agile software development, teams commit code to repository branches multiple times per day. If testing, formatting, compiling, and deploying are handled manually, the development speed halts. Humans make errors: developers forget to run tests, write mismatched configurations, or push uncompiled code to production servers.
 
-This approach is highly prone to human error. A single developer forgetting to execute the test suite, leaving debugging lines in production, or building with a stale package cache can trigger immediate application outages.
-
-To prevent this, elite engineering teams in **2026** use **Continuous Integration and Continuous Deployment (CI/CD)** pipelines. 
-
-CI/CD is the practice of automating the entire integration, testing, packaging, and delivery process:
-- **Continuous Integration (CI):** Every single git push or pull request automatically triggers a remote build runner. The runner spins up your environment, applies linting rules, verifies TypeScript/Python type checks, executes your unit and integration test suites, and blocks pull requests if any test fails, ensuring the shared branch remains stable.
-- **Continuous Deployment (CD):** Once the CI tests pass and code is merged to the main branch, the pipeline automatically packages the code into an optimized Docker image, publishes it to a container registry, and deploys it to your staging or production cloud environment with zero manual intervention.
-
-As a platform and backend engineer, **GitHub Actions is the ultimate modern CI/CD standard**. You must know how to construct declarative workflow files, manage environment-specific credentials safely, establish layer caching to optimize runner speeds, run parallel matrix test suites, and deploy to container registries.
-
-This chapter is your **GitHub Actions CI/CD Master Resource Directory**. It contains no basic YAML stubs. Instead, it points you to the exact video courses, official manuals, and pipeline setups you must master.
+**Continuous Integration (CI)** and **Continuous Deployment (CD)** solve this by automating the build-test-deploy lifecycle.
 
 ---
 
-## 2. Master Resource Directory: CI/CD & GitHub Actions
+### The DevOps Loop and GitHub Runner Mechanics
 
-Here are the precise learning resources, specific syllabus modules, and technical chapters you must consume:
+GitHub Actions is a serverless execution environment that runs workflow pipelines in response to events (like a `git push` or a Pull Request).
 
 ```mermaid
 graph TD
-    subgraph CI/CD Training
-    v1["GitHub Actions - The Complete Guide (Udemy)"] -->|YAML syntax, Runners, Caching, Secrets| devops["CI/CD Specialist"]
-    v2["LinkedIn Learning: Learning GitHub Actions"] -->|Quick-start workflows, trigger parameters| devops
-    end
-    subgraph Enterprise DevOps Literature
-    b1["GitHub Actions Cookbook (O'Reilly Book)"] -->|Enterprise matrix builds, custom runners| devops
-    c1["GitHub Actions Official Docs (github.com)"] -->|Runner environments, context syntaxes| devops
-    end
+    developer["Git Push / PR"] --> githubEvent["GitHub Repository Event"]
+    githubEvent --> runner["GitHub Runner (Ubuntu VM)"]
+    runner --> step1["Step 1: Check out code"]
+    runner --> step2["Step 2: Cache Setup"]
+    runner --> step3["Step 3: Run Linters & Types"]
+    runner --> step4["Step 4: Execute Test Suite"]
+    runner --> step5["Step 5: Package Image & Deploy"]
 ```
 
----
-
-### Source 1: *GitHub Actions - The Complete Guide* by Maximilian Schwarzmüller
-*   **Format:** Project-First Video Course
-*   **Platform:** Udemy Business (Free via your TCS Ultimatix SSO gateway)
-*   **Direct Link Reference:** [Udemy Course Page](https://www.udemy.com/)
-*   **Why It is Selected:** Maximilian excels at teaching automation. He guides you from basic one-step automation workflows into complex, multi-job pipelines containing caching, conditional triggers, custom actions, and environment secrets management.
-
-#### Exact Course Modules to Watch & Execute:
-1.  **Watch Section: Workflows, Jobs & Steps:** Master the core components: what triggers workflows, how jobs run in parallel, and how steps execute sequentially.
-2.  **Watch Section: Accessing Contexts & Environment Variables:** Learn how to access default GitHub runner contexts (repository metadata, run IDs) and inject environment configurations safely.
-3.  **Watch Section: Working with Secrets & Environments:** Master utilizing **GitHub Secrets** (`secrets.GITHUB_TOKEN`, custom repository secrets) to securely communicate with external cloud registries.
-4.  **Watch Section: Optimization & Caching:** Learn how to use actions like `actions/cache` to cache npm `node_modules` or python `venv` dependency folders, reducing build times from minutes to seconds.
+#### GitHub Actions Architecture:
+*   **Workflows:** Automation files written in YAML, stored in the `.github/workflows/` directory.
+*   **Events:** Triggers that start a workflow (e.g., `push`, `pull_request`, `schedule`).
+*   **Jobs:** A collection of steps that execute on the same Runner. By default, multiple Jobs in a workflow execute in **parallel**, though you can define dependencies between them using the `needs` key.
+*   **Steps:** Sequential tasks that execute in order. A step can run a shell command (e.g. `npm test`) or call a reusable Action (e.g. `actions/checkout`).
+*   **Runners:** Virtual machines (or Docker containers) hosted by GitHub (or self-hosted on your own cloud nodes) that execute the jobs. Each runner gets a clean execution context and a shared workspace.
 
 ---
 
-### Source 2: *GitHub Actions Cookbook* by Veera Sundaravel
-*   **Format:** Deep-Dive Technical Recipe Book
-*   **Platform:** O'Reilly Learning (Search inside your TCS O'Reilly account)
-*   **Direct Link Reference:** [O'Reilly Book Profile Page](https://learning.oreilly.com/)
-*   **Why It is Selected:** A highly practical guide containing robust, production-ready YAML templates for continuous integration. It covers matrix builds (testing across multiple Node/Python versions simultaneously), building multi-platform containers, and managing self-hosted runners.
+### Optimization Strategies: Parallelism and Caching
 
-#### Exact Chapters to Read:
-1.  **Read Chapter 2: Building and Testing Applications:** Master configuring automated testing runs for Node.js, Python, and Go applications.
-2.  **Read Chapter 5: Advanced Workflows:** Master configuring **Matrix Builds** to test code against multiple operational parameters concurrently and utilizing conditional `if` triggers.
-3.  **Read Chapter 7: Reusable Workflows and Custom Actions:** Learn how to write reusable pipelines to prevent DRY (Don't Repeat Yourself) violations across large enterprise repositories.
+Slow pipelines kill developer productivity. If a developer has to wait 30 minutes for a pipeline to run before their Pull Request can be merged, team output drops.
 
----
+To speed up pipelines, DevOps engineers use:
+1.  **Parallel Job Matrixing:** Splitting tests to run concurrently across multiple runners.
+2.  **Directory Caching:** Saving persistent folders (like `node_modules`, `.next/cache`, or local compiler caches) between workflow runs so they don't have to be downloaded from scratch every time.
 
-### Source 3: *GitHub Actions Official Documentation*
-*   **Format:** Comprehensive Technical Documentation & Guides
-*   **Platform:** GitHub official website (Free Public Access)
-*   **Direct Link Reference:** [docs.github.com/en/actions](https://docs.github.com/en/actions)
-*   **Why It is Selected:** Since GitHub Actions updates frequently, checking the official documentation is the gold standard for tracking new workflow contexts, runner operating systems, and API additions.
+```yaml
+- name: Cache dependencies
+  uses: actions/cache@v4
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+```
 
-#### Exact Sections to Read:
-1.  **Read Section: Writing Workflows:** Master the complete syntax schema for `.github/workflows/` files.
-2.  **Read Section: Security Hardening for GitHub Actions:** Learn how to protect your runners from malicious code injection, set up minimal token permissions, and secure secret exposures.
+This snippet caches the local npm directory. The cache key is calculated based on the SHA-256 hash of the `package-lock.json` file. If the dependencies don't change, the runner restores the cached directory in under 2 seconds, reducing build times.
 
 ---
 
-## 3. Hands-On Portfolio Lab Project: Secure, Cached CI/CD Pipeline
+### Container Packaging and Secure Registry Storage
 
-To prove your automated deployment and DevOps capabilities to senior systems architects, you must build and commit a complete **Secure GitHub Actions Pipeline** to your public GitHub profile (`github.com/chirag127`).
+A standard CD step in product companies is packaging your application into a Docker container and pushing it to a Registry, such as **GitHub Container Registry (GHCR)** or **Amazon Elastic Container Registry (ECR)**.
 
-### The Lab Project Guidelines:
-1.  **Repository Setup:** Initialize a public GitHub repository hosting a backend application (Python/FastAPI or TypeScript/Node) containing a basic unit test suite.
-2.  **Multistage Automated Workflow:**
-    -   Create a file `.github/workflows/deploy.yml` inside your repository containing two sequential, dependent jobs: `test` and `publish`.
-3.  **Job 1 (Test - Parallel & Cached CI):**
-    -   **Parallel Matrix Runs:** Configure the job to run tests across three distinct Python or Node versions simultaneously using matrix parameters:
-        ```yaml
-        strategy:
-          matrix:
-            version: [18, 20, 22]
-        ```
-    -   **Fast Dependency Caching:** Configure the workflow to cache your dependencies (using `actions/setup-node` with `cache: 'npm'` or `actions/setup-python` with `cache: 'pip'`) to prevent reinstalling the entire package tree from scratch on every run.
-    -   **Linting & Verification:** Add steps to run your code formatter/linter (e.g. Biome, ESLint, or Black) and type-checkers (e.g. `tsc` or `mypy`).
-    -   **Execution:** Run your test suite. Ensure all steps utilize `continue-on-error: true` for testing outputs so you can see which test cases failed across different matrix versions.
-4.  **Job 2 (Publish - Docker Registry CD):**
-    -   Configure the job to run **only** if the `test` job succeeds (`needs: test`) and the commit is pushed to the `main` branch.
-    -   **Registry Authentication:** Log into the **GitHub Container Registry (GHCR)** securely utilizing GitHub's automatic session token:
-        ```yaml
-        - name: Log in to GHCR
-          uses: docker/login-action@v3
-          with:
-            registry: ghcr.io
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-        ```
-    -   **Secure Docker Packaging:** Build your optimized Docker image and push it to GHCR, tagging it with the exact git commit SHA: `ghcr.io/chirag127/my-app:${{ github.sha }}`.
-5.  **Exhaustive Readme:** Detail the step-by-step pipeline progression, display green status badges from your workflow run in your repository main header, and document typical build times showing the cache-based speed increase.
+To build and push images securely:
+*   Use **GitHub Secrets** to store sensitive credentials (like registry passwords or API tokens) rather than hardcoding them in the workflow YAML.
+*   Log into the registry using temporary, short-lived tokens (`secrets.GITHUB_TOKEN`) provided automatically by the runner context.
+*   Tag images with the specific Git commit SHA to ensure complete traceability.
+
+---
+
+## 2. Master Resource Directory: CI/CD & Automation
+
+DevOps engineering requires understanding pipeline structures, test runners, and secure access permissions. Below are the top resources.
+
+---
+
+### Resource 1: *Continuous Delivery* by Jez Humble & David Farley
+*   **Why It Was Selected:** The definitive bible of modern deployment and software release management. Jez Humble and David Farley established the core patterns of automation, automated configuration management, deployment rollbacks, and blue-green deployments. This book is selected to teach you the high-level strategies of software delivery, ensuring you build secure, reliable pipelines.
+*   **Target Syllabus Modules/Chapters:**
+    *   Chapter 3: The Deployment Pipeline
+    *   Chapter 5: Anatomy of the Deployment Pipeline
+    *   Chapter 8: Automated Acceptance Testing
+    *   Chapter 10: Deploying and Releasing Your Application
+*   **Time Investment Required:** 30 hours.
+    *   *Week 1:* Chapters 3 & 5 (18 hours)
+    *   *Week 2:* Chapters 8 & 10 (12 hours)
+*   **Value Assessment:** Essential for any senior systems developer.
+*   **Actionable Study Strategy:** Read Chapter 3 on **The Deployment Pipeline**. Draw a detailed diagram of your target pipeline: from local commit, through unit test stages, integration tests in a staging environment, artifact packaging, to blue-green deployments in production, showing what gates require automated versus manual approval.
+
+---
+
+### Resource 2: *GitHub Actions Official Documentation* (docs.github.com/actions)
+*   **Why It Was Selected:** The official reference manuals are exceptionally detailed, providing comprehensive guides on YAML syntax, runner environment variables, cached directories, matrix variables, and security boundaries.
+*   **Target Syllabus Modules/Chapters:**
+    *   Quickstart & Writing Workflows
+    *   Using Runner Environments & Caching
+    *   Security Hardening (Secrets, OpenID Connect)
+*   **Time Investment Required:** 20 hours of reference study.
+    *   *Week 1:* Workflow syntax and runners (10 hours)
+    *   *Week 2:* Cache configurations and secrets (10 hours)
+*   **Value Assessment:** Critical.
+*   **Actionable Study Strategy:** Read the guide on **Security Hardening**. Study how to use **OpenID Connect (OIDC)** to authorize GitHub Actions runners to deploy directly to AWS without needing to persist long-lived AWS Access Keys in GitHub Secrets.
+
+---
+
+### Resource 3: *DevOps Roadmap* (roadmap.sh/devops)
+*   **Why It Was Selected:** An exceptional, interactive learning roadmap mapping the entire DevOps toolset (Linux, Networking, CI/CD, Containerization, Orchestration, Log Aggregation, Infrastructure-as-Code).
+*   **Target Syllabus Modules/Chapters:**
+    *   CI/CD pipelines section
+    *   Monitoring & Infrastructure-as-Code guidelines
+*   **Time Investment Required:** 10 hours.
+    *   *Value Assessment:* High (Free learning guide).
+*   **Actionable Study Strategy:** Focus on the **CI/CD** node. Click through the definitions and study the differences between Continuous Integration, Continuous Delivery, and Continuous Deployment.
+
+---
+
+## 3. Hands-On Portfolio Lab Project: High-Performance parallel CI/CD Pipeline
+
+To showcase your DevOps capabilities, you will build a **High-Performance GitHub Actions Pipeline** that executes linting, runs test suites in parallel, builds an optimized Docker container, scans it for security alerts, and pushes it to GHCR.
+
+```mermaid
+graph TD
+    push["push to main"] --> checkout["Checkout Code"]
+    checkout --> cache["Restore npm Cache"]
+    cache --> parallelJobs["Parallel execution"]
+    subgraph Parallel Validation
+    parallelJobs --> lint["Job 1: Linter & Formatting"]
+    parallelJobs --> test["Job 2: Pytest / Jest Suites"]
+    end
+    lint --> build["Job 3: Docker Build & Push to GHCR"]
+    test --> build
+```
+
+### Lab Specifications:
+1.  **Workflow Construction:**
+    *   Create a `.github/workflows/ci.yml` file in your repository.
+2.  **Strict Validation Jobs:**
+    *   **Linter Job:** Must run the project configured linter and static type-checks.
+    *   **Test Job:** Must execute the unit and integration test suites.
+    *   *Optimization:* Both jobs must execute in parallel on clean `ubuntu-latest` runners, utilizing npm caching to finish under 1 minute.
+3.  **Container Compilation and Publish:**
+    *   Create a Docker compilation job that executes *only* if the linter and test jobs complete successfully (use the `needs` key).
+    *   Compile the Docker image and log into the GitHub Container Registry:
+        *   Registry: `ghcr.io`.
+        *   Credentials: Use `github.token` automatically.
+    *   Tag the image with the specific Git commit SHA.
+4.  **Resilient Verification (User Rule Optimization):**
+    *   **Crucial Rule:** Configure the workflow steps with `continue-on-error: true` for the test steps so that the entire pipeline runs and displays which tests fail, rather than failing immediately on the first test error.
 
 ---
 
 ## 4. Technical Interview Self-Assessment
 
-Use these questions to verify if you have successfully digested these learning sources:
+Use these questions to verify your DevOps automation knowledge:
 
 | Concept | High-Frequency Interview Question | Expected Technical Answer Framework |
 | :--- | :--- | :--- |
-| **Secrets Security** | How do you prevent sensitive credentials from leaking inside GitHub Actions logs? | Store all sensitive credentials (API keys, database URIs, passwords) inside **GitHub Secrets** within the repository settings. In your YAML file, inject these secrets as environment variables (`${{ secrets.MY_SECRET }}`) directly into individual container step runs. GitHub Actions automatically masks values matching these secrets in the console output as `***` to prevent log leakage. |
-| **Needs Keyword** | What does the `needs` keyword accomplish in a GitHub Actions workflow, and why is it useful? | By default, all jobs in a GitHub Actions workflow run in parallel. The `needs` keyword establishes sequential **job dependencies**. For example, configuring `publish: needs: test` ensures the `publish` job will wait for the `test` job to successfully complete first, preventing broken code from ever being packaged or deployed. |
-| **Self-Hosted Runner** | What is a Self-Hosted Runner, and when would you choose it over GitHub-Hosted Runners? | **GitHub-Hosted Runners:** Virtual machines managed by GitHub, providing clean environments but limited resources and charging by the minute. **Self-Hosted Runners:** Physical servers or VMs that you configure and maintain yourself. Choose them when you require custom operating systems, native GPU hardware (essential for LLM model compiles), access to local network boundaries, or want to avoid usage costs for heavy enterprise compiles. |
-| **Matrix Strategy** | How does the `matrix` strategy work, and what is its primary benefit? | A `matrix` strategy allows you to run multiple configurations of a single job simultaneously. By declaring a matrix grid of options (e.g. 3 operating systems $\times$ 3 Python versions), GitHub automatically spawns 9 parallel runner environments. This enables comprehensive cross-environment compatibility testing in a fraction of the time it would take to run them sequentially. |
+| **CI vs. CD** | What is the difference between Continuous Delivery and Continuous Deployment? | **Continuous Delivery** means that every code change that passes the automated pipeline is built and ready to be deployed, but requires manual human approval to push to production. **Continuous Deployment** is fully automated; every code change that passes the pipeline is automatically deployed to the production servers without manual intervention. |
+| **OIDC Security** | Why is OpenID Connect (OIDC) preferred over storing permanent cloud keys in GitHub Secrets? | Storing permanent credentials (like AWS Access Keys) inside GitHub Secrets introduces risk; if your GitHub organization is compromised, those credentials can leak. **OIDC** allows your GitHub runner to request temporary, short-lived security tokens directly from AWS by proving its identity via an encrypted JSON Web Token (JWT) issued by GitHub, eliminating the need to store long-lived credentials. |
+| **Caching Strategies** | How do cache key hashes work in GitHub Actions? | GitHub Actions uses a key-value cache. During a run, the action calculates a unique key, typically using a hash of dependency files (`hashFiles('package-lock.json')`). If a cache matching this key exists, it is restored. If the dependencies change, the lock file hash changes, causing a cache miss; the pipeline downloads new dependencies and writes a new cache with the new key. |
 
 ---
 
 ## 5. Exit Tasks for this Phase
 
-Complete these verification steps before proceeding to Part 15:
+Verify these objectives are complete before ending this phase:
 
-- [ ] Complete the Workflows, Environments, and Secrets modules of Maximilian Schwarzmüller's GitHub Actions course.
-- [ ] Read Chapters 2 and 5 in the *GitHub Actions Cookbook* via O'Reilly.
-- [ ] Read the Security Hardening guide on the official GitHub Actions Docs.
-- [ ] Commit your fully automated, cached, multi-stage `.github/workflows/deploy.yml` pipeline (pushing to GHCR) to your GitHub profile, showing green workflow badges on your profile page.
-
----
-
-*[Proceed to Part 15: AWS Cloud & Serverless Architectures →](/blog/it-career-guide/part-15-aws-serverless)*
+- [ ] Write a complete `.github/workflows/ci.yml` file in a repository.
+- [ ] Configure parallel jobs using dependency chains (`needs`).
+- [ ] Successfully push a containerized image to GHCR from a pipeline run.
+- [ ] Implement dependency directory caching in a workflow run.
 
 ---
 
-### The 2026 IT Career Blueprint Series Navigation
-
-- **[Master Index: The 2026 IT Career Blueprint](/blog/it-career-guide)**
-- **Part 1:** [The Blueprint & Escape Plan →](/blog/it-career-guide/part-01-the-blueprint)
-- **Part 2:** [Advanced Version Control & Git Mastery →](/blog/it-career-guide/part-02-git-github)
-- **Part 3:** [The Elite Developer Toolkit & Workflows →](/blog/it-career-guide/part-03-developer-toolkit)
-- **Part 4:** [Python Mastery from Scratch →](/blog/it-career-guide/part-04-python-mastery)
-- **Part 5:** [Async programming & FastAPI Backend Services →](/blog/it-career-guide/part-05-async-python-fastapi)
-- **Part 6:** [TypeScript & Node.js Backend Ecosystems →](/blog/it-career-guide/part-06-typescript-backend)
-- **Part 7:** [Relational Databases & Advanced PostgreSQL →](/blog/it-career-guide/part-07-postgresql)
-- **Part 8:** [NoSQL Databases (MongoDB & Redis Caching) →](/blog/it-career-guide/part-08-nosql-databases)
-- **Part 9:** [Distributed Systems & Message Queues with Kafka →](/blog/it-career-guide/part-09-distributed-systems-kafka)
-- **Part 10:** [System Design Principles & Scalable Architecture →](/blog/it-career-guide/part-10-system-design)
-- **Part 11:** [Microservices Architecture Patterns →](/blog/it-career-guide/part-11-microservices)
-- **Part 12:** [Docker & Containerization for Backend Developers →](/blog/it-career-guide/part-12-docker)
-- **Part 13:** [Kubernetes & Container Orchestration →](/blog/it-career-guide/part-13-kubernetes)
-- **Part 14:** [Continuous Integration & Deployment (CI/CD) with GitHub Actions →](/blog/it-career-guide/part-14-cicd)
-- **Part 15:** [AWS Cloud & Serverless Architectures →](/blog/it-career-guide/part-15-aws-serverless)
-- **Part 16:** [Front-End Mastery: React, Next.js & Client-Side Architectures →](/blog/it-career-guide/part-16-frontend-react)
-- **Part 17:** [Generative AI & Large Language Models (LLM) Integration →](/blog/it-career-guide/part-17-genai-llms)
-- **Part 18:** [Retrieval-Augmented Generation (RAG) & Vector Databases →](/blog/it-career-guide/part-18-rag-vector-db)
-- **Part 19:** [AI Agents & Advanced Workflows with LangGraph →](/blog/it-career-guide/part-19-ai-agents-langgraph)
-- **Part 20:** [Enterprise Security, Authentication & OWASP Top 10 →](/blog/it-career-guide/part-20-security-auth)
-- **Part 21:** [Comprehensive Testing: Unit, Integration, & E2E Testing →](/blog/it-career-guide/part-21-testing)
-- **Part 22:** [Data Structures & Algorithms (DSA) and LeetCode Blueprint →](/blog/it-career-guide/part-22-dsa-leetcode)
-- **Part 23:** [Tech Interview Success: System Design & Behavioral STAR Method →](/blog/it-career-guide/part-23-tech-interviews)
-- **Part 24:** [Global Remote Jobs and Freelancing Platforms →](/blog/it-career-guide/part-24-global-remote)
-- **Part 25:** [Immigration, Visas & Tech Relocation →](/blog/it-career-guide/part-25-immigration-visas)
+*[Proceed to Part 15: AWS Cloud & Serverless Architectures →](/blog/it-career-guide/part-15-serverless)*

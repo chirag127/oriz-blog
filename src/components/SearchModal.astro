@@ -37,6 +37,17 @@
   const searchResults = document.getElementById("search-results");
 
   let searchIndex = null;
+  let pagefind = null;
+
+  async function loadPagefind() {
+    if (pagefind) return pagefind;
+    try {
+      pagefind = await import("/pagefind/pagefind.js");
+      return pagefind;
+    } catch {
+      return null;
+    }
+  }
 
   async function loadSearchIndex() {
     if (searchIndex) return searchIndex;
@@ -73,7 +84,7 @@
         (r) => `
       <a href="${r.url}" class="block p-3 rounded-lg hover:bg-bg-tertiary transition-colors group">
         <h4 class="text-sm font-medium text-text-primary group-hover:text-accent-light transition-colors">${r.title}</h4>
-        <p class="text-xs text-text-tertiary mt-1 line-clamp-1">${r.description}</p>
+        <p class="text-xs text-text-tertiary mt-1 line-clamp-1">${r.description || ""}</p>
       </a>
     `
       )
@@ -86,6 +97,26 @@
       searchResults.innerHTML =
         '<div class="text-center py-8 text-text-tertiary text-sm">Start typing to search...</div>';
       return;
+    }
+
+    // Try Pagefind first
+    const pf = await loadPagefind();
+    if (pf) {
+      const searchRes = await pf.debouncedSearch(query);
+      if (searchRes) {
+        const results = await Promise.all(
+          searchRes.results.slice(0, 8).map(async (r) => {
+            const data = await r.data();
+            return {
+              title: data.meta.title || "Untitled",
+              description: data.excerpt,
+              url: data.url
+            };
+          })
+        );
+        renderResults(results);
+        return;
+      }
     }
 
     const index = await loadSearchIndex();

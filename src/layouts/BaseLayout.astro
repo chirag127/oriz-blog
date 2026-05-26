@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
 import BackToTop from "../components/BackToTop.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
@@ -62,6 +63,16 @@ const cfBeacon =
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+
+    <!-- KaTeX Math Rendering (build-time, zero client JS) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+      crossorigin="anonymous"
+    />
+
+    <!-- View Transitions (SPA-like navigation) -->
+    <ClientRouter />
 
     <!-- Cloudflare Web Analytics -->
     {cfBeacon && (
