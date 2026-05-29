@@ -88,59 +88,303 @@ Instead of locking rows during updates, PostgreSQL keeps multiple versions of a 
 
 ---
 
-## 2. Master Resource Directory: Relational Databases & PostgreSQL
+## 2. Part 7 Master Resource Directory: PostgreSQL & Database Engineering (30 Curated Resources)
 
 Relational database mastery separates junior application developers from senior systems engineers. Below are the definitive resources for database internals, performance tuning, and schema design.
 
 ---
 
-### Resource 1: *Designing Data-Intensive Applications* by Martin Kleppmann
-*   **Why It Was Selected:** Martin Kleppmann's book is the undisputed masterpiece of database and systems engineering. Relational databases do not exist in a vacuum; they must be evaluated against scalability, consistency, and network partitions. This book is selected because it goes deep into database storage engines (LSM-trees vs. B-Trees), transaction models, locking systems, and replication lags, providing the foundational theoretical frameworks you need to design production database architectures.
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 3: Storage and Retrieval (B-Trees, SSTables, LSM-trees)
-    *   Chapter 7: Transactions (ACID, Race conditions, Isolation Levels, 2PL)
-    *   Chapter 9: Consistency and Consensus
-*   **Time Investment Required:** 35 hours of reading and annotation.
-    *   *Week 1:* Chapters 3 & 7 (20 hours)
-    *   *Week 2:* Chapter 9 and review (15 hours)
-*   **Value Assessment:** Critical. The concepts in this book represent 70% of the questions asked in Senior Backend and Systems Design interviews.
-*   **Actionable Study Strategy:** Read each chapter twice. For Chapter 7, write down the exact scenarios for each transaction isolation level (Read Committed, Repeatable Read, Serializable). Draw step-by-step diagrams showing how two concurrent transactions can cause a "Write Skew" anomaly and how to resolve it.
+### Sub-Topic A: PostgreSQL MVCC Internals
+
+#### 1. Designing Data-Intensive Applications
+*   **Direct URL:** https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/
+*   **Search Identification:** Search O'Reilly Media for: `"Designing Data-Intensive Applications" (Author: Martin Kleppmann)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** The undisputed masterpiece of database and systems engineering. Details storage engines (LSM-trees vs. B-Trees), transaction models, locking systems, and replication lags.
+*   **Mutual Exclusivity Mapping:** If you read this book, you can skip *Database Internals* as Martin Kleppmann covers relational systems models with wider architectural contexts.
+
+#### 2. Database Internals
+*   **Direct URL:** https://www.oreilly.com/library/view/database-internals/9781492051206/
+*   **Search Identification:** Search O'Reilly Media for: `"Database Internals" (Author: Alex Petrov)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Alternative to: *Designing Data-Intensive Applications*.
+*   **Description:** Focuses explicitly on memory pages layouts, WAL buffers, lock managers, and consensus logs.
+*   **Mutual Exclusivity Mapping:** Choose this if you want a detailed byte-level look at disk storage blocks structures instead of system architectures.
+
+#### 3. PostgreSQL Internals (Postgres Professional)
+*   **Direct URL:** https://postgrespro.com/blog/categories/internals
+*   **Search Identification:** Search Web for: `"PostgreSQL Internals Postgres Professional blog series"`
+*   **Resource Type:** Written Publication & Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Exceptional written diagnostic guides detailing transaction logs, buffers management, and index algorithms.
+*   **Mutual Exclusivity Mapping:** Essential written reference for MVCC mechanics.
+
+#### 4. PostgreSQL Official Documentation (postgresql.org)
+*   **Direct URL:** https://www.postgresql.org/docs/current/mvcc.html
+*   **Search Identification:** Search Web for: `"PostgreSQL official documentation concurrency control mvcc"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The definitive guide to transaction isolation levels, row locks, and table locks.
+*   **Mutual Exclusivity Mapping:** Standard database references.
+
+#### 5. Inside the PostgreSQL Shared Buffer Pool
+*   **Direct URL:** https://www.youtube.com/playlist?list=PL4Ux7MSKEWpqaHPlz4f3Tbe6_jYt-J9Y9
+*   **Search Identification:** Search YouTube for: `"PostgreSQL Shared Buffers and Checkpoints internals"`
+*   **Resource Type:** Video Playlist
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Visual guides to how pages move from RAM to disk.
+*   **Mutual Exclusivity Mapping:** Supplemental technical lectures.
 
 ---
 
-### Resource 2: *SQL Performance Explained* by Markus Winand
-*   **Why It Was Selected:** Junior developers often solve slow database queries by blindly adding indexes to every column. This leads to massive write overhead and bloated disk usage. Markus Winand's book is selected because it explains how database indexing works from a performance-centric perspective. It teaches you how to design multi-column indexes, use index-only scans, handle sorting, and speed up pagination.
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 1: Anatomy of an Index
-    *   Chapter 2: The Where Clause (Equality, Range, Compound Indexing)
-    *   Chapter 4: Sorting and Grouping
-    *   Chapter 5: Clustering and Pagination
-*   **Time Investment Required:** 15 hours of study.
-*   **Value Assessment:** Exceptional. Tuning index design can reduce database CPU utilization from 99% to 5% with zero code changes.
-*   **Actionable Study Strategy:** Set up a local PostgreSQL database. Create a table with 10 million rows. Run a query that filters on two columns and sorts on a third. Prepend `EXPLAIN ANALYZE` and observe the plan. Build a compound index that conforms to the rules in the book, rebuild the stats, run the query again, and document the change in execution speed.
+### Sub-Topic B: Indexing Strategies (B-Trees, GIN, Hash)
+
+#### 6. SQL Performance Explained
+*   **Direct URL:** https://www.oreilly.com/library/view/sql-performance-explained/9783950307825/
+*   **Search Identification:** Search O'Reilly Media for: `"SQL Performance Explained" (Author: Markus Winand)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Explains how database indexing works from a performance-centric perspective. Details compound indexing, sorting, and pagination.
+*   **Mutual Exclusivity Mapping:** If you read this book, you can skip *SQL Tuning* on Udemy as Markus Winand covers B-Tree traversals with deeper mathematical context.
+
+#### 7. SQL Tuning: Generating Optimal Execution Plans
+*   **Direct URL:** https://www.udemy.com/course/sql-tuning/
+*   **Search Identification:** Search Udemy for: `"SQL Tuning" (Instructor: Dan Hotka)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *SQL Performance Explained*.
+*   **Description:** Video walkthrough tracing the index tree structures.
+*   **Mutual Exclusivity Mapping:** Video alternative. Choose if you prefer Udemy's slide-and-code lectures.
+
+#### 8. PostgreSQL Index Types Official Docs
+*   **Direct URL:** https://www.postgresql.org/docs/current/indexes-types.html
+*   **Search Identification:** Search Web for: `"PostgreSQL official documentation index types"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Details the use cases for B-Tree, Hash, GIN, GiST, SP-GiST, and BRIN indexes.
+*   **Mutual Exclusivity Mapping:** Standard indexing reference.
+
+#### 9. Use The Index, Luke! (use-the-index-luke.com)
+*   **Direct URL:** https://use-the-index-luke.com/
+*   **Search Identification:** Search Web for: `"Use the Index Luke by Markus Winand"`
+*   **Resource Type:** Interactive Reference / Tutorial
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The ultimate web guide to database indexing for developers.
+*   **Mutual Exclusivity Mapping:** Gold standard web reference.
+
+#### 10. PostgreSQL GIN and Partial Indexes
+*   **Direct URL:** https://www.linkedin.com/learning/postgresql-advanced-indexing
+*   **Search Identification:** Search LinkedIn Learning for: `"PostgreSQL Advanced Indexing"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Covers JSONB indexing using GIN, expression indexes, and partial index setups.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 3: *PostgreSQL Official Documentation* (postgresql.org/docs)
-*   **Why It Was Selected:** The official PostgreSQL documentation is a comprehensive encyclopedia of SQL syntax, internal parameters, administration guides, and security protocols. It is written with extreme precision and is highly respected in the industry.
-*   **Target Syllabus Modules/Chapters:**
-    *   Part II: The SQL Language
-    *   Chapter 13: Concurrency Control (MVCC, Lock levels)
-    *   Chapter 14: Performance Tips (EXPLAIN, Statistics)
-*   **Time Investment Required:** 20 hours of reference study.
-*   **Value Assessment:** Critical.
-*   **Actionable Study Strategy:** Read Chapter 13 on Concurrency Control. Pay close attention to table-level and row-level locks. Practice manually locking rows using `SELECT ... FOR UPDATE` in two separate psql terminal sessions to see how database engines resolve lock queues.
+### Sub-Topic C: Query Profiling & Optimization (EXPLAIN ANALYZE)
+
+#### 11. Introduction to Tuning SQL for Higher Performance
+*   **Direct URL:** https://www.udemy.com/course/sql-tuning-explain/
+*   **Search Identification:** Search Udemy for: `"SQL Tuning with Explain Analyze"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Explains how to read execution plans, analyze cost calculations, evaluate query planner nodes, and speed up slow queries.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *PostgreSQL Query Optimization* as this course covers query cost structures with more examples.
+
+#### 12. PostgreSQL Query Optimization
+*   **Direct URL:** https://www.linkedin.com/learning/postgresql-query-optimization
+*   **Search Identification:** Search LinkedIn Learning for: `"PostgreSQL Query Optimization"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *Introduction to Tuning SQL for Higher Performance*.
+*   **Description:** Tracing query performance, identifying index scans, and utilizing covering indexes.
+*   **Mutual Exclusivity Mapping:** Select this if you prefer LinkedIn Learning's short certification segments.
+
+#### 13. explain.depesz.com (PostgreSQL Explain Visualizer)
+*   **Direct URL:** https://explain.depesz.com/
+*   **Search Identification:** Search Web for: `"depesz postgresql explain visualizer"`
+*   **Resource Type:** Interactive Web Tool / Sandbox
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Web-based tool where you paste raw EXPLAIN output to visualize slow nodes and costs instantly.
+*   **Mutual Exclusivity Mapping:** Essential query analyzer tool.
+
+#### 14. pgMustard (EXPLAIN Analyzer)
+*   **Direct URL:** https://www.pgmustard.com/
+*   **Search Identification:** Search Web for: `"pgMustard explain analyze analyzer"`
+*   **Resource Type:** Interactive Web Tool & Documentation
+*   **Access / Price:** Free Tier Available
+*   **Status:** Required
+*   **Description:** Outstanding visual platform explaining query plan bottlenecks and giving direct index recommendations.
+*   **Mutual Exclusivity Mapping:** Gold standard execution plan advisor.
+
+#### 15. Real Python: Speed Up Your SQL Queries
+*   **Direct URL:** https://realpython.com/prevent-lazy-evaluation/
+*   **Search Identification:** Search Google for: `"Real Python speed up SQL queries"`
+*   **Resource Type:** Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Tracing query performance issues inside ORM models.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 4: *Database Internals* by Alex Petrov
-*   **Why It Was Selected:** For developers who want to understand the exact C++ data structures under the hood. Alex Petrov explains how memory pages, WAL buffers, lock managers, and consensus logs are laid out at the low-level byte layer.
-*   **Target Syllabus Modules/Chapters:**
-    *   Part I: Storage Engines (B-Tree Internals, LSM Trees)
-    *   Part II: Distributed Systems (Transactions, Concurrency, Consensus)
-*   **Time Investment Required:** 25 hours.
-*   **Value Assessment:** High (Useful for systems level engineering).
-*   **Actionable Study Strategy:** Focus on the structural layout of a database page. Draw how data offsets and header bytes are written inside a single 8KB disk page.
+### Sub-Topic D: ACID Transactions & Isolation Levels
+
+#### 16. SQL and PostgreSQL: The Complete Developer's Guide
+*   **Direct URL:** https://www.udemy.com/course/sql-and-postgresql/
+*   **Search Identification:** Search Udemy for: `"SQL and PostgreSQL" (Instructor: Stephen Grider)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Comprehensive database guide covering transaction locks, isolation levels (Read Committed, Repeatable Read, Serializable), and concurrency conflicts.
+*   **Mutual Exclusivity Mapping:** If you take this, you can skip *PostgreSQL Database Administration* as Stephen Grider covers transaction boundaries with deeper code setups.
+
+#### 17. PostgreSQL Database Administration Complete Course
+*   **Direct URL:** https://www.udemy.com/course/postgresql-dba/
+*   **Search Identification:** Search Udemy for: `"PostgreSQL Database Administration Complete Course"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *SQL and PostgreSQL: The Complete Developer's Guide*.
+*   **Description:** Focuses on administration, transaction safety, backups, and replication.
+*   **Mutual Exclusivity Mapping:** Choose this if your focus is explicitly on server administration and database deployments.
+
+#### 18. Transactions and Concurrency Control in PostgreSQL
+*   **Direct URL:** https://www.linkedin.com/learning/postgresql-concurrency
+*   **Search Identification:** Search LinkedIn Learning for: `"PostgreSQL Concurrency Control"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required
+*   **Description:** Video walkthrough simulating dirty reads, non-repeatable reads, and phantom reads.
+*   **Mutual Exclusivity Mapping:** Standard concurrency guide.
+
+#### 19. IETF RFC 9266: Channel Bindings for TLS
+*   **Direct URL:** https://datatracker.ietf.org/doc/html/rfc9266
+*   **Search Identification:** Search Web for: `"RFC 9266 channel bindings"`
+*   **Resource Type:** Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Standard specs for securing network transactions via encrypted tunnels.
+*   **Mutual Exclusivity Mapping:** Standard specs reference.
+
+#### 20. High Performance PostgreSQL (PostgreSQL Wiki)
+*   **Direct URL:** https://wiki.postgresql.org/wiki/Performance_Optimization
+*   **Search Identification:** Search Web for: `"PostgreSQL wiki performance optimization"`
+*   **Resource Type:** Written Reference / Wiki
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Advanced parameter configurations for transactions optimization.
+*   **Mutual Exclusivity Mapping:** Optional wiki reference.
+
+---
+
+### Sub-Topic E: Database Pooling & Connection Management
+
+#### 21. PgBouncer Official Documentation (pgbouncer.org)
+*   **Direct URL:** https://www.pgbouncer.org/features.html
+*   **Search Identification:** Search Web for: `"PgBouncer features and pooling modes documentation"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** The definitive guide to session pooling, transaction pooling, and statement pooling configurations inside PgBouncer.
+*   **Mutual Exclusivity Mapping:** If you read this, you can skip *Supabase connection pooling* as PgBouncer is the exact underlying pooling engine.
+
+#### 22. Supabase Connection Pooling and Optimization
+*   **Direct URL:** https://supabase.com/docs/guides/database/connecting-to-postgres
+*   **Search Identification:** Search Web for: `"Supabase connection pooling guidelines"`
+*   **Resource Type:** Written Reference / Guide
+*   **Access / Price:** 100% Free
+*   **Status:** Alternative to: *PgBouncer Official Documentation*.
+*   **Description:** Focuses on cloud connection pooling configuration limits.
+*   **Mutual Exclusivity Mapping:** Choose Supabase guide if you deploy database clusters exclusively on cloud hosting platforms.
+
+#### 23. Database Connection Pooling (O'Reilly Video Stream)
+*   **Direct URL:** https://www.oreilly.com/library/view/high-performance-java/9781783000807/
+*   **Search Identification:** Search O'Reilly for: `"High Performance Java Persistence connection pooling" (Author: Vlad Mihalcea)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required
+*   **Description:** Landmark database pooling guide explaining HikariCP, database sizes sizing formulas, and latency profiles.
+*   **Mutual Exclusivity Mapping:** Standard persistence guide.
+
+#### 24. Prisma Acceleration Connection Pooling Docs
+*   **Direct URL:** https://www.prisma.io/docs/concepts/components/prisma-client/connection-management
+*   **Search Identification:** Search Web for: `"Prisma connection management guidelines"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains how client connection pools behave inside serverless and edge functions.
+*   **Mutual Exclusivity Mapping:** Standard ORM guide.
+
+#### 25. Database Scaling with PgBouncer
+*   **Direct URL:** https://www.youtube.com/playlist?list=PL4Ux7MSKEWpqaHPlz4f3Tbe6_jYt-J8Y9
+*   **Search Identification:** Search YouTube for: `"Hussein Nasser PgBouncer database scaling"`
+*   **Resource Type:** Video Playlist
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Deep visual video traces on connection overheads.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+---
+
+### Sub-Topic F: Database Migrations & Prisma/Alembic
+
+#### 26. Prisma Schema and Migrations Documentation
+*   **Direct URL:** https://www.prisma.io/docs/orm/prisma-migrate
+*   **Search Identification:** Search Web for: `"Prisma Migrate official documentation guide"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains declarative schema migrations, shadow databases, drift resolutions, and staging revisions.
+*   **Mutual Exclusivity Mapping:** If you read this guide, you can skip *Knex.js database migrations* as Prisma Migrate handles schema revisions with more type safety.
+
+#### 27. Database Migrations in Python with Alembic
+*   **Direct URL:** https://alembic.sqlalchemy.org/en/latest/tutorial.html
+*   **Search Identification:** Search Web for: `"Alembic database migrations official tutorial"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Alternative to: *Prisma Schema and Migrations Documentation*.
+*   **Description:** Focuses on Python SQLAlchemy schema models revisions.
+*   **Mutual Exclusivity Mapping:** Choose Alembic if you deploy Python FastAPI backend infrastructures.
+
+#### 28. Node.js Database Migrations with Knex.js
+*   **Direct URL:** https://knexjs.org/guide/migrations.html
+*   **Search Identification:** Search Web for: `"Knex.js migrations configuration guidelines"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The definitive guide to javascript-based database migrations engines.
+*   **Mutual Exclusivity Mapping:** Essential workspace manual.
+
+#### 29. Database Migrations Masterclass: Flyway & Liquibase
+*   **Direct URL:** https://www.udemy.com/course/database-migrations/
+*   **Search Identification:** Search Udemy for: `"Database Migrations Masterclass Flyway"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *Prisma Schema and Migrations Documentation*.
+*   **Description:** Comprehensive video training covering Flyway and Liquibase database versioning engines.
+*   **Mutual Exclusivity Mapping:** Video alternative. Choose if you manage polyglot database clusters.
+
+#### 30. Database Lifecycle Management for Platform Engineers
+*   **Direct URL:** https://www.linkedin.com/learning/database-lifecycle-management
+*   **Search Identification:** Search LinkedIn Learning for: `"Database Lifecycle Management"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Explains data schemas seeding, rollback scripts, and CI/CD validation.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
@@ -205,4 +449,4 @@ Verify these checklist items before moving forward:
 
 ---
 
-*[Proceed to Part 8: NoSQL Databases (MongoDB & Redis Caching) →](/blog/it-career-guide/part-08-nosql-redis)*
+*[Proceed to Part 8: Document Modeling with MongoDB & Distributed Caching with Redis →](/blog/it-career-guide/part-08-nosql-redis)*

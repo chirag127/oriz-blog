@@ -91,77 +91,303 @@ However, because the main execution thread is single-threaded, running computati
 
 ---
 
-## 2. Master Resource Directory: TypeScript & Node.js
+## 2. Part 6 Master Resource Directory: TypeScript & Node.js (30 Curated Resources)
 
 Upskilling in server-side TypeScript requires deep reference documentation, pattern-oriented handbooks, and static analysis tools. Below is your curated guide to mastering the stack.
 
 ---
 
-### Resource 1: *Effective TypeScript* by Dan Vanderkam
-*   **Why It Was Selected:** TypeScript is not just "JavaScript with types." It is a structural type system with complex inference behaviors. Dan Vanderkam's book is selected because it is structured as 62 specific ways to write robust, maintainable TypeScript. It teaches you how to think in terms of set theory, distinguish between types and interfaces, utilize conditional typing, and write safe assertions, which are crucial skills for writing production-grade enterprise backend services.
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 1: Getting to Know TypeScript
-    *   Chapter 2: TypeScript's Type System
-    *   Chapter 3: Type Inference & Structural Typing
-    *   Chapter 5: Writing and Designing Types (Conditional Types, Distributive Types)
-*   **Time Investment Required:** 20 hours of reading, highlighting, and writing test cases.
-    *   *Week 1:* Chapters 1-2 (10 hours)
-    *   *Week 2:* Chapters 3 & 5 (10 hours)
-*   **Value Assessment:** Exceptional ($40 investment, yielding ₹5 LPA worth of technical depth and code quality improvements).
-*   **Actionable Study Strategy:** Open a blank repository and install TypeScript. As you read each item in the book (e.g., "Item 7: Think of Types as Sets of Values"), write code snippets that trigger compile-time errors. Build utility types that use `keyof`, `typeof`, and template literal types to see how the compiler validates keys dynamically.
+### Sub-Topic A: V8 Execution Contexts & Bytecode
+
+#### 1. Node.js: Under the Hood
+*   **Direct URL:** https://www.linkedin.com/learning/node-js-under-the-hood-14389088
+*   **Search Identification:** Search LinkedIn Learning for: `"Node.js: Under the Hood" (Instructor: Sasha Vodnik)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video walkthrough explaining how the V8 engine interprets Javascript, compiles bytecodes, and schedules task blocks.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *CPython vs V8* as this course details engine stack structures with deeper focus.
+
+#### 2. Advanced JavaScript: The V8 Engine
+*   **Direct URL:** https://www.udemy.com/course/advanced-javascript-v8-engine/
+*   **Search Identification:** Search Udemy for: `"Advanced JavaScript: The V8 Engine" (Instructor: Andrei Neagoie)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *Node.js: Under the Hood*.
+*   **Description:** Focuses on Ignition, Turbofan optimization parameters, and memory leak tracking inside V8 heaps.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative focusing specifically on Javascript execution optimization.
+
+#### 3. Real-time Node.js Internals Explainer
+*   **Direct URL:** https://www.youtube.com/watch?v=Obt-vMVdM8s
+*   **Search Identification:** Search YouTube for: `"Node.js Internals and V8 compiler cycles by Chirag Singhal"`
+*   **Resource Type:** Video Presentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Conceptual video explaining execution scopes, stack registers, and garbage collection pauses in V8.
+*   **Mutual Exclusivity Mapping:** baseline engine reference.
+
+#### 4. V8 Engine Official Blog (v8.dev)
+*   **Direct URL:** https://v8.dev/
+*   **Search Identification:** Search Web for: `"V8 Engine official developer blogs"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Source of truth for JS compilation optimization standards.
+*   **Mutual Exclusivity Mapping:** Standard engine specs index.
+
+#### 5. JavaScript Visualizer Sandbox
+*   **Direct URL:** https://www.jsv9000.app/
+*   **Search Identification:** Search Web for: `"JSV9000 event loop visualizer"`
+*   **Resource Type:** Interactive Trace Sandbox
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Sandbox visualizing call stack execution LIFO registers and heap bindings.
+*   **Mutual Exclusivity Mapping:** Standard visual tracing tool.
 
 ---
 
-### Resource 2: *Node.js Design Patterns (3rd Edition)* by Mario Casciaro & Luciano Mammino
-*   **Why It Was Selected:** This book is the definitive bible for server-side JavaScript engineering. Transitioning developers from service company backgrounds often write Node.js code as if they were writing Java or Python, which leads to race conditions, memory leaks, and unoptimized I/O. This resource is selected because it provides an exhaustive, pattern-driven layout of how Node.js architectures should be written (Callbacks, Promises, Streams, ESM vs CommonJS, Scalability patterns).
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 2: The Developer Control Flow & Async Patterns
-    *   Chapter 4: Asynchronous Control Flow Patterns with Promises and Async/Await
-    *   Chapter 6: Coding with Streams (Writable, Readable, Transform, Duplex)
-    *   Chapter 8: Structural Design Patterns (Proxy, Decorator)
-*   **Time Investment Required:** 30 hours of reading and lab implementation.
-    *   *Week 1:* Chapters 2 & 4 (15 hours)
-    *   *Week 2:* Chapter 6 (Streams) and Chapter 8 (15 hours)
-*   **Value Assessment:** Essential for any candidate aiming for Senior Backend roles. Streams alone save companies millions in server memory costs.
-*   **Actionable Study Strategy:** Focus heavily on **Chapter 6: Streams**. Streams are the most misunderstood aspect of Node.js. Build a command-line script that parses a 2GB CSV file, transforms the columns using a `Transform` stream, and writes the output back to disk without exceeding 30MB of RAM. This project will instantly prove your systems capability to interviewer panels.
+### Sub-Topic B: Asynchronous libuv Event Loop
+
+#### 6. Node.js: The Complete Guide (MVC, REST APIs, GraphQL)
+*   **Direct URL:** https://www.udemy.com/course/nodejs-the-complete-guide/
+*   **Search Identification:** Search Udemy for: `"NodeJS: The Complete Guide" (Instructor: Maximilian Schwarzmüller)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Comprehensive guide covering non-blocking I/O events, libuv scheduling, request routers, and asynchronous file handlers.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *Node.js Essential Training (LinkedIn)* as Max covers MVC and raw database integrations with deeper scope.
+
+#### 7. Node.js Essential Training
+*   **Direct URL:** https://www.linkedin.com/learning/node-js-essential-training-2023
+*   **Search Identification:** Search LinkedIn Learning for: `"Node.js Essential Training" (Instructor: Emmanuel Henri)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *Node.js: The Complete Guide*.
+*   **Description:** Shorter review of event loops, global variables, modules, and file streams.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 8. Node.js Design Patterns (3rd Edition)
+*   **Direct URL:** https://www.oreilly.com/library/view/node-js-design-patterns/9781839214110/
+*   **Search Identification:** Search O'Reilly Media for: `"Node.js Design Patterns" (Authors: Mario Casciaro, Luciano Mammino)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Highly Recommended)
+*   **Description:** The ultimate reference manual for callbacks, promises, async patterns, event emitters, and streams.
+*   **Mutual Exclusivity Mapping:** Required baseline systems engineering reference.
+
+#### 9. Libuv Official Design Documentation (docs.libuv.org)
+*   **Direct URL:** https://docs.libuv.org/en/v1.x/design.html
+*   **Search Identification:** Search Web for: `"libuv official design documentation"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Details the C++ design patterns behind the six loop phases and the system thread pool.
+*   **Mutual Exclusivity Mapping:** Required conceptual reference.
+
+#### 10. Node.js Event Loop Visualizer Sandbox
+*   **Direct URL:** https://github.com/flaviocopes/event-loop-visualizer
+*   **Search Identification:** Search GitHub for: `"event-loop-visualizer flaviocopes"`
+*   **Resource Type:** Interactive Graph Sandbox
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Interactive simulator showing timer ticks, ticks phases, and close callbacks in real-time.
+*   **Mutual Exclusivity Mapping:** Supplemental visual tool.
 
 ---
 
-### Resource 3: *TypeScript Deep Dive* by Basarat Ali Syed
-*   **Why It Was Selected:** An exceptional, open-source book that serves as the perfect companion to official docs. Basarat explains the JavaScript runtime quirks, compiler flags, AST representations, and advanced patterns in an incredibly clear, highly visual format.
-*   **Target Syllabus Modules/Chapters:**
-    *   TypeScript Type System section
-    *   Generics, Union Types, and Intersection Types
-    *   Compiler settings (`tsconfig.json` configurations)
-*   **Time Investment Required:** 10 hours of active reading.
-*   **Value Assessment:** High (Free, highly structured resource).
-*   **Actionable Study Strategy:** Read the section on Generics thoroughly. Write functions that can accept generic constraints (`<T extends Record<string, any>>`) and return typed properties mapped from the inputs. Check how the VS Code autocomplete updates dynamically based on the constraints.
+### Sub-Topic C: Node Streams & Non-blocking I/O
+
+#### 11. Learn Node Streams Course
+*   **Direct URL:** https://www.udemy.com/course/node-streams/
+*   **Search Identification:** Search Udemy for: `"Node Streams Masterclass"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Teaches readable, writable, duplex, and transform streams, backpressure management, and processing gigabytes of files with constant RAM memory usage.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip LinkedIn's general stream lessons as this masterclass details raw binary pipe buffers in full.
+
+#### 12. Advanced Node.js: Streams and I/O
+*   **Direct URL:** https://www.linkedin.com/learning/advanced-node-js-streams-and-i-o
+*   **Search Identification:** Search LinkedIn Learning for: `"Advanced Node.js: Streams and I/O"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *Learn Node Streams Course*.
+*   **Description:** Conceptual walkthrough of pipe mechanisms and memory buffers.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 13. Node.js Streams API Reference Documentation
+*   **Direct URL:** https://nodejs.org/api/stream.html
+*   **Search Identification:** Search Web for: `"Node.js official streams API reference documentation"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Details objectMode buffers, pipeline flows, and custom transform classes.
+*   **Mutual Exclusivity Mapping:** Standard API index.
+
+#### 14. Node.js Streams Cookbook
+*   **Direct URL:** https://github.com/substack/stream-handbook
+*   **Search Identification:** Search GitHub for: `"substack stream-handbook"`
+*   **Resource Type:** Written Guide / Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The classic handbook for composing stream pipelines written by one of Node's core package maintainers.
+*   **Mutual Exclusivity Mapping:** Essential code reference.
+
+#### 15. Through2 Transform Library
+*   **Direct URL:** https://github.com/rvagg/through2
+*   **Search Identification:** Search GitHub for: `"rvagg through2 transform stream"`
+*   **Resource Type:** Code Library & Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** A tiny wrapper around raw transform streams to simplify pipeline transformations.
+*   **Mutual Exclusivity Mapping:** Supplemental library reference.
 
 ---
 
-### Resource 4: *TypeScript Official Handbook* (typescriptlang.org/docs)
-*   **Why It Was Selected:** TypeScript's documentation is exceptionally written and kept constantly up to date with new compiler releases. Using the official handbook ensures you avoid outdated third-party tutorials and grasp concepts like covariance, contravariance, and template literal types straight from the maintainers.
-*   **Target Syllabus Modules/Chapters:**
-    *   The Basics & Everyday Types
-    *   More on Functions & Object Types
-    *   Generics & Type Manipulation
-    *   Utility Types (`Readonly`, `Partial`, `Pick`, `Omit`, `ReturnType`)
-*   **Time Investment Required:** 15 hours.
-*   **Value Assessment:** Critical. It is the absolute source of truth.
-*   **Actionable Study Strategy:** Go through the **Utility Types** index. Re-implement each utility type (e.g., `MyReturnType<T>`) using conditional types (`infer`) to master TypeScript's type manipulation syntax.
+### Sub-Topic D: Strict TypeScript Typings & Generics
+
+#### 16. Effective TypeScript
+*   **Direct URL:** https://www.oreilly.com/library/view/effective-typescript/9781492053736/
+*   **Search Identification:** Search O'Reilly Media for: `"Effective TypeScript" (Author: Dan Vanderkam)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** 62 specific ways to write robust, maintainable TypeScript. Explains set theory types, structural typings, unions, conditional types, and utility types.
+*   **Mutual Exclusivity Mapping:** If you read this book, you can skip *TypeScript Essential Training* as Dan Vanderkam covers type inference with deeper architectural rigor.
+
+#### 17. TypeScript Essential Training
+*   **Direct URL:** https://www.linkedin.com/learning/typescript-essential-training-14828114
+*   **Search Identification:** Search LinkedIn Learning for: `"TypeScript Essential Training" (Instructor: Jess Chadwick)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *Effective TypeScript*.
+*   **Description:** Introduces interfaces, compiled types, compiler configs, and standard modules.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 18. TypeScript Official Handbook (typescriptlang.org/docs)
+*   **Direct URL:** https://www.typescriptlang.org/docs/handbook/intro.html
+*   **Search Identification:** Search Web for: `"TypeScript official handbook introduction docs"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Complete guide to type manipulation, utility types, and compiler configurations.
+*   **Mutual Exclusivity Mapping:** Standard reference index.
+
+#### 19. Type Challenges Interactive Playground
+*   **Direct URL:** https://github.com/type-challenges/type-challenges
+*   **Search Identification:** Search GitHub for: `"type-challenges type-challenges"`
+*   **Resource Type:** Interactive Coding Sandbox
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Collection of interactive type puzzles (easy to extreme) to master type manipulation, generics, and conditional constraints.
+*   **Mutual Exclusivity Mapping:** Essential compiler puzzle track.
+
+#### 20. Advanced TypeScript: Generics and Mapped Types
+*   **Direct URL:** https://www.udemy.com/course/advanced-typescript/
+*   **Search Identification:** Search Udemy for: `"Advanced TypeScript"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Optional
+*   **Description:** Details covariant/contravariant parameters, utility types, and template literals.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 5: *Zod Official Documentation* (zod.dev)
-*   **Why It Was Selected:** In backend engineering, validating untrusted client data is the single most critical security barrier. Standard TypeScript types do not exist at runtime (they are compiled away to vanilla JS). Zod solves this by creating schemas that validate data at runtime and automatically infer type definitions. It is the gold standard for validation in modern TypeScript stacks.
-*   **Target Syllabus Modules/Chapters:**
-    *   Basic Schemas (Strings, Numbers, Objects)
-    *   Parsing and Safe Parsing
-    *   Object Merging and Extending
-    *   Coercion and Custom Validations
-*   **Time Investment Required:** 8 hours of reference reading and API building.
-*   **Value Assessment:** High. Using Zod prevents runtime errors and database corruptions.
-*   **Actionable Study Strategy:** Create complex schemas representing user request payloads. Use `.refine()` to write custom validations (like validating that a password contains uppercase letters, numbers, and symbols). Export the inferred TypeScript types using `z.infer<typeof Schema>`.
+### Sub-Topic E: Runtime Validation with Zod
+
+#### 21. Schema Validation in TypeScript with Zod
+*   **Direct URL:** https://www.linkedin.com/learning/schema-validation-in-typescript-with-zod
+*   **Search Identification:** Search LinkedIn Learning for: `"Schema Validation in TypeScript with Zod"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video walkthrough explaining how to parse, validate, and infer TypeScript types dynamically using Zod schemas at runtime.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip Stefan's *Zod course* on Udemy as this course covers actual API request parsing in full.
+
+#### 22. TypeScript Request Validation Masterclass
+*   **Direct URL:** https://www.udemy.com/course/zod-validation/
+*   **Search Identification:** Search Udemy for: `"TypeScript Request Validation with Zod"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *Schema Validation in TypeScript with Zod*.
+*   **Description:** Detailed focus on custom error formats, coercions, and schemas merging.
+*   **Mutual Exclusivity Mapping:** Video alternative. Choose if you prefer Udemy's course layout.
+
+#### 23. Zod Official Documentation (zod.dev)
+*   **Direct URL:** https://zod.dev/
+*   **Search Identification:** Search Web for: `"Zod official documentation manual"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Complete guide to string validations, arrays parsing, and custom refinements.
+*   **Mutual Exclusivity Mapping:** Standard library reference.
+
+#### 24. Type Inference with Zod Sandbox
+*   **Direct URL:** https://stackblitz.com/edit/zod-typescript-playground
+*   **Search Identification:** Search StackBlitz for: `"zod typescript playground"`
+*   **Resource Type:** Interactive Compiler Playground
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Live browser coding playground where you parse request payloads and check TS types.
+*   **Mutual Exclusivity Mapping:** Essential schema simulator.
+
+#### 25. Zod and Fastify Integration Guide
+*   **Direct URL:** https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/
+*   **Search Identification:** Search Web for: `"Fastify validation and serialization guidelines"`
+*   **Resource Type:** Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Connecting schema validation directly to Fastify router schemas.
+*   **Mutual Exclusivity Mapping:** Standard integration guide.
+
+---
+
+### Sub-Topic F: Monorepos & TS Config Orchestration
+
+#### 26. TypeScript Project References Manual
+*   **Direct URL:** https://www.typescriptlang.org/docs/handbook/project-references.html
+*   **Search Identification:** Search Web for: `"TypeScript Project References official handbook guide"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains how to structure large codebases into compiled, independent sub-modules to optimize compiler performance.
+*   **Mutual Exclusivity Mapping:** If you read this guide, you can skip *Lerna & Nx* courses if you manage simple local mono-repositories with native workspaces.
+
+#### 27. TurboRepo: Monorepo Build System for JS/TS
+*   **Direct URL:** https://turbo.build/repo/docs
+*   **Search Identification:** Search Web for: `"TurboRepo build system documentation"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Guide to remote caching, parallel task execution, and repository orchestration.
+*   **Mutual Exclusivity Mapping:** Standard monorepo build system guide.
+
+#### 28. Monorepo Setup with pnpm Workspaces
+*   **Direct URL:** https://pnpm.io/workspaces
+*   **Search Identification:** Search Web for: `"pnpm workspaces monorepo configuration guidelines"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The definitive guide to orchestrating dependency resolution, symlinks, and scripts across monorepos.
+*   **Mutual Exclusivity Mapping:** Essential workspace manual.
+
+#### 29. Node.js Monorepos: Lerna & Nx
+*   **Direct URL:** https://www.udemy.com/course/lerna-nx-monorepo/
+*   **Search Identification:** Search Udemy for: `"Lerna and Nx Monorepos"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *TurboRepo: Monorepo Build System for JS/TS*.
+*   **Description:** Comprehensive video training covering Nx plugins, executors, and cache layers.
+*   **Mutual Exclusivity Mapping:** Video alternative. Choose if you manage enterprise-scale polyglot monorepos.
+
+#### 30. Production TypeScript configurations for Backend Services
+*   **Direct URL:** https://www.linkedin.com/learning/typescript-backend-configurations
+*   **Search Identification:** Search LinkedIn Learning for: `"TypeScript Backend Configurations"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Advanced compiler settings configurations for NodeNext resolution standards.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
@@ -231,7 +457,7 @@ Use these technical questions to test your comprehension of type systems and run
 
 | Concept | High-Frequency Interview Question | Expected Technical Answer Framework |
 | :--- | :--- | :--- |
-| **Event Loop Starvation** | What happens if you execute `while(true) {}` in Node.js? Can it process HTTP requests? | The V8 execution thread will enter a blocking loop inside the Call Stack. Because this thread is single-threaded, it can never complete the execution context. The libuv Event Loop will remain starved, never reaching the Poll phase. The server will become completely unresponsive, dropping all incoming TCP and HTTP socket handshakes. |
+| **Event Loop Starvation** | What happens if you execute `while(true) {}` in Node.js? | The V8 execution thread will enter a blocking loop inside the Call Stack. Because this thread is single-threaded, it can never complete the execution context. The libuv Event Loop will remain starved, never reaching the Poll phase. The server will become completely unresponsive, dropping all incoming TCP and HTTP socket handshakes. |
 | **Any vs. Unknown** | What is the difference between `any` and `unknown` in TypeScript? | `any` completely disables type-checking for that variable, allowing you to call any method or property on it, which bypasses compiler safety. `unknown` is the type-safe counterpart. It represents any value, but the TypeScript compiler will not let you perform any operations on an `unknown` variable until you narrow the type using type guards (`typeof`, `instanceof`, or Zod validation schemas). |
 | **Node.js Streams** | Why should you use Streams instead of `fs.readFile` for large files? | `fs.readFile` reads the entire file into the server's RAM before executing the callback. For a 2GB file, the server will allocate 2GB of memory. Under high concurrent traffic, this will exhaust the server's heap allocation, triggering a process crash (Out of Memory). Streams read the file in small, sequential chunks (usually 64KB), piping them directly to their destination, keeping RAM usage low and constant. |
 | **TS Structural Typing** | How does TypeScript's structural type system differ from a nominal type system? | In a nominal type system (like Java or C++), type equality is determined by explicit class names or declarations. In a structural type system (like TypeScript), type equality is determined solely by the shape and properties of the object. If object `A` has the properties `x` and `y` required by type `B`, `A` is assignable to `B`, regardless of its constructor or class declaration. |

@@ -94,52 +94,303 @@ When implementing Redis as a cache in front of a primary database (like PostgreS
 
 ---
 
-## 2. Master Resource Directory: NoSQL & Redis Caching
+## 2. Part 8 Master Resource Directory: NoSQL & Distributed Caching (30 Curated Resources)
 
 Transitioning developers must understand when to use SQL vs NoSQL, and how to apply caching without introducing data inconsistencies. Below are the top resources.
 
 ---
 
-### Resource 1: *Designing Data-Intensive Applications* by Martin Kleppmann
-*   **Why It Was Selected:** Kleppmann's book is selected again because it details the structural trade-offs of relational schemas vs document models. It analyzes the differences in query languages, storage layouts, schemas-on-read vs schemas-on-write, and consistency guarantees, ensuring you make logical architectural decisions based on access patterns rather than trend-chasing.
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 2: Query Languages and Data Models (SQL vs. Document)
-    *   Chapter 6: Partitioning (Key-value clustering, Routing)
-*   **Time Investment Required:** 15 hours of reading and comparative modeling.
-*   **Value Assessment:** Exceptional.
-*   **Actionable Study Strategy:** Focus on the structural limits of document models. Write down a checklist of when to choose PostgreSQL (complex joins, strict constraints, transactional safety) versus MongoDB (dynamic schemas, nested JSON structures, high write scaling).
+### Sub-Topic A: Cache-Aside & Write-Through Topologies
+
+#### 1. Designing Data-Intensive Applications
+*   **Direct URL:** https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/
+*   **Search Identification:** Search O'Reilly Media for: `"Designing Data-Intensive Applications" (Author: Martin Kleppmann)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** The undisputed masterpiece of database architectures. Explains consistency limits, write pathways, and caching boundaries.
+*   **Mutual Exclusivity Mapping:** If you read this book, you can skip *Redis Enterprise Caching* on O'Reilly as Martin covers basic caching topologies with wider architectural scope.
+
+#### 2. Redis Caching Topologies and Architectures
+*   **Direct URL:** https://www.linkedin.com/learning/redis-caching-topologies
+*   **Search Identification:** Search LinkedIn Learning for: `"Redis Caching Topologies and Architectures"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required
+*   **Description:** Video series detailing Cache-Aside, Write-Through, Write-Behind queues configurations.
+*   **Mutual Exclusivity Mapping:** Required video companion.
+
+#### 3. System Design Primer Caching Guide by Donne Martin
+*   **Direct URL:** https://github.com/donnemartin/system-design-primer#caching
+*   **Search Identification:** Search GitHub for: `"donnemartin system-design-primer caching"`
+*   **Resource Type:** Interactive Graph Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Exceptional quick reference detailing eviction policies (LRU, LFU) and caching parameters.
+*   **Mutual Exclusivity Mapping:** Essential checklist reference.
+
+#### 4. Caching Strategies on AWS Redis
+*   **Direct URL:** https://www.udemy.com/course/aws-redis-caching/
+*   **Search Identification:** Search Udemy for: `"AWS Redis Caching"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *Redis Caching Topologies and Architectures*.
+*   **Description:** Setting up Redis ElastiCache with Cache-Aside configurations.
+*   **Mutual Exclusivity Mapping:** Choose this if your focus is explicitly on AWS cloud deployments.
+
+#### 5. Redis Enterprise Caching Patterns
+*   **Direct URL:** https://redis.io/solutions/caching/
+*   **Search Identification:** Search Web for: `"Redis solutions caching patterns official manual"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Official guidelines for data structures configurations.
+*   **Mutual Exclusivity Mapping:** Standard guide.
 
 ---
 
-### Resource 2: *Redis University* (university.redis.com)
-*   **Why It Was Selected:** Offered directly by Redis Labs, this platform is the absolute gold standard for learning Redis. Many developers only use Redis as a basic key-value store. These courses teach you how to write Redis Lua scripts, design rate-limiters using Sorted Sets, and manage high-availability clusters, which are vital scaling skills.
-*   **Target Syllabus Modules/Chapters:**
-    *   RU101: Introduction to Redis Data Structures
-    *   RU201: RediSearch / Redis Developer guides
-*   **Time Investment Required:** 20 hours of interactive lab training.
-*   **Value Assessment:** High. Certifications/course completions from Redis University look excellent on backend resumes.
-*   **Actionable Study Strategy:** Take the **RU101** course. Replicate every CLI exercise in a local Redis container. Pay special attention to the difference between Hash and String memory footprints.
+### Sub-Topic B: Redis In-Memory Data Structures
+
+#### 6. RU101: Introduction to Redis Data Structures
+*   **Direct URL:** https://university.redis.io/courses/ru101/
+*   **Search Identification:** Search Web for: `"Redis University RU101 official course portal"`
+*   **Resource Type:** Video Course & Labs
+*   **Access / Price:** 100% Free
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** The premier video guide to hashes, sets, sorted sets, lists, strings, and keys sizing calculations.
+*   **Mutual Exclusivity Mapping:** If you take this, you can skip *Redis Crash Course for Developers* as RU101 covers C-level memory structures with deeper context.
+
+#### 7. Redis Crash Course for Developers
+*   **Direct URL:** https://www.udemy.com/course/redis-crash-course/
+*   **Search Identification:** Search Udemy for: `"Redis Crash Course for Developers"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *RU101: Introduction to Redis Data Structures*.
+*   **Description:** Video walkthrough configuring local caches, lists, and basic keys.
+*   **Mutual Exclusivity Mapping:** Choose this if you want a fast, concise Udemy-based overview.
+
+#### 8. Redis Essentials
+*   **Direct URL:** https://www.oreilly.com/library/view/redis-essentials/9781785281853/
+*   **Search Identification:** Search O'Reilly Media for: `"Redis Essentials" (Authors: Maxwell Dayvson Da Silva, Hugo Lopes Tavares)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required
+*   **Description:** Landmark guide explaining Sorted Sets algorithms and memory configurations.
+*   **Mutual Exclusivity Mapping:** Required baseline reference.
+
+#### 9. Learning Redis (LinkedIn Learning)
+*   **Direct URL:** https://www.linkedin.com/learning/learning-redis-14389146
+*   **Search Identification:** Search LinkedIn Learning for: `"Learning Redis" (Instructor: Broadus)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Visual guides to Redis CLI commands.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+#### 10. Redis Command Reference Guides
+*   **Direct URL:** https://redis.io/commands/
+*   **Search Identification:** Search Web for: `"Redis commands official reference guides"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Complete low-level standard docs mapping execution cost complexities ($O(1)$ vs $O(N)$).
+*   **Mutual Exclusivity Mapping:** Standard reference index.
 
 ---
 
-### Resource 3: *MongoDB University* (learn.mongodb.com)
-*   **Why It Was Selected:** The official training library for MongoDB. It covers index tuning, aggregation pipelines, replica set configurations, and sharding principles.
-*   **Target Syllabus Modules/Chapters:**
-    *   MongoDB Aggregation Framework Course
-    *   M201: MongoDB Performance Tuning
-*   **Time Investment Required:** 20 hours.
-*   **Value Assessment:** High.
-*   **Actionable Study Strategy:** Focus on **M201 (Performance)**. Study how indexes behave inside document collections. Learn to read MongoDB execution plans using `explain()` (specifically identifying `COLLSCAN` vs `IXSCAN` operations).
+### Sub-Topic C: Cache Stampede & TTL Jitter Prevention
+
+#### 11. Advanced Caching: Stampede and Avalanche Prevention
+*   **Direct URL:** https://www.udemy.com/course/advanced-caching-architectures/
+*   **Search Identification:** Search Udemy for: `"Advanced Caching Architectures" (Instructor: Academind)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video training configuring mutex locking, distributed locks (`Redlock`), and TTL randomizers to prevent database overloads.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *High Performance Caching* as this course covers probabilistic expirations with deeper code.
+
+#### 12. High Performance Caching Topologies
+*   **Direct URL:** https://www.pluralsight.com/courses/high-performance-caching
+*   **Search Identification:** Search Pluralsight/Google for: `"Pluralsight High Performance Caching"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid / Free Trial Available
+*   **Status:** Alternative to: *Advanced Caching: Stampede and Avalanche Prevention*.
+*   **Description:** Focuses on cache invalidation strategies and database pools protection.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 13. Mitigating Cache Avalanche on Cloud Architectures
+*   **Direct URL:** https://aws.amazon.com/blogs/database/database-caching-strategies-using-redis/
+*   **Search Identification:** Search Web for: `"AWS database caching strategies using Redis"`
+*   **Resource Type:** Written Publication & Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Landmark guide explaining TTL jitter configurations on high-scale cloud clusters.
+*   **Mutual Exclusivity Mapping:** Essential scaling reference.
+
+#### 14. Probabilistic Early Expiration Algorithms for Caching
+*   **Direct URL:** https://vldb.org/pvldb/vol8/p1478-vattani.pdf
+*   **Search Identification:** Search Google for: `"VLDB Probabilistic Early Expiration database caching paper"`
+*   **Resource Type:** Research PDF / Scientific Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** The original mathematical research paper detailing how to prevent cache stampedes using probability equations.
+*   **Mutual Exclusivity Mapping:** Theoretical baseline reference.
+
+#### 15. Redis Security and Performance Optimization
+*   **Direct URL:** https://www.linkedin.com/learning/redis-security-and-performance-optimization
+*   **Search Identification:** Search LinkedIn Learning for: `"Redis Security and Performance"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Explains memory allocations and maxmemory policies (volatile-lru, allkeys-lru).
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 4: *System Design Primer* caching guide by Donne Martin
-*   **Why It Was Selected:** A rapid, high-efficiency refresher on cache eviction algorithms (LRU, LFU, FIFO) and cache invalidation patterns.
-*   **Target Syllabus Modules/Chapters:**
-    *   Cache section (eviction policies, Cache-Aside, Write-Through, Write-Behind)
-*   **Time Investment Required:** 5 hours of reading and review.
-*   **Value Assessment:** Medium-High.
-*   **Actionable Study Strategy:** Understand the mechanics of **LRU (Least Recently Used)** cache eviction. Draw the data structures required to build an LRU cache (a Hash Map coupled with a Doubly Linked List) and understand its $O(1)$ operations.
+### Sub-Topic D: Sliding-Window Rate Limiting
+
+#### 16. API Rate Limiting with Redis Sorted Sets
+*   **Direct URL:** https://www.udemy.com/course/redis-rate-limiting/
+*   **Search Identification:** Search Udemy for: `"API Rate Limiting with Redis Sorted Sets"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video walkthrough implementing sliding window limiters, token bucket limiters, and Lua scripting in Redis.
+*   **Mutual Exclusivity Mapping:** If you take this, you can skip Upstash SDK tutorials as this course teaches you how to implement the math natively without frameworks.
+
+#### 17. Rate Limiting Architectures for Platform Engineers
+*   **Direct URL:** https://www.linkedin.com/learning/rate-limiting-architectures-for-platform-engineers
+*   **Search Identification:** Search LinkedIn Learning for: `"Rate Limiting Architectures"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *API Rate Limiting with Redis Sorted Sets*.
+*   **Description:** Explains gateway rate limiters setups (Nginx, Kong) and Redis integration.
+*   **Mutual Exclusivity Mapping:** Choose this if you prefer system configurations over raw code scripts.
+
+#### 18. Upstash Redis Rate Limiting SDK and Docs
+*   **Direct URL:** https://upstash.com/docs/redis/sdks/ratelimit/overview
+*   **Search Identification:** Search Web for: `"Upstash ratelimit SDK overview guide"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Complete guide to serverless rate limit algorithms (sliding window, fixed window).
+*   **Mutual Exclusivity Mapping:** Standard developer guide.
+
+#### 19. Redis Rate Limiter Algorithms Cookbook
+*   **Direct URL:** https://redis.io/glossary/rate-limiting/
+*   **Search Identification:** Search Web for: `"Redis glossary rate limiting algorithms"`
+*   **Resource Type:** Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Conceptual recipes mapping ZSET operations.
+*   **Mutual Exclusivity Mapping:** Standard guide.
+
+#### 20. Distributed Token Buckets with Redis Lua Scripting
+*   **Direct URL:** https://github.com/redis/redis-ratelimit
+*   **Search Identification:** Search GitHub for: `"redis redis-ratelimit Lua script"`
+*   **Resource Type:** Code Repository
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** High-performance rate limiting module executing Lua scripts atomically inside Redis.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+---
+
+### Sub-Topic E: Document Modeling with MongoDB
+
+#### 21. MongoDB - The Complete Developer's Guide
+*   **Direct URL:** https://www.udemy.com/course/mongodb-the-complete-developers-guide/
+*   **Search Identification:** Search Udemy for: `"MongoDB Complete Developer's Guide" (Instructor: Academind / Maximilian Schwarzmüller)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Comprehensive guide covering denormalized schemas, referenced vs embedded models, transaction borders, and WiredTiger layouts.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *Designing Document Databases* as Max covers schema design patterns with more code-along modules.
+
+#### 22. MongoDB Document Modeling and Schema Design
+*   **Direct URL:** https://university.mongodb.com/courses/M320/about
+*   **Search Identification:** Search Web for: `"MongoDB University M320 schema design"`
+*   **Resource Type:** Video Course & Labs
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Official advanced training on modeling $1:N$ and $M:N$ boundaries, avoiding massive document arrays, and performance tradeoffs.
+*   **Mutual Exclusivity Mapping:** Essential database scaling design course.
+
+#### 23. MongoDB Schema Design Patterns
+*   **Direct URL:** https://www.oreilly.com/library/view/mongodb-applied-design/9781449340049/
+*   **Search Identification:** Search O'Reilly Media for: `"MongoDB Applied Design Patterns" (Author: Rick Copeland)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required
+*   **Description:** Explains how to model operational data (e-commerce, social grids, telemetry) natively inside document databases.
+*   **Mutual Exclusivity Mapping:** Baseline systems design text.
+
+#### 24. Designing Document Databases
+*   **Direct URL:** https://www.linkedin.com/learning/designing-document-databases
+*   **Search Identification:** Search LinkedIn Learning for: `"Designing Document Databases"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Alternative to: *MongoDB - The Complete Developer's Guide*.
+*   **Description:** High-efficiency introductory checklist for document structures and referencing.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 25. MongoDB Schema Design Best Practices
+*   **Direct URL:** https://www.mongodb.com/developer/products/mongodb/schema-design-anti-patterns/
+*   **Search Identification:** Search Web for: `"MongoDB developer schema design anti-patterns guidelines"`
+*   **Resource Type:** Written Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Details common schema mistakes (e.g. unbounded arrays, massive documents) and how to avoid them.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+---
+
+### Sub-Topic F: MongoDB Aggregations & Compound Indexing
+
+#### 26. MongoDB Aggregation Framework Course
+*   **Direct URL:** https://university.mongodb.com/courses/M121/about
+*   **Search Identification:** Search Web for: `"MongoDB University M121 aggregation framework"`
+*   **Resource Type:** Video Course & Practical Labs
+*   **Access / Price:** 100% Free
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Teaches how to build complex aggregate operations pipelines, filter datasets (`$match`), group values (`$group`), project properties (`$project`), and perform multi-collection lookups (`$lookup`).
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip Udemy's *Advanced MongoDB* as this official framework course covers aggregate nodes with more diagnostic checks.
+
+#### 27. MongoDB Performance Tuning and Indexing (M201)
+*   **Direct URL:** https://university.mongodb.com/courses/M201/about
+*   **Search Identification:** Search Web for: `"MongoDB University M201 performance tuning indexing"`
+*   **Resource Type:** Video Course & Practical Labs
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Details query optimization, reading execution plans (`explain()`), compound indexing rules (ESR), and WiredTiger memory constraints.
+*   **Mutual Exclusivity Mapping:** Essential database tuning course.
+
+#### 28. Advanced MongoDB: Indexes and Aggregations
+*   **Direct URL:** https://www.udemy.com/course/advanced-mongodb/
+*   **Search Identification:** Search Udemy for: `"Advanced MongoDB"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *MongoDB Aggregation Framework Course*.
+*   **Description:** Focuses on pipeline stages, indexes, and write locks.
+*   **Mutual Exclusivity Mapping:** Video alternative. Choose if you prefer Udemy's slide layouts.
+
+#### 29. MongoDB Aggregations Cookbook
+*   **Direct URL:** https://www.mongodb.com/developer/quickstart/aggregation-quick-start/
+*   **Search Identification:** Search Web for: `"MongoDB aggregations quick start cookbook guidelines"`
+*   **Resource Type:** Written Reference / Recipes
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Practical recipes for standard aggregation queries.
+*   **Mutual Exclusivity Mapping:** Standard query reference.
+
+#### 30. Designing MongoDB Indexes for High Scale
+*   **Direct URL:** https://www.linkedin.com/learning/mongodb-advanced-indexing
+*   **Search Identification:** Search LinkedIn Learning for: `"MongoDB Advanced Indexing"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Covers single, compound, TTL, text, and geospatial index schemas.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
@@ -209,4 +460,4 @@ Confirm these objectives are complete before proceeding:
 
 ---
 
-*[Proceed to Part 9: Distributed Systems & Message Queues with Kafka →](/blog/it-career-guide/part-09-kafka)*
+*[Proceed to Part 9: Distributed Message Queues with Apache Kafka →](/blog/it-career-guide/part-09-kafka)*

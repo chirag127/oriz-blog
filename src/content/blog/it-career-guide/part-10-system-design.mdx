@@ -83,58 +83,303 @@ When a database becomes too large for a single machine, we must partition the da
 
 ---
 
-## 2. Master Resource Directory: Systems Architecture
+## 2. Part 10 Master Resource Directory: Systems Architecture (30 Curated Resources)
 
 Mastering systems design requires studying real-world corporate architectures, mathematical consensus papers, and high-level structural guides. Below are the elite resources.
 
 ---
 
-### Resource 1: *System Design Interview – An Easy Guide (Vols 1 & 2)* by Alex Xu
-*   **Why It Was Selected:** Alex Xu is the master of visual systems design analysis. These books are selected because they break down real-world enterprise architectures (such as building a Web Crawler, designing a Chat System, scaling a video platform like YouTube, or building a Notification service) into step-by-step design steps. It teaches you how to estimate traffic bandwidth (Back-of-the-envelope calculations) and draw clear architectural blocks, which is crucial for passing systems design loops in product interviews.
-*   **Target Syllabus Modules/Chapters:**
-    *   Volume 1, Chapter 5: Design Consistent Hashing
-    *   Volume 1, Chapter 11: Design a News Feed System
-    *   Volume 2, Chapter 4: Distributed Message Queue
-    *   Volume 2, Chapter 9: S3-like Object Storage
-*   **Time Investment Required:** 30 hours of reading, drawing, and calculations.
-    *   *Week 1:* Volume 1 (15 hours)
-    *   *Week 2:* Volume 2 (15 hours)
-*   **Value Assessment:** Essential. It acts as the direct template for how to structure and present designs during interview panels.
-*   **Actionable Study Strategy:** Do not just read the chapters. For each design question (e.g., "Design a Rate Limiter"), close the book and attempt to draw the architecture yourself on a whiteboard. Write down the API endpoints, list the database tables and schemas, estimate the write/read QPS, and then compare your design against Alex's templates to identify gaps in your scaling logic.
+### Sub-Topic A: Consistent Hashing Rings
+
+#### 1. System Design Interview – An Easy Guide (Volume 1)
+*   **Direct URL:** https://bytebytego.com/
+*   **Search Identification:** Search Web for: `"System Design Interview Volume 1" (Author: Alex Xu)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Volume 1, Chapter 5 details consistent hashing designs, virtual nodes layouts, and keys remapping calculations.
+*   **Mutual Exclusivity Mapping:** If you read this book, you can skip *Consistent Hashing Algorithmic Foundations (Coursera)* as Alex Xu covers virtual nodes with much tighter visual blueprints.
+
+#### 2. Designing Data-Intensive Applications (Chapter 6)
+*   **Direct URL:** https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/
+*   **Search Identification:** Search O'Reilly Media for: `"Designing Data-Intensive Applications" (Author: Martin Kleppmann)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Details partitioning algorithms, consistent hashing, hotspots mitigations, and cross-shard join boundaries.
+*   **Mutual Exclusivity Mapping:** Required baseline systems engineering reference.
+
+#### 3. Consistent Hashing Algorithmic Foundations
+*   **Direct URL:** https://www.coursera.org/learn/algorithms-part2
+*   **Search Identification:** Search Coursera for: `"Algorithms, Part II" (Princeton University)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Free Audit Tier Available
+*   **Status:** Alternative to: *System Design Interview – An Easy Guide (Volume 1)*.
+*   **Description:** Academic video course explaining search trees, hashing algorithms, and distributed hash tables.
+*   **Mutual Exclusivity Mapping:** Shorter academic alternative.
+
+#### 4. Visualizing Consistent Hashing Rings
+*   **Direct URL:** https://www.toptal.com/web/consistent-hashing
+*   **Search Identification:** Search Google/Web for: `"Toptal consistent hashing database guide"`
+*   **Resource Type:** Written Reference & Interactive Diagrams
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Outstanding interactive visual guide explaining how keys remap when cache nodes crash.
+*   **Mutual Exclusivity Mapping:** Standard visual guide.
+
+#### 5. Distributed Hash Tables and Ring Topologies
+*   **Direct URL:** https://web.stanford.edu/class/cs244b/
+*   **Search Identification:** Search Web for: `"Stanford CS244b distributed systems lecture notes"`
+*   **Resource Type:** Written Reference / Lecture Notes
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Low-level theoretical specs on chord ring protocols and peer-to-peer hash routing.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 2: *Designing Data-Intensive Applications* by Martin Kleppmann
-*   **Why It Was Selected:** Alex Xu teaches you how to draw the architectural blocks; Martin Kleppmann teaches you how the databases and message logs inside those blocks actually process bytes. This book is selected to provide the deep, theoretical foundation underneath systems design. It ensures that when you suggest "Redis" or "Kafka" in a system design interview, you can defend the decision under questioning by senior architects.
-*   **Target Syllabus Modules/Chapters:**
-    *   Chapter 5: Replication (Single-leader, Multi-leader, Leaderless)
-    *   Chapter 6: Partitioning (Sharding, Secondary Indexing)
-    *   Chapter 8: The Trouble with Distributed Systems (Network delays, clocks, consensus)
-*   **Time Investment Required:** 25 hours.
-*   **Value Assessment:** Exceptional.
-*   **Actionable Study Strategy:** Focus on Chapter 8 on Distributed Systems. Understand why system clocks cannot be trusted to order events in distributed nodes, and study how logical time systems (like Lamport timestamps) solve ordering problems.
+### Sub-Topic B: Horizontal vs Vertical Auto-Scaling
+
+#### 6. Scale Up vs Scale Out: AWS & Azure Auto-Scaling
+*   **Direct URL:** https://www.pluralsight.com/courses/aws-azure-auto-scaling
+*   **Search Identification:** Search Pluralsight/Google for: `"Pluralsight AWS Azure Auto Scaling"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid / Free Trial Available
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video guide explaining vertical scaling limits, load balancers target groups, CPU threshold rules, and horizontal cluster scaling.
+*   **Mutual Exclusivity Mapping:** If you take this, you can skip *Designing Scalable Web Applications* as this course covers actual cloud configuration steps in full.
+
+#### 7. Designing Scalable Web Applications
+*   **Direct URL:** https://www.udemy.com/course/designing-scalable-web-applications/
+*   **Search Identification:** Search Udemy for: `"Designing Scalable Web Applications" (Instructor: Zeal Vora)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *Scale Up vs Scale Out: AWS & Azure Auto-Scaling*.
+*   **Description:** Video walkthrough configuring scalable load balanced instances.
+*   **Mutual Exclusivity Mapping:** Choose this if you prefer a detailed code-level look at Linux cluster configurations.
+
+#### 8. Scaling Systems Horizontally: Load & Bottlenecks
+*   **Direct URL:** https://www.linkedin.com/learning/scaling-systems-horizontally
+*   **Search Identification:** Search LinkedIn Learning for: `"Scaling Systems Horizontally"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required
+*   **Description:** Details database bottleneck profiles and temporal processing caps under heavy load.
+*   **Mutual Exclusivity Mapping:** Required scaling reference.
+
+#### 9. AWS Auto Scaling Groups & Rules
+*   **Direct URL:** https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html
+*   **Search Identification:** Search Web for: `"Amazon EC2 Auto Scaling official user guide"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Complete AWS operational guide to scaling metrics, warm pools, and cooldown durations.
+*   **Mutual Exclusivity Mapping:** Standard cloud manual.
+
+#### 10. The Art of Scalability
+*   **Direct URL:** https://www.oreilly.com/library/view/the-art-of/9780134032801/
+*   **Search Identification:** Search O'Reilly Media for: `"The Art of Scalability" (Authors: Martin L. Abbott, Michael T. Fisher)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Optional
+*   **Description:** Landmark guide defining the Scale Cube ($X$, $Y$, $Z$ scaling axes).
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 3: *System Design Primer* by Donne Martin (GitHub repository)
-*   **Why It Was Selected:** The single most comprehensive, open-source systems design resource in the world. It contains detailed reviews, study roadmaps, and step-by-step guides for multiple systems scenarios.
-*   **Target Syllabus Modules/Chapters:**
-    *   All system design index topics (Caching, DNS, Load Balancers, Databases, CAP theorem)
-    *   Step-by-step guide on how to approach a system design interview question
-*   **Time Investment Required:** 20 hours.
-*   **Value Assessment:** Critical.
-*   **Actionable Study Strategy:** Print out the **System design interview template**. Memorize the structure: Define requirements, design high-level blocks, dive deep into constraints, write down scale parameters, and evaluate bottlenecks. Apply this exact structure to every problem.
+### Sub-Topic C: Load Balancing Algorithms
+
+#### 11. System Design: Load Balancers and API Gateways
+*   **Direct URL:** https://www.udemy.com/course/load-balancers-api-gateways/
+*   **Search Identification:** Search Udemy for: `"Load Balancers and API Gateways" (Instructor: Hussein Nasser)`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Complete guide to layer 4 (TCP) versus layer 7 (HTTP) load balancing, reverse proxies, and Nginx proxy setups.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip *Nginx and HAProxy Load Balancing* as Hussein Nasser covers proxy TCP connections with deeper C-level socket details.
+
+#### 12. Nginx and HAProxy Load Balancing Masterclass
+*   **Direct URL:** https://www.udemy.com/course/nginx-haproxy/
+*   **Search Identification:** Search Udemy for: `"Nginx HAProxy Load Balancing Masterclass"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Alternative to: *System Design: Load Balancers and API Gateways*.
+*   **Description:** Focuses on HAProxy stats, session stickiness, and SSL terminations.
+*   **Mutual Exclusivity Mapping:** Shorter video alternative.
+
+#### 13. Load Balancing Algorithms (Round Robin, Least Connections, IP Hash)
+*   **Direct URL:** https://www.linkedin.com/learning/load-balancing-algorithms
+*   **Search Identification:** Search LinkedIn Learning for: `"Load Balancing Algorithms"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required
+*   **Description:** Video walkthrough explaining Round Robin, Weighted Least Connections, and IP Hash algorithms.
+*   **Mutual Exclusivity Mapping:** Standard algorithms guide.
+
+#### 14. DNS Load Balancing and Geo-Routing
+*   **Direct URL:** https://www.cloudflare.com/learning/performance/what-is-dns-load-balancing/
+*   **Search Identification:** Search Web for: `"Cloudflare learning what is DNS load balancing"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains how DNS servers route clients based on geographic coordinates.
+*   **Mutual Exclusivity Mapping:** Standard routing guide.
+
+#### 15. Load Balancing at Scale (Google Maglev Paper)
+*   **Direct URL:** https://research.google/pubs/pub44824/
+*   **Search Identification:** Search Web for: `"Google Maglev load balancer research paper"`
+*   **Resource Type:** Research PDF / Scientific Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Google's original engineering specs for high-performance software network load balancing.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
-### Resource 4: *ByteByteGo Blog & Newsletter* (bytebytego.com)
-*   **Why It Was Selected:** A highly visual, constantly updated system design newsletter that analyzes recent scaling outages, modern architecture updates, and API standards.
-*   **Target Syllabus Modules/Chapters:**
-    *   Weekly architecture teardowns
-    *   HTTP/3 vs HTTP/2 profiles, RPC comparison guides
-*   **Time Investment Required:** 2 hours per week.
-*   **Value Assessment:** High. Keeps your knowledge updated with current tech shifts.
-*   **Actionable Study Strategy:** Read the weekly articles. Keep a running document in your notes tracking how companies like Netflix, Discord, or Uber design their real-time notification systems and geo-distributed databases.
+### Sub-Topic D: Reverse Proxies & CDN Caching
+
+#### 16. Nginx HTTP Server and Reverse Proxy Mastery
+*   **Direct URL:** https://www.udemy.com/course/nginx-reverse-proxy/
+*   **Search Identification:** Search Udemy for: `"Nginx Reverse Proxy Masterclass"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Video masterclass covering Nginx configuration directives, reverse proxy headers routing, and local file caches setups.
+*   **Mutual Exclusivity Mapping:** If you complete this, you can skip Varnish edge caching guides as Nginx handles basic edge proxies with native syntax.
+
+#### 17. Cloudflare Edge CDN Configurations
+*   **Direct URL:** https://developers.cloudflare.com/cache/
+*   **Search Identification:** Search Web for: `"Cloudflare developers cache documentation guides"`
+*   **Resource Type:** Written Reference / Documentation
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains Edge TTL, cache rules, origin shield, and bypass parameters.
+*   **Mutual Exclusivity Mapping:** Standard CDN manual.
+
+#### 18. CDN Pull vs Push Architectures
+*   **Direct URL:** https://bytebytego.com/
+*   **Search Identification:** Search Web for: `"ByteByteGo CDN pull vs push architectures"`
+*   **Resource Type:** Written Publication & Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Explains edge pull caching vs asset staging push models.
+*   **Mutual Exclusivity Mapping:** Essential scaling guide.
+
+#### 19. Caching at the Edge with Varnish
+*   **Direct URL:** https://www.oreilly.com/library/view/caching-at-the/9781491931899/
+*   **Search Identification:** Search O'Reilly Media for: `"Caching at the Edge" (Author: Varnish Software)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required
+*   **Description:** Standard guide to Varnish Configuration Language (VCL), edge caching, and invalidation rules.
+*   **Mutual Exclusivity Mapping:** Standard edge caching manual.
+
+#### 20. Understanding DNS, CDN and Edge Caching (LinkedIn Learning)
+*   **Direct URL:** https://www.linkedin.com/learning/understanding-dns-cdn-and-edge-caching
+*   **Search Identification:** Search LinkedIn Learning for: `"Understanding DNS CDN"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Optional
+*   **Description:** Shorter video alternative covering edge caching loops.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+---
+
+### Sub-Topic E: High Availability & Mitigation of SPOF
+
+#### 21. System Design Primer (GitHub Repository)
+*   **Direct URL:** https://github.com/donnemartin/system-design-primer
+*   **Search Identification:** Search GitHub for: `"donnemartin system-design-primer"`
+*   **Resource Type:** Interactive Graph Reference
+*   **Access / Price:** 100% Free
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** The absolute premier open-source study roadmap covering DNS, CDNs, Load Balancers, CAP theorem, and High Availability.
+*   **Mutual Exclusivity Mapping:** Gold standard reference; no direct equivalent.
+
+#### 22. Designing High Availability Systems
+*   **Direct URL:** https://www.pluralsight.com/courses/designing-high-availability-systems
+*   **Search Identification:** Search Pluralsight for: `"Pluralsight Designing High Availability Systems"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid / Free Trial Available
+*   **Status:** Alternative to: *System Design Primer*.
+*   **Description:** Focuses on master-slave topologies, automated failovers, and backup scripts.
+*   **Mutual Exclusivity Mapping:** Choose this if you prefer a detailed video guide to failover scripts.
+
+#### 23. Chaos Engineering and High Availability (Gremlin)
+*   **Direct URL:** https://www.udemy.com/course/chaos-engineering/
+*   **Search Identification:** Search Udemy for: `"Chaos Engineering Masterclass"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Udemy Business)
+*   **Status:** Required
+*   **Description:** Video walkthrough simulating server failures, network latency, and memory exhausts to verify resiliency.
+*   **Mutual Exclusivity Mapping:** Essential chaos engineering course.
+
+#### 24. Resilient System Designs: Circuit Breakers and Fallbacks
+*   **Direct URL:** https://www.linkedin.com/learning/resilient-system-designs-circuit-breakers-and-fallbacks
+*   **Search Identification:** Search LinkedIn Learning for: `"Resilient System Designs"`
+*   **Resource Type:** Video Course
+*   **Access / Price:** Paid (Included in TCS Enterprise Account)
+*   **Status:** Required
+*   **Description:** Explains how to implement circuit breaker patterns (e.g. Hystrix, Resilience4j) to prevent cascading failures.
+*   **Mutual Exclusivity Mapping:** Standard resiliency guide.
+
+#### 25. Designing Distributed Systems
+*   **Direct URL:** https://www.oreilly.com/library/view/designing-distributed-systems/9781491983638/
+*   **Search Identification:** Search O'Reilly Media for: `"Designing Distributed Systems" (Author: Brendan Burns)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Optional
+*   **Description:** Focuses on container-based design patterns (sidecar, ambassador) for high availability.
+*   **Mutual Exclusivity Mapping:** Optional booster.
+
+---
+
+### Sub-Topic F: Real-World Architecture Deep Dives (Uber/Netflix)
+
+#### 26. ByteByteGo Blog & Newsletter
+*   **Direct URL:** https://bytebytego.com/
+*   **Search Identification:** Search Google/Web for: `"ByteByteGo newsletter system design teardowns"`
+*   **Resource Type:** Written Publication & Reference
+*   **Access / Price:** Free Tier Available
+*   **Status:** Required (Non-Negotiable)
+*   **Description:** Weekly visual system design teardowns of companies like Uber, Netflix, Discord, and Slack.
+*   **Mutual Exclusivity Mapping:** If you subscribe to this, you can skip *Netflix Engineering Blog* as ByteByteGo translates their architectures into clear, digestible blueprints.
+
+#### 27. System Design Interview – Volume 2
+*   **Direct URL:** https://bytebytego.com/
+*   **Search Identification:** Search Web for: `"System Design Interview Volume 2" (Author: Alex Xu)`
+*   **Resource Type:** Book
+*   **Access / Price:** Paid (Included in TCS O'Reilly Enterprise benefit)
+*   **Status:** Required
+*   **Description:** Volume 2 details geo-distributed databases, S3-like object storage, digital wallets, and hotel reservation systems.
+*   **Mutual Exclusivity Mapping:** Essential architecture book.
+
+#### 28. How Netflix Scales: Distributed Systems Architecture
+*   **Direct URL:** https://netflixtechblog.com/
+*   **Search Identification:** Search Web for: `"Netflix Tech Blog distributed systems microservices"`
+*   **Resource Type:** Written Publication / Tech Blog
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Direct articles written by Netflix engineers detailing Chaos Monkey, Cassandra migrations, and video streaming.
+*   **Mutual Exclusivity Mapping:** Core real-world reference.
+
+#### 29. Uber's Microservices Architecture and Scalability
+*   **Direct URL:** https://www.uber.com/en-IN/blog/engineering/
+*   **Search Identification:** Search Web for: `"Uber Engineering Blog microservices scalability"`
+*   **Resource Type:** Written Publication / Tech Blog
+*   **Access / Price:** 100% Free
+*   **Status:** Required
+*   **Description:** Teardowns of Uber's geo-routing systems, Kafka event hubs, and distributed ledger databases.
+*   **Mutual Exclusivity Mapping:** Essential real-world reference.
+
+#### 30. Discord's Backend Scalability: Moving from MongoDB to ScyllaDB
+*   **Direct URL:** https://discord.com/blog/how-discord-stores-billions-of-messages
+*   **Search Identification:** Search Web for: `"Discord Engineering Blog stores billions of messages"`
+*   **Resource Type:** Written Publication
+*   **Access / Price:** 100% Free
+*   **Status:** Optional
+*   **Description:** Outstanding case study detailing how Discord scaled their chat backend storage by migrating to ScyllaDB.
+*   **Mutual Exclusivity Mapping:** Optional booster.
 
 ---
 
@@ -159,7 +404,7 @@ graph TD
     *   Do not use an external hashing library. Write a basic consistent hashing ring implementation in TypeScript.
     *   Map `Server A` and `Server B` to the ring using 10 virtual nodes each.
     *   The Gateway must receive requests on port 3000, parse the HTTP request query parameter `user_id`, map the `user_id` to the consistent hashing ring, and proxy the HTTP request to the designated server.
-3.  **Benchmarking & Tuning:**
+3.  **Benchmark Testing:**
     *   Install a load testing tool (e.g. `autocannon` or `k6`).
     *   Run a test suite:
         ```bash
@@ -193,4 +438,4 @@ Verify these objectives are complete before ending this phase:
 
 ---
 
-*[Proceed to Part 11: Microservices Architecture Patterns →](/blog/it-career-guide/part-11-microservices)*
+*[Proceed to Part 11: Microservices: Boundaries, Communication, and Fault Tolerance →](/blog/it-career-guide/part-11-microservices)*
