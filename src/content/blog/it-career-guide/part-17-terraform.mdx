@@ -1,0 +1,421 @@
+---
+title: "Part 17: Infrastructure as Code - Terraform & Cloud Automation"
+description: "Learn HCL syntax, state management, modules, providers, AWS/Cloudflare resources, drift detection, and workspaces for cloud automation."
+pubDate: 2026-05-29
+tags: ["Terraform", "IaC", "DevOps", "Cloud", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 17
+draft: false
+---
+
+# Part 17: Infrastructure as Code - Terraform & Cloud Automation
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Infrastructure as Code (IaC) in 2026?
+
+IaC is essential for modern cloud operations. Engineers with Terraform expertise command **20-30% higher salaries** in DevOps and platform engineering roles.
+
+### Key Benefits
+- **Version control**: Infrastructure changes tracked in Git
+- **Reproducibility**: Consistent environments across dev/test/prod
+- **Collaboration**: Team-based infrastructure management
+- **Audit trail**: History of all infrastructure changes
+- **Disaster recovery**: Rebuild infrastructure from code
+
+---
+
+## 2. Terraform Fundamentals
+
+### Basic Configuration
+
+```hcl
+# main.tf
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+  
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "production/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+```
+
+### Variables
+
+```hcl
+# variables.tf
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "allowed_ips" {
+  description = "Allowed IPs for SSH access"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+```
+
+### Outputs
+
+```hcl
+# outputs.tf
+output "instance_public_ip" {
+  description = "Public IP of the instance"
+  value       = aws_instance.web.public_ip
+}
+
+output "load_balancer_dns" {
+  description = "DNS name of the load balancer"
+  value       = aws_lb.main.dns_name
+}
+```
+
+---
+
+## 3. AWS Resource Management
+
+### VPC and Networking
+
+```hcl
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  tags = {
+    Name = "main-vpc"
+  }
+}
+
+resource "aws_subnet" "public" {
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.${count.index + 10}.0/24"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  
+  tags = {
+    Name = "public-subnet-${count.index + 1}"
+  }
+}
+
+data "aws_availability_zones" "available" {}
+```
+
+### EC2 Instance
+
+```hcl
+resource "aws_instance" "web" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
+  vpc_security_group_ids = [aws_security_group.web.id]
+  key_name               = var.key_name
+  
+  user_data = base64encode(templatefile("${path.module}/user_data.sh", {
+    app_port = 8000
+  }))
+  
+  tags = {
+    Name = "web-server"
+  }
+}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"]  # Canonical
+  
+  filter {
+    name   = "image-id"
+    values = ["ami-0c02fb55956c7d316"]
+  }
+}
+```
+
+### Load Balancer
+
+```hcl
+resource "aws_lb" "main" {
+  name               = "main-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb.id]
+  subnets            = [for subnet in aws_subnet.public : subnet.id]
+}
+
+resource "aws_lb_target_group" "main" {
+  name     = "main-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+}
+
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+}
+```
+
+---
+
+## 4. Cloudflare Integration
+
+### Cloudflare Resources
+
+```hcl
+resource "cloudflare_zone" "main" {
+  name = "example.com"
+}
+
+resource "cloudflare_record" "www" {
+  zone_id = cloudflare_zone.main.zone_id
+  name    = "www"
+  content = aws_lb.main.dns_name
+  type    = "CNAME"
+  proxied = true
+}
+
+resource "cloudflare_worker_script" "api" {
+  name    = "api-worker"
+  content = file("${path.module}/worker.js")
+}
+```
+
+### Workers KV Namespace
+
+```hcl
+resource "cloudflare_kv_namespace" "cache" {
+  title = "Cache"
+}
+
+resource "cloudflare_worker_mount" "kv" {
+  script_name = cloudflare_worker_script.api.name
+  binding     = "CACHE"
+  kv_namespace = cloudflare_kv_namespace.cache.id
+}
+```
+
+---
+
+## 5. Modules and Reusability
+
+### Module Structure
+
+```hcl
+# modules/vpc/main.tf
+variable "cidr_block" {}
+variable "enable_nat_gateway" { default = true }
+
+resource "aws_vpc" "this" {
+  cidr_block           = var.cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+}
+
+resource "aws_subnet" "public" {
+  count = 2
+  vpc_id = aws_vpc.this.id
+  cidr_block = var.public_subnets[count.index]
+}
+
+output "vpc_id" {
+  value = aws_vpc.this.id
+}
+
+output "public_subnets" {
+  value = aws_subnet.public[*].id
+}
+```
+
+### Module Usage
+
+```hcl
+module "vpc" {
+  source = "./modules/vpc"
+  
+  cidr_block = "10.0.0.0/16"
+  public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+module "ec2" {
+  source = "./modules/ec2"
+  
+  vpc_id = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnets
+}
+```
+
+---
+
+## 6. State Management
+
+### Remote State
+
+```hcl
+# backend.tf
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "production/terraform.tfstate"
+    region = "us-east-1"
+    dynamodb_table = "terraform-locks"
+  }
+}
+
+resource "aws_dynamodb_table" "terraform_locks" {
+  name           = "terraform-locks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "LockID"
+  
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
+```
+
+### State Locking
+
+```hcl
+# Enable state locking with DynamoDB
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state"
+    key            = "production/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+```
+
+---
+
+## 7. Workspaces
+
+### Workspace Configuration
+
+```hcl
+# production.tfvars
+environment = "production"
+instance_count = 3
+instance_type = "t3.medium"
+
+# staging.tfvars
+environment = "staging"
+instance_count = 1
+instance_type = "t3.small"
+```
+
+### Using Workspaces
+
+```bash
+# Create and switch workspaces
+terraform workspace new production
+terraform workspace new staging
+
+# Select workspace
+terraform workspace select production
+
+# Apply with workspace-specific variables
+terraform apply -var-file="${terraform.workspace}.tfvars"
+```
+
+---
+
+## 8. Resource Directory: Terraform
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Terraform: Up & Running** | Yevgeniy Brikman | Paid | Terraform fundamentals |
+| **Terraform: Best Practices** | O'Reilly | Paid | Advanced patterns |
+| **Infrastructure as Code** | Kief Morris | Paid | IaC best practices |
+| **Cloud Infrastructure Management** | Manning | Paid | Multi-cloud IaC |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Terraform for Beginners** | Maximilian Schwarzmüller | ₹999-1,499 | Terraform basics |
+| **Terraform: Up & Running** | KodeKloud | ₹1,499-2,299 | Advanced Terraform |
+| **AWS Terraform** | Stephane Maarek | ₹999-1,499 | AWS with Terraform |
+| **Terraform Associate** | Atil Samancioglu | ₹1,499-2,299 | Certification prep |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Terraform: Up and Running** | O'Reilly | Paid |
+| **Terraform: Best Practices** | O'Reilly | Paid |
+| **Infrastructure as Code** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Terraform Essential Training** | Erin Allard | Paid |
+| **Infrastructure as Code** | Barron Stone | Paid |
+| **AWS Infrastructure** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Terraform Docs** | Official docs | terraform.io/docs |
+| **Terraform Registry** | Providers | registry.terraform.io |
+| **Awesome Terraform** | GitHub | github.com/goldbergyoni/terraform-best-practices |
+| **Terraform Best Practices** | GitHub | github.com/antonbabenko/terraform-best-practices |
+
+---
+
+## 9. Common Terraform Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between terraform plan and apply?** | Plan creates execution plan, apply executes the plan. |
+| **What is terraform state?** | State file tracks resource mappings and metadata. |
+| **How to handle secrets in terraform?** | Use terraform.tfvars, environment variables, or secret managers. |
+| **What are modules?** | Reusable, encapsulated Terraform configurations. |
+| **How to import existing resources?** | Use `terraform import` to bring existing resources under management. |
+
+---
+
+## 10. Part Navigation
+
+### Previous Parts
+[Part 16: Serverless Architectures](/blog/it-career-guide/part-16-serverless)
+
+### Next Parts
+[Part 18: Observability](/blog/it-career-guide/part-18-observability) ·
+[Part 19: CI/CD Pipelines](/blog/it-career-guide/part-19-cicd)
+
+---
+
+*[Proceed to Part 18: Observability →](/blog/it-career-guide/part-18-observability)*

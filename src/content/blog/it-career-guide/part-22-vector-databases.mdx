@@ -1,0 +1,414 @@
+---
+title: "Part 22: Vector Databases - Pinecone, Chroma, Milvus & PGVector"
+description: "Learn index types (HNSW, IVF), metadata filtering, hybrid search, performance tuning, and managed vs self-hosted vector databases."
+pubDate: 2026-05-29
+tags: ["Vector Databases", "AI", "Machine Learning", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 22
+draft: false
+---
+
+# Part 22: Vector Databases - Pinecone, Chroma, Milvus & PGVector
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Vector Databases in 2026?
+
+Vector databases are critical for GenAI applications. Engineers with vector DB expertise command **30-50% higher salaries** in AI engineering roles.
+
+### Key Use Cases
+- **RAG Systems**: Store and retrieve knowledge
+- **Semantic Search**: Find similar content
+- **Recommendation Systems**: User/item similarity
+- **Anomaly Detection**: Outlier identification
+
+---
+
+## 2. Vector Database Fundamentals
+
+### Embedding Storage
+
+```python
+# Store embeddings with metadata
+documents = [
+    {
+        "id": "doc1",
+        "vector": [0.1, 0.2, 0.3, ...],  # 384-dim embedding
+        "text": "Machine learning is fascinating",
+        "category": "tech",
+        "timestamp": "2024-01-15"
+    },
+    {
+        "id": "doc2",
+        "vector": [0.4, 0.5, 0.6, ...],
+        "text": "Data science workflows",
+        "category": "tech",
+        "timestamp": "2024-01-16"
+    }
+]
+```
+
+### Similarity Metrics
+
+```python
+import numpy as np
+
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+def euclidean_distance(a, b):
+    return np.sqrt(np.sum((a - b) ** 2))
+
+def dot_product(a, b):
+    return np.dot(a, b)
+```
+
+---
+
+## 3. Pinecone Implementation
+
+### Setup and Configuration
+
+```python
+import pinecone
+from pinecone import PodIndexerClient
+
+# Initialize Pinecone
+pinecone.init(
+    api_key="YOUR_API_KEY",
+    environment="us-west1-gcp"
+)
+
+# Create index
+index_name = "knowledge-base"
+pinecone.create_index(
+    name=index_name,
+    dimension=384,  # Embedding dimension
+    metric="cosine",
+    pod_type="p1"
+)
+
+index = pinecone.GRPCIndex(index_name)
+```
+
+### Upsert Operations
+
+```python
+# Prepare vectors for upsert
+upserts = [
+    {
+        "id": "doc1",
+        "values": [0.1, 0.2, 0.3, ...],  # 384-dim vector
+        "metadata": {
+            "text": "Machine learning is fascinating",
+            "category": "tech"
+        }
+    }
+]
+
+# Upsert to Pinecone
+index.upsert(upserts)
+```
+
+### Query Operations
+
+```python
+# Query similar vectors
+query_vector = [0.1, 0.2, 0.3, ...]  # Your query embedding
+
+results = index.query(
+    queries=[query_vector],
+    top_k=5,
+    include_metadata=True,
+    filtering={"category": "tech"}  # Metadata filtering
+)
+
+for match in results.matches:
+    print(f"ID: {match.id}, Score: {match.score}")
+    print(f"Text: {match.metadata['text']}")
+```
+
+---
+
+## 4. Chroma Implementation
+
+### Local Setup
+
+```python
+import chromadb
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+
+# Create client
+client = chromadb.PersistentClient(path="./chroma_db")
+
+# Create collection
+embedding_func = SentenceTransformerEmbeddingFunction()
+collection = client.create_collection(
+    name="knowledge_base",
+    embedding_function=embedding_func
+)
+```
+
+### Add Documents
+
+```python
+# Add documents with embeddings
+collection.add(
+    embeddings=[
+        [0.1, 0.2, 0.3, ...],  # Pre-computed embeddings
+        [0.4, 0.5, 0.6, ...]
+    ],
+    documents=[
+        "Machine learning is fascinating",
+        "Data science workflows"
+    ],
+    metadatas=[
+        {"category": "tech", "author": "john"},
+        {"category": "tech", "author": "jane"}
+    ],
+    ids=["doc1", "doc2"]
+)
+```
+
+### Query with Chroma
+
+```python
+# Query using natural language
+results = collection.query(
+    query_texts=["Tell me about AI"],
+    n_results=3,
+    where={"category": "tech"}  # Metadata filtering
+)
+
+for i, doc in enumerate(results['documents'][0]):
+    print(f"Document: {doc}")
+    print(f"Distance: {results['distances'][0][i]}")
+```
+
+---
+
+## 5. Milvus Implementation
+
+### Connection and Collection
+
+```python
+from pymilvus import connections, Collection, FieldSchema, DataType
+
+# Connect to Milvus
+connections.connect("default", host="localhost", port="19530")
+
+# Define schema
+fields = [
+    FieldSchema(name="id", dtype=DataType.INT64, is_primary=True),
+    FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=384),
+    FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=2000),
+    FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=100)
+]
+
+# Create collection
+collection = Collection("knowledge_base", fields)
+```
+
+### Index Creation
+
+```python
+# Create index
+index_params = {
+    "metric_type": "L2",
+    "index_type": "IVF_FLAT",
+    "params": {"nlist": 128}
+}
+
+collection.create_index("vector", index_params)
+```
+
+### Search Operations
+
+```python
+# Insert vectors
+entities = [
+    [1, 2],
+    [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]],
+    ["text1", "text2"],
+    ["cat1", "cat2"]
+]
+
+collection.insert(entities)
+
+# Search
+search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
+results = collection.search(
+    [query_vector],
+    "vector",
+    search_params,
+    limit=5
+)
+```
+
+---
+
+## 6. PGVector (PostgreSQL Extension)
+
+### Setup and Configuration
+
+```sql
+-- Install extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Create table
+CREATE TABLE documents (
+    id UUID PRIMARY KEY,
+    content TEXT,
+    embedding VECTOR(384),
+    metadata JSONB
+);
+
+-- Create index
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+```
+
+### Python Integration
+
+```python
+import psycopg2
+from psycopg2.extras import execute_values
+
+# Connect to PostgreSQL
+conn = psycopg2.connect(DATABASE_URL)
+cur = conn.cursor()
+
+# Insert embeddings
+insert_sql = """
+INSERT INTO documents (id, content, embedding, metadata)
+VALUES %s
+"""
+
+documents = [
+    ('uuid-1', 'Machine learning is fascinating', [0.1, 0.2, ...], '{"category": "tech"}'),
+]
+
+execute_values(cur, insert_sql, documents, template=None, page_size=100)
+conn.commit()
+```
+
+### Similarity Search
+
+```sql
+-- Find similar documents
+SELECT id, content, 1 - (embedding <=> '[0.1,0.2,...]') AS similarity
+FROM documents
+ORDER BY embedding <=> '[0.1,0.2,...]'
+LIMIT 5;
+```
+
+---
+
+## 7. Index Types and Performance
+
+### HNSW (Hierarchical Navigable Small World)
+
+```python
+# HNSW parameters
+hnsw_params = {
+    "M": 16,           # Max connections per node
+    "efConstruction": 200,  # Construction time/accuracy
+    "ef": 50           # Runtime accuracy
+}
+```
+
+### IVF (Inverted File)
+
+```python
+# IVF parameters
+ivf_params = {
+    "nlist": 100,      # Number of clusters
+    "nprobe": 10       # Number of clusters to probe
+}
+```
+
+### Performance Comparison
+
+| Database | Query Speed | Storage | Features |
+|----------|-------------|---------|----------|
+| **Pinecone** | Fast | Managed | Metadata filtering |
+| **Chroma** | Medium | Local/Managed | Easy Python API |
+| **Milvus** | Fast | Self-hosted | Scalable, distributed |
+| **PGVector** | Medium | PostgreSQL | SQL integration |
+
+---
+
+## 8. Resource Directory: Vector Databases
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Building Vector Databases** | O'Reilly | Paid | Vector DB fundamentals |
+| **Practical Vector Databases** | Packt | Paid | Implementation |
+| **AI Engineering** | O'Reilly | Paid | AI systems |
+| **Deep Learning** | Ian Goodfellow | Paid | Mathematical foundations |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Vector Databases Course** | Instructor | ₹1,999-2,999 | Pinecone, Chroma |
+| **RAG Systems** | Instructor | ₹1,999-2,999 | Retrieval-augmented |
+| **Pinecone Masterclass** | Instructor | ₹1,499-2,299 | Pinecone specifics |
+| **Chroma DB Course** | Instructor | ₹999-1,499 | Chroma implementation |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Building Vector Databases** | O'Reilly | Paid |
+| **Learning Vector Search** | O'Reilly | Paid |
+| **Practical Vector Databases** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Vector Databases** | Instructor | Paid |
+| **Similarity Search** | Instructor | Paid |
+| **AI Search Systems** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Pinecone Docs** | Official docs | docs.pinecone.io |
+| **Chroma Docs** | Official docs | docs.getchroma.com |
+| **Milvus Docs** | Official docs | milvus.io/docs |
+| **PGVector Docs** | Official docs | github.com/pgvector/pgvector |
+
+---
+
+## 9. Common Vector DB Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between HNSW and IVF?** | HNSW is hierarchical, faster queries; IVF is clustering-based, memory efficient. |
+| **What is embedding dimension?** | Number of dimensions in vector representation (e.g., 384 for MiniLM). |
+| **How to handle metadata filtering?** | Use secondary indexes on metadata fields. |
+| **What is quantization?** | Reduce precision to save memory (e.g., 8-bit quantization). |
+| **How to measure similarity?** | Cosine similarity, Euclidean distance, dot product. |
+
+---
+
+## 10. Part Navigation
+
+### Previous Parts
+[Part 21: Generative AI Fundamentals](/blog/it-career-guide/part-21-genai-fundamentals)
+
+### Next Parts
+[Part 23: RAG Architectures](/blog/it-career-guide/part-23-rag-architectures) ·
+[Part 24: LangChain Foundations](/blog/it-career-guide/part-24-langchain)
+
+---
+
+*[Proceed to Part 23: RAG Architectures →](/blog/it-career-guide/part-23-rag-architectures)*

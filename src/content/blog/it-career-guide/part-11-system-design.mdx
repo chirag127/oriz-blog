@@ -1,0 +1,449 @@
+---
+title: "Part 11: System Design Fundamentals - Scalability Patterns"
+description: "Master horizontal/vertical scaling, load balancing algorithms, CAP theorem, consistent hashing, CDN architecture, and reverse proxy patterns for scalable systems."
+pubDate: 2026-05-29
+tags: ["System Design", "Backend", "Scalability", "Distributed Systems", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 11
+draft: false
+---
+
+# Part 11: System Design Fundamentals - Scalability Patterns
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why System Design in 2026?
+
+System design is the most tested topic in technical interviews at product companies. Engineers with strong system design skills command **25-40% higher salaries** than those without.
+
+### Key Areas
+- Horizontal vs vertical scaling
+- Load balancing strategies
+- Database scaling patterns
+- Caching architectures
+- CDN implementation
+
+---
+
+## 2. Scaling Strategies
+
+### Vertical Scaling
+
+```yaml
+# Single server scaling
+Server:
+  CPU: 2x Intel Xeon
+  RAM: 128GB
+  Storage: 2TB SSD
+  Network: 10 Gbps
+```
+
+**Pros**: Simple, no code changes needed
+**Cons**: Hardware limits, single point of failure
+
+### Horizontal Scaling
+
+```yaml
+# Distributed system
+Load Balancer:
+  - Server 1 (CPU: 4, RAM: 16GB)
+  - Server 2 (CPU: 4, RAM: 16GB)
+  - Server 3 (CPU: 4, RAM: 16GB)
+```
+
+**Pros**: Unlimited scalability, fault tolerance
+**Cons**: Complex, requires design considerations
+
+---
+
+## 3. Load Balancing Algorithms
+
+### Round Robin
+
+```python
+# Simple round-robin
+servers = ['server1', 'server2', 'server3']
+current = 0
+
+def get_next_server():
+    global current
+    server = servers[current]
+    current = (current + 1) % len(servers)
+    return server
+```
+
+### Weighted Round Robin
+
+```python
+servers = [
+    {'name': 'server1', 'weight': 5},
+    {'name': 'server2', 'weight': 3},
+    {'name': 'server3', 'weight': 2}
+]
+
+def weighted_round_robin():
+    total_weight = sum(s['weight'] for s in servers)
+    # Select based on weight distribution
+```
+
+### Least Connections
+
+```python
+class LoadBalancer:
+    def __init__(self):
+        self.server_connections = {}
+    
+    def get_least_loaded(self):
+        return min(self.server_connections.items(), key=lambda x: x[1])[0]
+```
+
+### IP Hash
+
+```python
+def ip_hash(client_ip, servers):
+    # Ensure same client goes to same server
+    hash_value = hash(client_ip)
+    return servers[hash_value % len(servers)]
+```
+
+---
+
+## 4. CAP Theorem
+
+### The Three Guarantees
+
+```
+Consistency (C) + Availability (A) + Partition Tolerance (P)
+```
+
+| System | Consistency | Availability | Partition Tolerance |
+|--------|-------------|--------------|---------------------|
+| **CA** | Strong | Yes | No |
+| **CP** | Strong | No | Yes |
+| **AP** | Eventual | Yes | Yes |
+
+### Practical Examples
+
+```python
+# CP System (Database)
+# Sacrifice availability for consistency
+# PostgreSQL cluster with synchronous replication
+
+# AP System (Web Application)
+# Sacrifice consistency for availability
+# Redis cluster, DynamoDB
+
+# CA System (Single Server)
+# No network partitions possible
+# Traditional RDBMS on single machine
+```
+
+---
+
+## 5. Consistent Hashing
+
+### Virtual Nodes
+
+```python
+import hashlib
+
+class ConsistentHashRing:
+    def __init__(self, nodes, replicas=100):
+        self.ring = {}
+        self.replicas = replicas
+        
+        for node in nodes:
+            for i in range(replicas):
+                key = self._hash(f"{node}:{i}")
+                self.ring[key] = node
+        
+        self.sorted_keys = sorted(self.ring.keys())
+    
+    def _hash(self, key):
+        return int(hashlib.md5(key.encode()).hexdigest(), 16)
+    
+    def get_node(self, key):
+        hash_key = self._hash(key)
+        for ring_key in self.sorted_keys:
+            if ring_key >= hash_key:
+                return self.ring[ring_key]
+        return self.ring[self.sorted_keys[0]]
+```
+
+### Benefits
+
+- **Minimal redistribution**: Adding/removing nodes affects only adjacent keys
+- **Load balancing**: Virtual nodes ensure even distribution
+- **Scalability**: Works well with large clusters
+
+---
+
+## 6. Database Scaling Patterns
+
+### Read Replicas
+
+```python
+class DatabaseRouter:
+    def __init__(self):
+        self.write_db = "primary-db"
+        self.read_dbs = ["replica1", "replica2", "replica3"]
+        self.current_read = 0
+    
+    def get_write_db(self):
+        return self.write_db
+    
+    def get_read_db(self):
+        db = self.read_dbs[self.current_read]
+        self.current_read = (self.current_read + 1) % len(self.read_dbs)
+        return db
+```
+
+### Sharding
+
+```python
+def get_shard(user_id, num_shards=10):
+    # Hash-based sharding
+    return hash(user_id) % num_shards
+
+# User data distribution
+shard_0 = []   # Users 0, 10, 20...
+shard_1 = []   # Users 1, 11, 21...
+# ...
+shard_9 = []   # Users 9, 19, 29...
+```
+
+### Federation
+
+```python
+# Different databases for different data types
+users_db = connect_to('users-db')
+orders_db = connect_to('orders-db')
+products_db = connect_to('products-db')
+```
+
+---
+
+## 7. Caching Strategies
+
+### Multi-Level Caching
+
+```python
+class CacheManager:
+    def __init__(self):
+        self.l1_cache = {}  # In-memory
+        self.l2_cache = RedisClient()  # Redis
+        self.database = Database()
+    
+    async def get(self, key):
+        # L1 cache
+        if key in self.l1_cache:
+            return self.l1_cache[key]
+        
+        # L2 cache
+        value = await self.l2_cache.get(key)
+        if value:
+            self.l1_cache[key] = value
+            return value
+        
+        # Database
+        value = await self.database.get(key)
+        if value:
+            self.l1_cache[key] = value
+            await self.l2_cache.set(key, value)
+        
+        return value
+```
+
+### Cache Invalidation
+
+```python
+def invalidate_cache(pattern):
+    # Delete related cache entries
+    keys = redis.keys(pattern)
+    if keys:
+        redis.delete(*keys)
+
+# Usage
+invalidate_cache("user:123:*")
+invalidate_cache("user:123:profile")
+```
+
+---
+
+## 8. CDN Architecture
+
+### CDN Components
+
+```
+User → CDN Edge → Origin Server
+```
+
+### Cache Strategy
+
+```python
+# CDN configuration
+cdn_config = {
+    'TTL': 3600,  # 1 hour
+    'Browser TTL': 1800,  # 30 minutes
+    'Stale While Revalidate': 86400,  # 24 hours
+    'Stale If Error': 43200  # 12 hours
+}
+```
+
+### Dynamic vs Static Content
+
+| Content Type | Strategy |
+|--------------|----------|
+| **Static** | CSS, JS, images - Long TTL |
+| **Dynamic** | HTML, API responses - Short TTL |
+| **Personalized** | User-specific - No caching |
+
+---
+
+## 9. Microservices Patterns
+
+### API Gateway
+
+```python
+from fastapi import FastAPI, Request
+import httpx
+
+app = FastAPI()
+
+SERVICES = {
+    'users': 'http://users-service:8000',
+    'orders': 'http://orders-service:8000',
+    'products': 'http://products-service:8000'
+}
+
+@app.api_gateway("/{service}/{path:path}")
+async def gateway(request: Request, service: str, path: str):
+    if service not in SERVICES:
+        return {"error": "Service not found"}
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            method=request.method,
+            url=f"{SERVICES[service]}/{path}",
+            headers=dict(request.headers),
+            content=await request.body()
+        )
+        return response.json()
+```
+
+### Circuit Breaker
+
+```python
+import time
+
+class CircuitBreaker:
+    def __init__(self, failure_threshold=5, timeout=60):
+        self.failure_threshold = failure_threshold
+        self.timeout = timeout
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.state = 'CLOSED'  # CLOSED, OPEN, HALF_OPEN
+    
+    async def call(self, func, *args, **kwargs):
+        if self.state == 'OPEN':
+            if time.time() - self.last_failure_time > self.timeout:
+                self.state = 'HALF_OPEN'
+            else:
+                raise Exception("Circuit breaker is OPEN")
+        
+        try:
+            result = await func(*args, **kwargs)
+            self.on_success()
+            return result
+        except Exception as e:
+            self.on_failure()
+            raise e
+    
+    def on_success(self):
+        self.failure_count = 0
+        self.state = 'CLOSED'
+    
+    def on_failure(self):
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = 'OPEN'
+```
+
+---
+
+## 10. Resource Directory: System Design
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Designing Data-Intensive Applications** | Martin Kleppmann | Paid | Distributed systems |
+| **System Design Interview** | Alex Xu | Paid | Interview prep |
+| **Building Microservices** | Sam Newman | Paid | Architecture patterns |
+| **Web Scalability for Startup Engineers** | Camilo Lopes | Paid | Scaling strategies |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Grokking the System Design Interview** | Educative.io | ₹2,999-4,999 | Interview prep |
+| **System Design Primer** | Donne Martin | Free | GitHub resource |
+| **Software Architecture** | Simon Heckmann | ₹1,499-2,299 | Design patterns |
+| **Microservices Architecture** | Colt Steele | ₹1,499-2,299 | Service design |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Designing Data-Intensive Applications** | O'Reilly | Paid |
+| **Building Microservices** | O'Reilly | Paid |
+| **Software Architecture Fundamentals** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **System Design for Developers** | Barron Stone | Paid |
+| **Software Architecture** | Simon Heckmann | Paid |
+| **Scalability and Reliability** | Avneesh Agrawal | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **System Design Primer** | GitHub | github.com/donnemartin/system-design-primer |
+| **High Scalability** | Blog | highscalability.com |
+| **System Design Skills** | GitHub | github.com/divyagupta97/system-design-skills |
+| **Awesome System Design** | GitHub | github.com/ozanarking/awesome-system-design |
+
+---
+
+## 11. Common System Design Interview Questions
+
+| Question | Key Considerations |
+|----------|-------------------|
+| **Design URL shortening service** | Scalability, database design, caching, load balancing |
+| **Design a chat application** | Real-time communication, WebSocket, message storage |
+| **Design a distributed cache** | Consistency, partitioning, failover |
+| **Design a rate limiter** | Token bucket, sliding window, distributed coordination |
+| **Design a content delivery network** | Edge locations, cache invalidation, origin shielding |
+
+---
+
+## 12. Part Navigation
+
+### Previous Parts
+[Part 10: Apache Kafka](/blog/it-career-guide/part-10-kafka)
+
+### Next Parts
+[Part 12: Microservices Architecture](/blog/it-career-guide/part-12-microservices) ·
+[Part 13: API Design & GraphQL](/blog/it-career-guide/part-13-api-design)
+
+---
+
+*[Proceed to Part 12: Microservices Architecture →](/blog/it-career-guide/part-12-microservices)*

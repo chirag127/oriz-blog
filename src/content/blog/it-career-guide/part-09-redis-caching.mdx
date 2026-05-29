@@ -1,0 +1,444 @@
+---
+title: "Part 9: Redis & Caching - Distributed Caching Strategies"
+description: "Master data structures (strings, hashes, sorted sets, streams), pub/sub, caching patterns (cache-aside, write-through), rate limiting, and serverless Redis with Upstash."
+pubDate: 2026-05-29
+tags: ["Redis", "Caching", "Backend", "Performance", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 9
+draft: false
+---
+
+# Part 9: Redis & Caching - Distributed Caching Strategies
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Redis in 2026?
+
+Redis is the leading in-memory data structure store, powering real-time applications, caching layers, and message queues across the world's largest tech companies.
+
+### Key Advantages
+- **Blazing fast**: Sub-millisecond response times
+- **Rich data structures**: Strings, hashes, lists, sets, sorted sets, streams
+- **Persistence**: RDB and AOF for durability
+- **Pub/Sub**: Real-time messaging
+- **Clustering**: Horizontal scaling
+
+### Salary Impact
+Backend engineers with Redis expertise command **15-25% higher salaries** in platform and distributed systems roles.
+
+---
+
+## 2. Redis Data Structures
+
+### Strings
+
+```python
+import redis
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+# Basic string operations
+r.set('user:1:name', 'John Doe')
+name = r.get('user:1:name')
+
+# Expiration
+r.setex('session:abc123', 3600, 'active')  # 1 hour expiry
+
+# Atomic operations
+r.incr('visitor_count')
+r.incrby('counter', 10)
+```
+
+### Hashes
+
+```python
+# User profile as hash
+r.hset('user:1', mapping={
+    'name': 'John Doe',
+    'email': 'john@example.com',
+    'age': '30'
+})
+
+# Get all fields
+user = r.hgetall('user:1')
+
+# Increment field
+r.hincrby('user:1', 'login_count', 1)
+```
+
+### Lists
+
+```python
+# Add items to list
+r.lpush('stack', 'item1', 'item2', 'item3')
+
+# Get range
+items = r.lrange('stack', 0, -1)
+
+# Pop from left
+item = r.lpop('stack')
+
+# Use case: Recent activity feed
+r.lpush('user:1:recent_activity', activity_data)
+r.ltrim('user:1:recent_activity', 0, 99)  # Keep last 100
+```
+
+### Sets
+
+```python
+# Add members
+r.sadd('tags:python', 'beginner', 'intermediate', 'advanced')
+
+# Get all members
+tags = r.smembers('tags:python')
+
+# Set operations
+r.sunion('tags:python', 'tags:javascript')
+r.sinter('tags:python', 'tags:web')
+
+# Use case: Unique visitors
+r.sadd('page:1:visitors', user_id)
+count = r.scard('page:1:visitors')
+```
+
+### Sorted Sets
+
+```python
+# Add with scores
+r.zadd('leaderboard', {
+    'player1': 100,
+    'player2': 250,
+    'player3': 175
+})
+
+# Get top players
+top_players = r.zrevrange('leaderboard', 0, 2, withscores=True)
+
+# Increment score
+r.zincrby('leaderboard', 50, 'player1')
+
+# Use case: Leaderboards, priority queues
+```
+
+### Streams (Redis 5.0+)
+
+```python
+# Add to stream
+r.xadd('orders', {'product': 'laptop', 'price': '999', 'user': 'john'})
+
+# Read from stream
+messages = r.xread({'orders': '$'}, count=10)
+
+# Consumer groups for parallel processing
+r.xgroup_create('orders', 'workers', '0', mkstream=True)
+r.xreadgroup('workers', 'worker1', {'orders': '>'})
+```
+
+---
+
+## 3. Caching Patterns
+
+### Cache-Aside Pattern
+
+```python
+def get_user(user_id):
+    # Try cache first
+    cached = r.get(f'user:{user_id}')
+    if cached:
+        return json.loads(cached)
+    
+    # Hit database
+    user = db.get_user(user_id)
+    
+    # Store in cache
+    r.setex(f'user:{user_id}', 3600, json.dumps(user))
+    return user
+
+def update_user(user_id, data):
+    # Update database
+    db.update_user(user_id, data)
+    
+    # Invalidate cache
+    r.delete(f'user:{user_id}')
+```
+
+### Read-Through Pattern
+
+```python
+class CacheWithLoader:
+    def get(self, key):
+        value = r.get(key)
+        if value is None:
+            value = self.load_from_db(key)
+            r.setex(key, 3600, value)
+        return value
+    
+    def load_from_db(self, key):
+        # Database lookup logic
+        return db.get(key)
+```
+
+### Write-Through Pattern
+
+```python
+def update_with_write_through(key, value):
+    # Write to database first
+    db.set(key, value)
+    
+    # Then write to cache
+    r.setex(key, 3600, value)
+```
+
+### Write-Behind Pattern
+
+```python
+def update_async(key, value):
+    # Write to cache immediately
+    r.setex(key, 3600, value)
+    
+    # Queue for database write
+    r.lpush('db_write_queue', json.dumps({'key': key, 'value': value}))
+```
+
+---
+
+## 4. Rate Limiting
+
+### Token Bucket Algorithm
+
+```python
+def rate_limit(user_id, max_requests=100, window=60):
+    key = f"rate_limit:{user_id}"
+    
+    # Decrement token count
+    current = r.decr(key)
+    
+    if current == -1:
+        # Initialize bucket
+        r.setex(key, window, max_requests - 1)
+        return True
+    
+    if current <= 0:
+        return False  # Rate limited
+    
+    # Reset if expired
+    ttl = r.ttl(key)
+    if ttl <= 0:
+        r.setex(key, window, max_requests - 1)
+    
+    return True
+```
+
+### Sliding Window Log
+
+```python
+def sliding_window_rate_limit(user_id, max_requests=100, window=60):
+    key = f"rate_log:{user_id}"
+    now = int(time.time())
+    
+    # Remove old entries
+    r.zremrangebyscore(key, 0, now - window)
+    
+    # Count current requests
+    count = r.zcard(key)
+    
+    if count >= max_requests:
+        return False  # Rate limited
+    
+    # Add new request
+    r.zadd(key, {str(now): now})
+    r.expire(key, window)
+    
+    return True
+```
+
+### Fixed Window Counter
+
+```python
+def fixed_window_rate_limit(user_id, max_requests=100, window=60):
+    key = f"fixed_limit:{user_id}:{int(time.time()) // window}"
+    
+    current = r.incr(key)
+    
+    if current == 1:
+        r.expire(key, window)
+    
+    return current <= max_requests
+```
+
+---
+
+## 5. Redis Pub/Sub
+
+### Publisher
+
+```python
+import redis
+
+r = redis.Redis()
+
+def publish_notification(user_id, message):
+    channel = f"user:{user_id}:notifications"
+    r.publish(channel, json.dumps({
+        'message': message,
+        'timestamp': time.time()
+    }))
+```
+
+### Subscriber
+
+```python
+def subscribe_to_notifications(user_id):
+    pubsub = r.pubsub()
+    channel = f"user:{user_id}:notifications"
+    pubsub.subscribe(channel)
+    
+    for message in pubsub.listen():
+        if message['type'] == 'message':
+            data = json.loads(message['data'])
+            print(f"Received: {data}")
+```
+
+### Pattern-Based Subscriptions
+
+```python
+# Subscribe to all user notifications
+pubsub.psubscribe('user:*:notifications')
+
+for message in pubsub.listen():
+    if message['type'] == 'pmessage':
+        print(f"Pattern matched: {message['pattern']}")
+        print(f"Channel: {message['channel']}")
+```
+
+---
+
+## 6. Serverless Redis with Upstash
+
+### Upstash Setup
+
+```python
+from upstash_redis import UpstashRedis
+
+# Initialize client
+redis = UpstashRedis(
+    url="your-upstash-url",
+    token="your-upstash-token"
+)
+
+# REST API compatible
+redis.set("key", "value")
+value = redis.get("key")
+```
+
+### Rate Limiting with Upstash
+
+```python
+def upstash_rate_limit(user_id, max_requests=100, window=60):
+    key = f"rate_limit:{user_id}"
+    
+    script = """
+    local current = redis.call('INCR', KEYS[1])
+    if current == 1 then
+        redis.call('EXPIRE', KEYS[1], ARGV[1])
+    end
+    return current <= tonumber(ARGV[2])
+    """
+    
+    result = redis.eval(script, 1, key, window, max_requests)
+    return result
+```
+
+### Queue Implementation
+
+```python
+import asyncio
+from upstash_queue import Queue
+
+queue = Queue(url="...", token="...")
+
+async def process_jobs():
+    while True:
+        job = await queue.dequeue(timeout=10)
+        if job:
+            await process_job(job)
+        await asyncio.sleep(1)
+```
+
+---
+
+## 7. Resource Directory: Redis
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Redis in Action** | Josiah L. Carlson | Paid | Practical usage |
+| **Redis Deep Dive** | Jose Portilla | Paid | Advanced features |
+| **Learning Redis** | O'Reilly | Paid | Administration |
+| **Redis Cookbook** | O'Reilly | Paid | Recipes |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Redis & Redis Queue** | Colt Steele | ₹999-1,499 | Caching, queues |
+| **Redis Mastery** | Andrei Neagoie | ₹999-1,499 | Patterns, scaling |
+| **Redis for Developers** | Jose Portilla | ₹999-1,499 | CRUD operations |
+| **Upstash Redis Guide** | Upstash Team | Free | Serverless Redis |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Redis: Up and Running** | O'Reilly | Paid |
+| **Learning Redis** | O'Reilly | Paid |
+| **Redis in Action** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Redis Essential Training** | Erin Allard | Paid |
+| **Caching Strategies** | Barron Stone | Paid |
+| **Building Message Queues** | Barron Stone | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Redis Docs** | Official documentation | redis.io/documentation |
+| **Redis University** | Free courses | university.redis.com |
+| **Upstash Docs** | Serverless Redis | docs.upstash.com |
+| **Awesome Redis** | GitHub collection | github.com/Iristocracy/awesome-redis |
+
+---
+
+## 8. Common Redis Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between Redis and Memcached?** | Redis is persistence-capable, has rich data structures, Memcached is simpler and faster for basic caching. |
+| **What is a connection pool?** | Pool of reusable connections to avoid overhead of creating new connections. |
+| **How to handle Redis failures?** | Use fallback mechanisms, circuit breakers, and retry logic. |
+| **What are Redis pipelines?** | Batch multiple commands in a single request to reduce network overhead. |
+| **Difference between LRU and LFU?** | LRU evicts least recently used, LFU evicts least frequently used items. |
+
+---
+
+## 9. Part Navigation
+
+### Previous Parts
+[Part 8: MongoDB](/blog/it-career-guide/part-08-mongodb.mdx)
+
+### Next Parts
+[Part 10: Apache Kafka](/blog/it-career-guide/part-10-kafka) ·
+[Part 11: System Design Fundamentals](/blog/it-career-guide/part-11-system-design)
+
+---
+
+*[Proceed to Part 10: Apache Kafka →](/blog/it-career-guide/part-10-kafka)*

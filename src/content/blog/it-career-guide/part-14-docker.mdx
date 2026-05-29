@@ -1,0 +1,372 @@
+---
+title: "Part 14: Docker Containers - Packaging, Optimization & Security"
+description: "Master multi-stage builds, layer caching, Docker Compose, image scanning, rootless containers, and distroless images for production-grade containerization."
+pubDate: 2026-05-29
+tags: ["Docker", "DevOps", "Backend", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 14
+draft: false
+---
+
+# Part 14: Docker Containers - Packaging, Optimization & Security
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Docker in 2026?
+
+Docker is non-negotiable in 2026. Every backend engineer, DevOps specialist, and cloud architect must master containerization. Engineers with Docker expertise command **20-30% higher salaries**.
+
+### Key Benefits
+- **Consistency**: Same environment across dev, test, prod
+- **Portability**: Run anywhere Docker runs
+- **Isolation**: Process and dependency isolation
+- **Scalability**: Easy horizontal scaling
+
+---
+
+## 2. Docker Fundamentals
+
+### Dockerfile Basics
+
+```dockerfile
+# Multi-stage build for optimization
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /root/.local /root/.local
+COPY . .
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser
+USER appuser
+
+CMD ["python", "main.py"]
+```
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/mydb
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./logs:/app/logs
+  
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+```
+
+---
+
+## 3. Image Optimization
+
+### Multi-Stage Builds
+
+```dockerfile
+# Stage 1: Build
+FROM node:18-alpine as builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+COPY . .
+RUN npm run build
+
+# Stage 2: Production
+FROM node:18-alpine
+WORKDIR /app
+# Copy dependencies
+COPY --from=builder /app/node_modules ./node_modules
+# Copy built application
+COPY --from=builder /app/dist ./dist
+# Copy package files
+COPY package*.json ./
+USER node
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+### Layer Caching Optimization
+
+```dockerfile
+# Good: Install dependencies before copying source
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt  # Cached if requirements unchanged
+COPY . .  # Only runs if source changes
+
+# Bad: Copy everything first
+FROM python:3.11-slim
+WORKDIR /app
+COPY . .  # Never cached
+RUN pip install -r requirements.txt
+```
+
+### Distroless Images
+
+```dockerfile
+# Use distroless for minimal attack surface
+FROM gcr.io/distroless/python3-debian11
+COPY --from=builder /app /app
+WORKDIR /app
+CMD ["python", "main.py"]
+
+# Benefits:
+# - No shell/OS
+# - Smaller attack surface
+# - Automatic security updates
+```
+
+---
+
+## 4. Docker Security Best Practices
+
+### Non-Root User
+
+```dockerfile
+# Create non-root user
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+USER appuser
+```
+
+### Read-Only Root Filesystem
+
+```dockerfile
+FROM alpine:latest
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+WORKDIR /app
+COPY --chown=appuser:appgroup . .
+# Mount writable directories at runtime
+# docker run --read-only -v /tmp:app/tmp myapp
+```
+
+### Security Scanning
+
+```bash
+# Scan images for vulnerabilities
+docker scan myimage:latest
+
+# Using Trivy
+trivy image myimage:latest
+
+# Using Clair
+clair scan myimage:latest
+```
+
+### Image Signing
+
+```bash
+# Enable experimental features
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
+# Sign image
+docker trust sign myimage:latest
+
+# Verify signature
+docker trust inspect myimage:latest
+```
+
+---
+
+## 5. Docker Best Practices
+
+### .dockerignore
+
+```dockerignore
+# Version control
+.git
+.gitignore
+
+# Dependencies
+node_modules
+__pycache__
+*.pyc
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+
+# Build artifacts
+dist/
+build/
+*.md
+```
+
+### Resource Constraints
+
+```yaml
+# docker-compose.yml
+services:
+  web:
+    image: myapp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+```
+
+### Health Checks
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+```
+
+---
+
+## 6. Docker Registry Management
+
+### Private Registry
+
+```bash
+# Run local registry
+docker run -d -p 5000:5000 --name registry \
+  -v /opt/data:/var/lib/registry \
+  registry:2
+
+# Tag and push
+docker tag myimage:latest localhost:5000/myimage:latest
+docker push localhost:5000/myimage:latest
+```
+
+### Multi-Arch Images
+
+```bash
+# Build for multiple architectures
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --push \
+  -t myimage:latest .
+```
+
+---
+
+## 7. Resource Directory: Docker
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Docker Deep Dive** | Nigel Poulton | Paid | Complete Docker guide |
+| **Docker in Practice** | Ian Miell | Paid | Practical examples |
+| **Mastering Docker** | Sébastien Hanse | Paid | Advanced topics |
+| **Docker Security** | O'Reilly | Paid | Security patterns |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Docker & Kubernetes** | Nigel Poulton | ₹1,999-2,999 | Docker, K8s |
+| **Docker for Developers** | Colt Steele | ₹999-1,499 | Docker basics |
+| **DevOps with Docker** | Juha Viistokangas | ₹999-1,499 | DevOps patterns |
+| **Docker Security** | Bret Fisher | ₹799-1,199 | Security |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Docker: Up and Running** | O'Reilly | Paid |
+| **Docker Deep Dive** | O'Reilly | Paid |
+| **Securing Docker** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Docker Essential Training** | Erin Allard | Paid |
+| **Building Docker Images** | Erin Allard | Paid |
+| **Docker for Windows** | Erin Allard | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Docker Docs** | Official docs | docs.docker.com |
+| **Docker Labs** | Tutorials | labs.play-with-docker.com |
+| **Awesome Docker** | GitHub | github.com/veggiemonk/awesome-docker |
+| **Docker Security Best Practices** | GitHub | github.com/LoolzLi/docker-security |
+
+---
+
+## 8. Common Docker Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between CMD and ENTRYPOINT?** | CMD provides default command, ENTRYPOINT configures container to run as executable. |
+| **What is Docker networking?** | Containers can communicate via networks (bridge, host, overlay). |
+| **How to reduce image size?** | Multi-stage builds, distroless images, .dockerignore. |
+| **What is Docker Compose?** | Tool for defining and running multi-container applications. |
+| **How to handle secrets in Docker?** | Use Docker secrets, environment files, or external secret managers. |
+
+---
+
+## 9. Part Navigation
+
+### Previous Parts
+[Part 13: API Design & GraphQL](/blog/it-career-guide/part-13-api-design)
+
+### Next Parts
+[Part 15: Kubernetes Orchestration](/blog/it-career-guide/part-15-kubernetes) ·
+[Part 16: Serverless Architectures](/blog/it-career-guide/part-16-serverless)
+
+---
+
+*[Proceed to Part 15: Kubernetes Orchestration →](/blog/it-career-guide/part-15-kubernetes)*

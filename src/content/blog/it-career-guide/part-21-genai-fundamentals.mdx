@@ -1,0 +1,299 @@
+---
+title: "Part 21: Generative AI Fundamentals - LLMs, Embeddings & Vector Spaces"
+description: "Understand transformer architecture, tokenization, temperature, embeddings, cosine similarity, and vector math behind large language models."
+pubDate: 2026-05-29
+tags: ["Generative AI", "LLM", "Machine Learning", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 21
+draft: false
+---
+
+# Part 21: Generative AI Fundamentals - LLMs, Embeddings & Vector Spaces
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Generative AI in 2026?
+
+Generative AI is the hottest skill in tech. Engineers with GenAI expertise command **50-100% higher salaries** than traditional developers.
+
+### Key Areas
+- **LLM Engineering**: Model integration, prompt engineering
+- **RAG Systems**: Retrieval-augmented generation
+- **Vector Databases**: Embedding storage and search
+- **Agent Systems**: Autonomous AI workflows
+
+---
+
+## 2. Transformer Architecture
+
+### Attention Mechanism
+
+```python
+import torch
+import torch.nn as nn
+import math
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+        
+        self.w_q = nn.Linear(d_model, d_model)
+        self.w_k = nn.Linear(d_model, d_model)
+        self.w_v = nn.Linear(d_model, d_model)
+        self.w_o = nn.Linear(d_model, d_model)
+    
+    def forward(self, q, k, v, mask=None):
+        # Split into heads
+        q = self.w_q(q).view(-1, self.num_heads, self.d_k)
+        k = self.w_k(k).view(-1, self.num_heads, self.d_k)
+        v = self.w_v(v).view(-1, self.num_heads, self.d_k)
+        
+        # Scaled dot-product attention
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
+        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+        
+        attention = torch.softmax(scores, dim=-1)
+        out = torch.matmul(attention, v)
+        
+        return self.w_o(out)
+```
+
+### Tokenization
+
+```python
+# BPE (Byte Pair Encoding) example
+def tokenize(text, vocab):
+    tokens = []
+    words = text.lower().split()
+    
+    for word in words:
+        if word in vocab:
+            tokens.append(vocab[word])
+        else:
+            # Subword tokenization
+            subwords = break_into_subwords(word)
+            tokens.extend([vocab.get(sw, vocab['<unk>']) for sw in subwords])
+    
+    return tokens
+
+# Special tokens
+SPECIAL_TOKENS = {
+    '<bos>': 0,  # Beginning of sequence
+    '<eos>': 1,  # End of sequence
+    '<pad>': 2,  # Padding
+    '<unk>': 3,  # Unknown
+}
+```
+
+---
+
+## 3. Embeddings & Vector Mathematics
+
+### Word Embeddings
+
+```python
+import numpy as np
+
+class EmbeddingLayer:
+    def __init__(self, vocab_size, embedding_dim):
+        self.embedding_matrix = np.random.randn(vocab_size, embedding_dim) * 0.02
+    
+    def forward(self, indices):
+        return self.embedding_matrix[indices]
+
+# Cosine similarity
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+# Example usage
+embedding = EmbeddingLayer(vocab_size=10000, embedding_dim=384)
+vec1 = embedding.forward([1, 2, 3])
+vec2 = embedding.forward([4, 5, 6])
+similarity = cosine_similarity(vec1[0], vec2[0])
+```
+
+### Sentence Embeddings
+
+```python
+from transformers import AutoTokenizer, AutoModel
+import torch
+
+class SentenceEmbedder:
+    def __init__(self, model_name='sentence-transformers/all-MiniLM-L6-v2'):
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+    
+    def embed(self, sentences):
+        inputs = self.tokenizer(
+            sentences,
+            padding=True,
+            truncation=True,
+            return_tensors='pt'
+        )
+        
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+        
+        # Mean pooling
+        embeddings = outputs.last_hidden_state.mean(dim=1)
+        return embeddings.numpy()
+
+# Usage
+embedder = SentenceEmbedder()
+sentences = ["Hello world", "Hi there"]
+embeddings = embedder.embed(sentences)
+```
+
+---
+
+## 4. LLM Fundamentals
+
+### Temperature Parameter
+
+```python
+import torch.nn.functional as F
+
+def apply_temperature(logits, temperature=1.0):
+    return logits / temperature
+
+def sample_next_token(logits, temperature=1.0, top_k=None, top_p=None):
+    logits = apply_temperature(logits, temperature)
+    
+    if top_k is not None:
+        # Top-k sampling
+        kth_value = torch.topk(logits, top_k).values.min()
+        logits[logits < kth_value] = float('-inf')
+    
+    if top_p is not None:
+        # Top-p (nucleus) sampling
+        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+        cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+        sorted_indices_to_remove = cumulative_probs > top_p
+        sorted_indices_to_remove[1:] = sorted_indices_to_remove[:-1].clone()
+        sorted_indices_to_remove[0] = False
+        logits[:, sorted_indices[sorted_indices_to_remove]] = float('-inf')
+    
+    probs = F.softmax(logits, dim=-1)
+    next_token = torch.multinomial(probs, num_samples=1)
+    return next_token
+```
+
+### Prompt Engineering
+
+```python
+# Zero-shot prompting
+prompt = """
+Classify the sentiment of the following text:
+Text: "I love this product! It's amazing."
+Sentiment:
+"""
+
+# Few-shot prompting
+prompt = """
+Classify the sentiment of the following text:
+Text: "I love this product! It's amazing."
+Sentiment: Positive
+
+Text: "This is terrible. I hate it."
+Sentiment: Negative
+
+Text: "The product is okay, nothing special."
+Sentiment: Neutral
+
+Text: "I'm really disappointed with the quality."
+Sentiment:
+"""
+
+# Chain-of-thought prompting
+prompt = """
+Question: If a train travels 60 mph for 2 hours, then 40 mph for 3 hours, what is the total distance?
+Let's think step by step:
+First, calculate distance for first part: 60 mph * 2 hours = 120 miles
+Second, calculate distance for second part: 40 mph * 3 hours = 120 miles
+Total distance = 120 + 120 = 240 miles
+Answer: 240 miles
+"""
+```
+
+---
+
+## 5. Resource Directory: Generative AI
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Natural Language Processing with Transformers** | Tunstall & von Werra | Paid | Hugging Face |
+| **Building Generative AI Applications** | O'Reilly | Paid | LLM engineering |
+| **Hands-On Machine Learning** | Aurélien Géron | Paid | ML fundamentals |
+| **Deep Learning** | Ian Goodfellow | Paid | Deep learning theory |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **NLP & NLP Projects** | Jose Portilla | ₹2,999-3,999 | NLP with Python |
+| **ChatGPT & GPT-4 API** | Colt Steele | ₹1,999-2,999 | OpenAI API |
+| **LangChain & LLMs** | Instructor | ₹1,999-2,999 | LangChain |
+| **Vector Databases** | Instructor | ₹1,499-2,299 | Pinecone, Chroma |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Building Generative AI Applications** | O'Reilly | Paid |
+| **Learning Hugging Face** | O'Reilly | Paid |
+| **Natural Language Processing** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Generative AI Fundamentals** | Instructor | Paid |
+| **Working with LLMs** | Instructor | Paid |
+| **AI Prompt Engineering** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Hugging Face Course** | Free course | huggingface.co/learn |
+| **DeepLearning.AI** | Free courses | deeplearning.ai |
+| **LLM Zoomcamp** | Free course | github.com/alexeygrigorev/llm-zoomcamp |
+| **Awesome LLM** | GitHub | github.com/StellarCK/awesome-llm |
+
+---
+
+## 6. Common GenAI Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **What are embeddings?** | Dense vector representations of text/data for ML models. |
+| **Difference between fine-tuning and prompt engineering?** | Fine-tuning modifies model weights, prompt engineering guides model behavior. |
+| **What is RAG?** | Retrieval-Augmented Generation combines LLMs with external knowledge. |
+| **How to handle hallucinations?** | Use factual prompts, provide sources, implement fact-checking. |
+| **What is temperature in LLMs?** | Controls randomness - lower = more deterministic, higher = more creative. |
+
+---
+
+## 7. Part Navigation
+
+### Previous Parts
+[Part 20: Frontend Development](/blog/it-career-guide/part-20-frontend)
+
+### Next Parts
+[Part 22: Vector Databases](/blog/it-career-guide/part-22-vector-databases) ·
+[Part 23: RAG Architectures](/blog/it-career-guide/part-23-rag-architectures)
+
+---
+
+*[Proceed to Part 22: Vector Databases →](/blog/it-career-guide/part-22-vector-databases)*

@@ -1,0 +1,462 @@
+---
+title: "Part 15: Kubernetes Orchestration - From Zero to Production"
+description: "Learn pods, services, ingress, ConfigMaps, Secrets, HPA, persistent volumes, Helm charts, and namespace isolation for production deployments."
+pubDate: 2026-05-29
+tags: ["Kubernetes", "DevOps", "Backend", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 15
+draft: false
+---
+
+# Part 15: Kubernetes Orchestration - From Zero to Production
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Kubernetes in 2026?
+
+Kubernetes is the standard for container orchestration. Engineers with K8s expertise command **25-40% higher salaries** in cloud-native roles.
+
+### Key Benefits
+- **Automatic scaling**: Horizontal Pod Autoscaler
+- **Self-healing**: Restart failed containers
+- **Service discovery**: Built-in DNS
+- **Load balancing**: Traffic distribution
+- **Rolling updates**: Zero-downtime deployments
+
+---
+
+## 2. Kubernetes Fundamentals
+
+### Core Concepts
+
+```yaml
+# Pod - Smallest deployable unit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
+spec:
+  containers:
+  - name: app
+    image: myapp:latest
+    ports:
+    - containerPort: 8000
+    env:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: db-secret
+          key: url
+```
+
+### Deployments
+
+```yaml
+# Deployment - Manages pods
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: app
+        image: myapp:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+```
+
+### Services
+
+```yaml
+# Service - Network access to pods
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer  # or ClusterIP, NodePort
+```
+
+---
+
+## 3. Configuration Management
+
+### ConfigMaps
+
+```yaml
+# ConfigMap - Non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  LOG_LEVEL: "info"
+  MAX_CONNECTIONS: "100"
+  FEATURE_FLAGS: "new_ui,analytics"
+---
+# Use in Pod
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: app
+    envFrom:
+    - configMapRef:
+        name: app-config
+```
+
+### Secrets
+
+```yaml
+# Secret - Sensitive data (base64 encoded)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  username: YWRtaW4=  # admin
+  password: cGFzc3dvcmQ=  # password
+---
+# Use in Pod
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: app
+    env:
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: db-secret
+          key: password
+```
+
+### Volume Mounts
+
+```yaml
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: app
+    volumeMounts:
+    - name: config-volume
+      mountPath: /config
+    - name: data-volume
+      mountPath: /data
+  volumes:
+  - name: config-volume
+    configMap:
+      name: app-config
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: data-pvc
+```
+
+---
+
+## 4. Scaling Strategies
+
+### Horizontal Pod Autoscaler
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+### Vertical Pod Autoscaler
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: my-app-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: my-app
+  updatePolicy:
+    updateMode: "Auto"
+```
+
+---
+
+## 5. Networking and Services
+
+### Ingress Controller
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-app-service
+            port:
+              number: 80
+```
+
+### Service Mesh (Istio)
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: my-app
+spec:
+  hosts:
+  - myapp.example.com
+  http:
+  - route:
+    - destination:
+        host: my-app-service
+        subset: v1
+      weight: 90
+    - destination:
+        host: my-app-service
+        subset: v2
+      weight: 10
+```
+
+---
+
+## 6. Helm Charts
+
+### Chart Structure
+
+```
+my-chart/
+├── Chart.yaml
+├── values.yaml
+├── charts/
+├── templates/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── ingress.yaml
+└── README.md
+```
+
+### Chart.yaml
+
+```yaml
+apiVersion: v2
+name: my-app
+description: A Helm chart for my application
+version: 0.1.0
+appVersion: "1.0.0"
+```
+
+### values.yaml
+
+```yaml
+replicaCount: 3
+image:
+  repository: myapp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+```
+
+### Deployment Template
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "my-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "my-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - port: {{ .Values.service.port }}
+```
+
+---
+
+## 7. Monitoring and Observability
+
+### Prometheus Metrics
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: my-app-monitor
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  endpoints:
+  - port: metrics
+    interval: 30s
+```
+
+### Logging
+
+```yaml
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: app
+    image: myapp
+    env:
+    - name: LOG_FORMAT
+      value: "json"
+  # Forward logs to ELK/EFK stack
+```
+
+---
+
+## 8. Resource Directory: Kubernetes
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Kubernetes: Up and Running** | Kelsey Hightower | Paid | K8s fundamentals |
+| **Programming Kubernetes** | Stefan Schimanski | Paid | API programming |
+| **Kubernetes in Action** | Marko Luksa | Paid | Practical guide |
+| **Cloud Native Patterns** | Cornelia Davis | Paid | Cloud-native design |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Kubernetes for Developers** | Mumshad Mannambeth | ₹1,999-2,999 | K8s basics |
+| **Kubernetes Mastery** | Atil Samancioglu | ₹1,999-2,999 | Advanced K8s |
+| **Certified Kubernetes Administrator** | Mumshad Mannambeth | ₹1,999-2,999 | CKA prep |
+| **Helm Chart Development** | Bret Fisher | ₹799-1,199 | Helm charts |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Kubernetes: Up and Running** | O'Reilly | Paid |
+| **Programming Kubernetes** | O'Reilly | Paid |
+| **Kubernetes Best Practices** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Kubernetes Essential Training** | Erin Allard | Paid |
+| **Building Kubernetes Applications** | Barron Stone | Paid |
+| **Kubernetes for Developers** | Atil Samancioglu | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Kubernetes Docs** | Official docs | kubernetes.io/docs |
+| **Katacoda K8s** | Interactive tutorials | katacoda.com/courses/kubernetes |
+| **Awesome Kubernetes** | GitHub | github.com/ramitsurana/awesome-kubernetes |
+| **K8s Cheatsheet** | GitHub | github.com/adriannovegil/kubernetes-cheatsheet |
+
+---
+
+## 9. Common Kubernetes Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between Deployment and StatefulSet?** | Deployment for stateless apps, StatefulSet for stateful apps with stable identities. |
+| **What is kubectl?** | CLI tool for interacting with Kubernetes clusters. |
+| **How to expose apps?** | Use Services (ClusterIP, NodePort, LoadBalancer, Ingress). |
+| **What are Helm charts?** | Package format for Kubernetes applications. |
+| **How to handle secrets?** | Use Kubernetes Secrets with base64 encoding. |
+
+---
+
+## 10. Part Navigation
+
+### Previous Parts
+[Part 14: Docker Containers](/blog/it-career-guide/part-14-docker)
+
+### Next Parts
+[Part 16: Serverless Architectures](/blog/it-career-guide/part-16-serverless) ·
+[Part 17: Infrastructure as Code](/blog/it-career-guide/part-17-terraform)
+
+---
+
+*[Proceed to Part 16: Serverless Architectures →](/blog/it-career-guide/part-16-serverless)*

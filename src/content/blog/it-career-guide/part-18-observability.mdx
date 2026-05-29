@@ -1,0 +1,440 @@
+---
+title: "Part 18: Observability - Prometheus, Grafana & Distributed Tracing"
+description: "Master metrics collection, alerting rules, dashboard design, OpenTelemetry, Jaeger, log aggregation, and SLI/SLO/SLA frameworks for production systems."
+pubDate: 2026-05-29
+tags: ["Observability", "Monitoring", "DevOps", "Backend", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 18
+draft: false
+---
+
+# Part 18: Observability - Prometheus, Grafana & Distributed Tracing
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Observability in 2026?
+
+Observability is critical for running reliable production systems. Engineers with observability expertise command **25-40% higher salaries** in platform and SRE roles.
+
+### Three Pillars of Observability
+1. **Metrics**: Numerical values over time (CPU, memory, latency)
+2. **Logs**: Discrete events with context
+3. **Traces**: Request flow through distributed systems
+
+---
+
+## 2. Prometheus Fundamentals
+
+### Prometheus Configuration
+
+```yaml
+# prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node1:9100', 'node2:9100']
+  
+  - job_name: 'fastapi-app'
+    static_configs:
+      - targets: ['app:8000']
+    metrics_path: '/metrics'
+```
+
+### Metrics Collection
+
+```python
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
+import time
+
+# Define metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint'])
+REQUEST_DURATION = Histogram('http_request_duration_seconds', 'Request duration')
+ACTIVE_USERS = Gauge('active_users', 'Number of active users')
+
+class MetricsMiddleware:
+    def __init__(self, app):
+        self.app = app
+    
+    async def __call__(self, scope, receive, send):
+        if scope['type'] == 'http':
+            start_time = time.time()
+            REQUEST_COUNT.labels(scope['method'], scope['path']).inc()
+            
+            await self.app(scope, receive, send)
+            
+            duration = time.time() - start_time
+            REQUEST_DURATION.observe(duration)
+```
+
+### Alerting Rules
+
+```yaml
+# alert_rules.yml
+groups:
+  - name: application
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate
+          description: "{{ $value }}% error rate for last 5 minutes"
+      
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High latency
+          description: "95th percentile latency above 1 second"
+```
+
+---
+
+## 3. Grafana Dashboards
+
+### Dashboard JSON
+
+```json
+{
+  "dashboard": {
+    "title": "Application Overview",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### SLO Dashboard
+
+```json
+{
+  "panels": [
+    {
+      "title": "Availability SLO",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "100 - (rate(http_requests_total{status=~\"5..\"}[24h]) / rate(http_requests_total[24h]) * 100)",
+          "legendFormat": "Current Availability"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 4. Distributed Tracing
+
+### OpenTelemetry Setup
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+# Configure tracer
+trace.set_tracer_provider(TracerProvider())
+tracer = trace.get_tracer(__name__)
+
+# Export to Jaeger/Tempest
+otlp_exporter = OTLPSpanExporter(endpoint="http://tempest:4317")
+span_processor = BatchSpanProcessor(otlp_exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+# Instrument FastAPI
+FastAPIInstrumentor().instrument_app(app)
+```
+
+### Manual Spans
+
+```python
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    with tracer.start_as_current_span("get_user") as span:
+        span.set_attribute("user.id", user_id)
+        
+        # Database operation
+        with tracer.start_as_current_span("database_query") as db_span:
+            user = await db.fetch_user(user_id)
+            db_span.set_attribute("db.rows", 1)
+        
+        # Cache operation
+        with tracer.start_as_current_span("cache_lookup") as cache_span:
+            cached = await cache.get(f"user:{user_id}")
+            cache_span.set_attribute("cache.hit", cached is not None)
+        
+        return user
+```
+
+### Jaeger Integration
+
+```yaml
+# docker-compose.yml
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # UI
+      - "14268:14268"  # Collector
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+```
+
+---
+
+## 5. Log Aggregation
+
+### Structured Logging
+
+```python
+import structlog
+import json
+from pythonjsonlogger import jsonlogger
+
+# Configure structured logging
+logger = structlog.get_logger()
+
+def log_request(request, response, duration):
+    logger.info(
+        "http_request",
+        method=request.method,
+        path=request.url.path,
+        status_code=response.status_code,
+        duration_ms=duration * 1000,
+        user_agent=request.headers.get("user-agent"),
+        ip=request.client.host
+    )
+
+# JSON logging for ELK stack
+class JSONFormatter(jsonlogger.JsonFormatter):
+    def add_fields(self, log_record, record, message_dict):
+        super().add_fields(log_record, record, message_dict)
+        log_record['timestamp'] = record.created
+        log_record['level'] = record.levelname
+```
+
+### Loki Configuration
+
+```yaml
+# loki-config.yaml
+auth_enabled: false
+server:
+  http_listen_port: 3100
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+  - from: 2020-10-24
+    store: boltdb-shipper
+    object_store: filesystem
+    schema: v11
+    index:
+      prefix: index_
+      period: 168h
+```
+
+---
+
+## 6. SLI/SLO/SLA Framework
+
+### SLI Definitions
+
+```python
+# Service Level Indicators
+SLI_DEFINITIONS = {
+    "availability": {
+        "description": "Percentage of successful requests",
+        "query": "sum(rate(http_requests_total{status!~'5.*'}[5m])) / sum(rate(http_requests_total[5m])) * 100"
+    },
+    "latency": {
+        "description": "95th percentile request latency",
+        "query": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))"
+    },
+    "throughput": {
+        "description": "Requests per second",
+        "query": "rate(http_requests_total[5m])"
+    }
+}
+```
+
+### SLO Implementation
+
+```python
+# 99.9% availability SLO
+SLO_AVAILABILITY = {
+    "target": 99.9,
+    "window": "30d",
+    "burn_rate": 14.4  # 14.4x faster consumption of error budget
+}
+
+# Error budget calculation
+def calculate_error_budget(slo_target, window_size):
+    return (100 - slo_target) / 100 * window_size
+
+# Alert when burn rate exceeds threshold
+ALERT_RULE = """
+ALERT ErrorBudgetBurnRate
+IF (1 - (avg_over_time(availability[1h])) / 99.9) / (30 * 24) > 14.4
+FOR 5m
+LABELS {severity="critical"}
+ANNOTATIONS {
+  summary = "Error budget burning too fast",
+  description = "Burn rate is {{ $value }}x, exceeding SLO threshold"
+}
+"""
+```
+
+### SLA Dashboard
+
+```json
+{
+  "dashboard": {
+    "title": "SLA Dashboard",
+    "panels": [
+      {
+        "title": "Current Availability",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg_over_time(availability[30d])",
+            "legendFormat": "30-day availability"
+          }
+        ]
+      },
+      {
+        "title": "Error Budget Remaining",
+        "type": "bar-gauge",
+        "targets": [
+          {
+            "expr": "(1 - (100 - avg_over_time(availability[30d])) / (100 - 99.9)) * 100",
+            "legendFormat": "Error budget %"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 7. Resource Directory: Observability
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Observability Engineering** | O'Reilly | Paid | Practical guide |
+| **Effective Monitoring** | O'Reilly | Paid | Monitoring strategies |
+| **Site Reliability Engineering** | Google | Paid | SRE practices |
+| **Distributed Systems Observability** | Cindy Sridharan | Paid | Tracing, metrics |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Prometheus & Grafana** | LevelUpTuts | ₹999-1,499 | Monitoring basics |
+| **Observability with OpenTelemetry** | Instructor | ₹1,499-2,299 | Tracing |
+| **Site Reliability Engineering** | Educative | Paid | SRE practices |
+| **Monitoring & Alerting** | Instructor | ₹799-1,199 | Alerting |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Observability Engineering** | O'Reilly | Paid |
+| **Distributed Systems Observability** | O'Reilly | Paid |
+| **Site Reliability Engineering** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Prometheus Essential Training** | Erin Allard | Paid |
+| **Grafana Dashboards** | Barron Stone | Paid |
+| **Distributed Tracing** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Prometheus Docs** | Official docs | prometheus.io/docs |
+| **Grafana Tutorials** | Official tutorials | grafana.com/tutorials |
+| **OpenTelemetry Docs** | Official docs | opentelemetry.io/docs |
+| **Awesome Observability** | GitHub | github.com/analyzing/awesome-observability |
+
+---
+
+## 8. Common Observability Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between logs, metrics, and traces?** | Logs are discrete events, metrics are numerical over time, traces show request flow. |
+| **What is SLI/SLO/SLA?** | SLI is indicator, SLO is target, SLA is contractual agreement. |
+| **How to handle high-cardinality data?** | Use labels carefully, aggregate at collection time, use recording rules. |
+| **What is distributed tracing?** | Trace requests across multiple services to identify bottlenecks. |
+| **How to set up alerting?** | Define thresholds, use multi-dimensional alerts, implement alert deduplication. |
+
+---
+
+## 9. Part Navigation
+
+### Previous Parts
+[Part 17: Infrastructure as Code](/blog/it-career-guide/part-17-terraform)
+
+### Next Parts
+[Part 19: CI/CD Pipelines](/blog/it-career-guide/part-19-cicd) ·
+[Part 20: Frontend Development](/blog/it-career-guide/part-20-frontend)
+
+---
+
+*[Proceed to Part 19: CI/CD Pipelines →](/blog/it-career-guide/part-19-cicd)*

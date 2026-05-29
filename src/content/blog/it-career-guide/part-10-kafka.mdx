@@ -1,0 +1,417 @@
+---
+title: "Part 10: Event-Driven Architecture - Apache Kafka"
+description: "Master producers, consumers, consumer groups, partitioning, exactly-once semantics, Kafka Streams, and Schema Registry for event streaming platforms."
+pubDate: 2026-05-29
+tags: ["Kafka", "Event Streaming", "Backend", "Distributed Systems", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 10
+draft: false
+---
+
+# Part 10: Event-Driven Architecture - Apache Kafka
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Kafka in 2026?
+
+Apache Kafka powers the data infrastructure of Netflix, LinkedIn, Uber, and every major tech company. Understanding Kafka is essential for backend and distributed systems roles, with engineers commanding **20-30% higher salaries**.
+
+### Key Advantages
+- **High throughput**: Millions of messages per second
+- **Fault tolerance**: Replication across clusters
+- **Scalability**: Horizontal scaling with partitioning
+- **Durability**: Persistent storage with configurable retention
+- **Real-time processing**: Stream processing with Kafka Streams
+
+---
+
+## 2. Kafka Fundamentals
+
+### Core Concepts
+
+```
+Producer → Topic → Partition → Consumer Group → Consumer
+```
+
+- **Producer**: Publishes messages to topics
+- **Topic**: Categorizes messages into streams
+- **Partition**: Enables parallel processing and scalability
+- **Consumer Group**: Group of consumers sharing workload
+- **Consumer**: Subscribes to partitions and processes messages
+
+### Architecture
+
+```java
+// Java producer example
+Properties props = new Properties();
+props.put("bootstrap.servers", "localhost:9092");
+props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+
+ProducerRecord<String, String> record = new ProducerRecord<>("users", "user1", "{\"name\": \"John\"}");
+producer.send(record);
+producer.close();
+```
+
+---
+
+## 3. Python Kafka Implementation
+
+### Producer
+
+```python
+from kafka import KafkaProducer
+import json
+
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
+def send_user_event(user_id, event_type, data):
+    producer.send('user-events', {
+        'user_id': user_id,
+        'event_type': event_type,
+        'data': data,
+        'timestamp': time.time()
+    })
+
+# Async send
+future = producer.send('orders', {'product': 'laptop', 'price': 999})
+record_metadata = future.get(timeout=10)  # Block until sent
+```
+
+### Consumer
+
+```python
+from kafka import KafkaConsumer
+
+consumer = KafkaConsumer(
+    'user-events',
+    bootstrap_servers=['localhost:9092'],
+    value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+    group_id='user-service-group'
+)
+
+for message in consumer:
+    print(f"Received: {message.value}")
+    # Process message
+    process_user_event(message.value)
+```
+
+### Consumer Configuration
+
+```python
+consumer = KafkaConsumer(
+    'orders',
+    bootstrap_servers=['localhost:9092'],
+    group_id='inventory-service',
+    auto_offset_reset='earliest',  # Read from beginning
+    enable_auto_commit=True,
+    auto_commit_interval_ms=1000,
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+```
+
+---
+
+## 4. Partitioning Strategies
+
+### Partition Key Selection
+
+```python
+# Good partition keys - evenly distribute load
+producer.send('orders', key=user_id.encode(), value=order_data)
+
+# Bad partition keys - hotspots
+producer.send('orders', key=b'constant', value=order_data)
+```
+
+### Custom Partitioner
+
+```python
+def custom_partitioner(key, partitions):
+    # Custom logic for partition selection
+    if key:
+        return hash(key) % partitions
+    return 0
+
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    partitioner=custom_partitioner
+)
+```
+
+### Partition Distribution
+
+| Strategy | Use Case | Example |
+|----------|----------|---------|
+| **Hash-based** | Even distribution | `hash(key) % partitions` |
+| **Round-robin** | No key required | Distribute evenly |
+| **Range-based** | Sequential ordering | Time-series data |
+
+---
+
+## 5. Consumer Groups
+
+### Group Management
+
+```python
+# Multiple consumers in same group share partitions
+consumer1 = KafkaConsumer('orders', group_id='processing-group')
+consumer2 = KafkaConsumer('orders', group_id='processing-group')
+
+# Each partition assigned to one consumer in group
+# Consumer1: partitions 0, 2
+# Consumer2: partitions 1, 3
+```
+
+### Rebalancing
+
+```python
+from kafka import KafkaConsumer
+
+consumer = KafkaConsumer(
+    'orders',
+    group_id='processing-group',
+    on_commit_ready=lambda offsets: print(f"Committed: {offsets}"),
+    on_join_group=lambda: print("Joined group")
+)
+
+# Handle rebalancing
+for message in consumer:
+    try:
+        process_message(message)
+        consumer.commit()  # Manual commit
+    except Exception as e:
+        consumer.commit_async()  # Async commit
+```
+
+---
+
+## 6. Exactly-Once Semantics
+
+### Idempotent Producer
+
+```python
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    enable_idempotence=True,  # Prevent duplicates
+    acks='all',  # Wait for all replicas
+    retries=5
+)
+```
+
+### Transactional Producer
+
+```python
+from kafka import KafkaTransactionalProducer
+
+producer = KafkaTransactionalProducer(
+    bootstrap_servers=['localhost:9092'],
+    transactional_id='inventory-tx-1'
+)
+
+try:
+    producer.begin_transaction()
+    producer.send('orders', order_data)
+    producer.send('inventory', inventory_update)
+    producer.commit_transaction()
+except Exception as e:
+    producer.abort_transaction()
+```
+
+### Exactly-Once Processing
+
+```python
+consumer = KafkaConsumer(
+    'orders',
+    group_id='exactly-once-group',
+    enable_auto_commit=False
+)
+
+producer = KafkaTransactionalProducer(
+    bootstrap_servers=['localhost:9092'],
+    transactional_id='processing-tx-1'
+)
+
+for message in consumer:
+    producer.begin_transaction()
+    try:
+        # Process message
+        result = process_order(message.value)
+        
+        # Send to output topic
+        producer.send('processed-orders', result)
+        
+        # Commit offset
+        consumer.commit()
+        producer.commit_transaction()
+    except Exception as e:
+        producer.abort_transaction()
+```
+
+---
+
+## 7. Kafka Streams
+
+### Stream Processing
+
+```java
+StreamsBuilder builder = new StreamsBuilder();
+
+KStream<String, Order> orders = builder.stream("orders");
+
+KStream<String, EnrichedOrder> enriched = orders
+    .join(
+        builder.stream("products"),
+        (order, product) -> enrich(order, product),
+        Joined.with(Serdes.String(), orderSerde, productSerde)
+    )
+    .filter((key, enriched) -> enriched.getAmount() > 100);
+
+enriched.to("high-value-orders");
+
+KafkaStreams streams = new KafkaStreams(builder.build(), props);
+streams.start();
+```
+
+### Word Count Example
+
+```java
+KStream<String, String> textLines = builder.stream("text-lines");
+
+KStream<String, Long> wordCounts = textLines
+    .flatMapValues(text -> Arrays.asList(text.toLowerCase().split("\\W+")))
+    .groupBy((key, word) -> word)
+    .count()
+    .toStream();
+
+wordCounts.to("word-counts");
+```
+
+---
+
+## 8. Schema Registry
+
+### Schema Management
+
+```python
+from schema_registry.client import SchemaRegistryClient
+from schema_registry.serializers import AvroSerializer
+
+schema_registry = SchemaRegistryClient('http://localhost:8081')
+
+serializer = AvroSerializer(
+    schema_registry,
+    {
+        'type': 'record',
+        'name': 'Order',
+        'fields': [
+            {'name': 'order_id', 'type': 'string'},
+            {'name': 'product', 'type': 'string'},
+            {'name': 'price', 'type': 'double'}
+        ]
+    }
+)
+
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=serializer
+)
+```
+
+### Schema Evolution
+
+```json
+{
+  "type": "record",
+  "name": "Order",
+  "fields": [
+    {"name": "order_id", "type": "string"},
+    {"name": "product", "type": "string"},
+    {"name": "price", "type": "double"},
+    {"name": "currency", "type": ["null", "string"], "default": null}
+  ]
+}
+```
+
+---
+
+## 9. Resource Directory: Kafka
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Kafka: The Definitive Guide** | Neha Narkhede | Paid | Administration, streams |
+| **Kafka Streams in Action** | Bill Bejeck | Paid | Stream processing |
+| **Building Event-Driven Microservices** | Adam Bellemare | Paid | Architecture patterns |
+| **Designing Event-Driven Systems** | Ben Stopford | Paid | System design |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Apache Kafka Beginner to Advanced** | Stephane Maarek | ₹1,999-2,999 | Core concepts, streams |
+| **Kafka for Developers** | Jose Portilla | ₹1,499-2,299 | Producer, consumer |
+| **Event-Driven Microservices** | Colt Steele | ₹1,499-2,299 | Architecture |
+| **Kafka Streams & ksqlDB** | Confluent | Free | Stream processing |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Kafka: The Definitive Guide** | O'Reilly | Paid |
+| **Kafka Streams in Action** | O'Reilly | Paid |
+| **Building Event-Driven Systems** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Apache Kafka Essential Training** | Barron Stone | Paid |
+| **Event-Driven Architecture** | Barron Stone | Paid |
+| **Building Microservices** | Will Richardson | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **Kafka Docs** | Official documentation | kafka.apache.org/documentation |
+| **Kafka University** | Free courses | confluent.io/training |
+| **Kafka Streams Examples** | GitHub | github.com/confluentinc/kafka-streams-examples |
+| **Awesome Kafka** | GitHub collection | github.com/mocality/awesome-kafka |
+
+---
+
+## 10. Common Kafka Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **Difference between Kafka and RabbitMQ?** | Kafka is a distributed commit log, RabbitMQ is a message broker. Kafka persists messages, RabbitMQ is ephemeral. |
+| **What is a consumer group?** | Group of consumers sharing partitions for fault tolerance and scalability. |
+| **How to handle backpressure?** | Use consumer throttling, increase partitions, or implement batch processing. |
+| **What are Kafka Streams advantages?** | Embedded processing, exactly-once semantics, no external processing framework needed. |
+| **Difference between at-least-once and at-most-once?** | At-least-once may duplicate, at-most-once may lose messages. Exactly-once guarantees no duplicates. |
+
+---
+
+## 11. Part Navigation
+
+### Previous Parts
+[Part 9: Redis & Caching](/blog/it-career-guide/part-09-redis-caching)
+
+### Next Parts
+[Part 11: System Design Fundamentals](/blog/it-career-guide/part-11-system-design) ·
+[Part 12: Microservices Architecture](/blog/it-career-guide/part-12-microservices)
+
+---
+
+*[Proceed to Part 11: System Design Fundamentals →](/blog/it-career-guide/part-11-system-design)*
