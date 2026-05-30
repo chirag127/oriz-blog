@@ -1,0 +1,398 @@
+---
+title: "Part 24: LangChain Foundations - Chains, Prompts & Memory"
+description: "Learn LangChain chains, prompts, output parsers, memory types, document loaders, text splitters, retrievers, and callbacks for LLM applications."
+pubDate: 2026-05-29
+tags: ["LangChain", "AI", "LLM", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 24
+draft: false
+---
+
+# Part 24: LangChain Foundations - Chains, Prompts & Memory
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why LangChain in 2026?
+
+LangChain is the most popular framework for building LLM applications. Engineers with LangChain expertise command **40-70% higher salaries** in AI engineering roles.
+
+### Key Components
+- **Chains**: Compose LLM calls and other components
+- **Prompts**: Template and manage prompts
+- **Memory**: Maintain conversation state
+- **Document Loaders**: Load various document types
+- **Retrievers**: Connect to vector stores
+
+---
+
+## 2. LangChain Basics
+
+### Installation
+
+```bash
+pip install langchain langchain-community langchain-chroma
+pip install -U langchain-google-genai  # For Google models
+```
+
+### LLM Integration
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# OpenAI LLM
+llm = ChatOpenAI(
+    model="gpt-4",
+    temperature=0.7,
+    max_tokens=1000
+)
+
+# Google Gemini
+llm_gemini = ChatGoogleGenerativeAI(
+    model="gemini-pro",
+    temperature=0.7
+)
+```
+
+---
+
+## 3. Prompts and Prompt Templates
+
+### Basic Prompt
+
+```python
+from langchain_core.prompts import ChatPromptTemplate
+
+# Create prompt template
+prompt = ChatPromptTemplate.from_template("""
+You are a helpful assistant. Answer the following question:
+Question: {question}
+Answer:
+""")
+
+# Format and invoke
+formatted_prompt = prompt.format(question="What is machine learning?")
+response = llm.invoke(formatted_prompt)
+```
+
+### Complex Prompt Templates
+
+```python
+# Multi-variable prompt
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a {role} assistant."),
+    ("human", "Answer this question: {question}\n\nContext: {context}")
+])
+
+# Format with variables
+formatted_messages = prompt.format_messages(
+    role="technical expert",
+    question="Explain RAG systems",
+    context="RAG combines retrieval and generation..."
+)
+```
+
+### Prompt Serialization
+
+```python
+import json
+
+# Save prompt template
+prompt_dict = {
+    "template": prompt.template,
+    "messages": prompt.messages
+}
+
+with open("prompt_template.json", "w") as f:
+    json.dump(prompt_dict, f)
+```
+
+---
+
+## 4. Chains and Runnables
+
+### Simple Chain
+
+```python
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+
+# Create a simple chain
+chain = (
+    {"question": RunnablePassthrough()} 
+    | prompt 
+    | llm
+)
+
+# Invoke chain
+response = chain.invoke("What is AI?")
+```
+
+### Parallel Chains
+
+```python
+# Run multiple chains in parallel
+parallel_chain = RunnableParallel({
+    "summary": summary_chain,
+    "keywords": keyword_chain,
+    "sentiment": sentiment_chain
+})
+
+# Combine results
+combined_chain = parallel_chain | combine_results_chain
+```
+
+### Conditional Chains
+
+```python
+from langchain_core.runnables import RunnableBranch
+
+conditional_chain = RunnableBranch(
+    [
+        (lambda x: x["type"] == "technical", technical_chain),
+        (lambda x: x["type"] == "creative", creative_chain),
+    ],
+    default_chain  # Default if no condition matches
+)
+```
+
+---
+
+## 5. Memory and State
+
+### Conversation Buffer Memory
+
+```python
+from langchain_core.memory import ConversationBufferMemory
+
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True
+)
+
+# Use in chain
+chain = ConversationChain(
+    llm=llm,
+    memory=memory,
+    prompt=prompt
+)
+
+# First interaction
+chain.invoke("My name is John")
+
+# Second interaction (remembers name)
+chain.invoke("What is my name?")
+```
+
+### Conversation Summary Memory
+
+```python
+from langchain_core.memory import ConversationSummaryMemory
+
+memory = ConversationSummaryMemory(
+    llm=llm,
+    memory_key="summary"
+)
+
+# Automatically summarizes long conversations
+```
+
+### Entity Memory
+
+```python
+from langchain.memory import EntityMemory
+
+memory = EntityMemory(llm=llm)
+
+# Extract and store entities
+memory.save_entity("John", "person", "likes programming")
+memory.save_entity("Python", "technology", "programming language")
+```
+
+---
+
+## 6. Document Loaders
+
+### File Loaders
+
+```python
+from langchain_community.document_loaders import (
+    TextLoader,
+    CSVLoader,
+    PDFPlumberLoader,
+    UnstructuredWordDocumentLoader
+)
+
+# Load text file
+loader = TextLoader("document.txt")
+docs = loader.load()
+
+# Load PDF
+loader = PDFPlumberLoader("document.pdf")
+docs = loader.load()
+
+# Load CSV
+loader = CSVLoader("data.csv")
+docs = loader.load()
+```
+
+### Web Loaders
+
+```python
+from langchain_community.document_loaders import WebBaseLoader
+
+# Load web page
+loader = WebBaseLoader("https://example.com")
+docs = loader.load()
+
+# Load multiple URLs
+urls = ["https://example1.com", "https://example2.com"]
+loader = WebBaseLoader(urls)
+docs = loader.load()
+```
+
+### Custom Loader
+
+```python
+from langchain_core.document_loaders import BaseLoader
+from langchain_core.documents import Document
+
+class CustomLoader(BaseLoader):
+    def __init__(self, source):
+        self.source = source
+    
+    def load(self):
+        # Custom loading logic
+        with open(self.source, 'r') as f:
+            content = f.read()
+        
+        return [Document(
+            page_content=content,
+            metadata={"source": self.source}
+        )]
+```
+
+---
+
+## 7. Text Splitters
+
+### Character-based Splitting
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200,
+    length_function=len,
+    is_separator_regex=False,
+)
+
+# Split documents
+texts = text_splitter.split_text("Your large text here...")
+
+# Split documents
+docs = text_splitter.split_documents(documents)
+```
+
+### Token-based Splitting
+
+```python
+from langchain_text_splitters import TokenTextSplitter
+
+text_splitter = TokenTextSplitter(
+    chunk_size=256,
+    chunk_overlap=32,
+    encoding="cl100k_base"  # OpenAI tokenizer
+)
+
+texts = text_splitter.split_text("Large text...")
+```
+
+### Semantic Chunking
+
+```python
+from langchain_text_splitters import SemanticChunker
+
+# Use embeddings for semantic splitting
+text_splitter = SemanticChunker(embeddings)
+
+texts = text_splitter.split_text("Large text with semantic boundaries...")
+```
+
+---
+
+## 8. Resource Directory: LangChain
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Learning LangChain** | O'Reilly | Paid | LangChain guide |
+| **Building LLM Applications** | O'Reilly | Paid | Production LLMs |
+| **Practical LangChain** | Packt | Paid | Hands-on |
+| **AI Engineering** | O'Reilly | Paid | AI systems |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **LangChain & LLMs** | Instructor | ₹1,999-2,999 | LangChain mastery |
+| **Building AI Apps** | Instructor | ₹1,499-2,299 | AI applications |
+| **RAG with LangChain** | Instructor | ₹1,499-2,299 | RAG systems |
+| **LangChain Cookbook** | Instructor | ₹999-1,499 | Recipes |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Learning LangChain** | O'Reilly | Paid |
+| **Building LLM Applications** | O'Reilly | Paid |
+| **Practical LangChain** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **LangChain Essential Training** | Instructor | Paid |
+| **LLM Applications** | Instructor | Paid |
+| **AI Engineering** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **LangChain Docs** | Official docs | python.langchain.com |
+| **LangChain Cookbook** | GitHub | github.com/langchain-ai/langchain-cookbook |
+| **Awesome LangChain** | GitHub | github.com/iff pore/awesome-langchain |
+| **LangChain University** | Free courses | github.com/langchain-ai/langchain-university |
+
+---
+
+## 9. Common LangChain Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **What are LangChain chains?** | Chains combine LLMs with other components for complex workflows. |
+| **Difference between Runnable and Chain?** | Runnable is newer, more flexible interface for composing operations. |
+| **How to manage prompt templates?** | Use PromptTemplate and ChatPromptTemplate classes. |
+| **What is memory in LangChain?** | Memory components store conversation history and context. |
+| **How to handle streaming responses?** | Use stream() method and callbacks for real-time output. |
+
+---
+
+## 10. Part Navigation
+
+### Previous Parts
+[Part 23: RAG Architectures](/blog/it-career-guide/part-23-rag-architectures)
+
+### Next Parts
+[Part 25: LangGraph](/blog/it-career-guide/part-25-langgraph) ·
+[Part 26: Multi-Agent Systems](/blog/it-career-guide/part-26-multi-agent)
+
+---
+
+*[Proceed to Part 25: LangGraph →](/blog/it-career-guide/part-25-langgraph)*

@@ -1,0 +1,470 @@
+---
+title: "Part 26: Multi-Agent Systems & Orchestration Patterns"
+description: "Learn agent roles, delegation patterns, CrewAI, AutoGen, communication protocols, error handling, and agent memory for orchestrating multiple AI agents."
+pubDate: 2026-05-29
+tags: ["Multi-Agent", "AI Agents", "Orchestration", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 26
+draft: false
+---
+
+# Part 26: Multi-Agent Systems & Orchestration Patterns
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why Multi-Agent Systems in 2026?
+
+Multi-agent systems are the cutting edge of AI engineering. Engineers with multi-agent expertise command **60-100% higher salaries** in AI research and platform engineering roles.
+
+### Key Benefits
+- **Parallel processing**: Multiple tasks simultaneously
+- **Specialized roles**: Agents with specific expertise
+- **Fault tolerance**: Resilient to individual agent failures
+- **Scalability**: Easy to add more agents
+
+---
+
+## 2. Agent Roles and Responsibilities
+
+### Role Definition
+
+```python
+from dataclasses import dataclass
+from typing import List, Dict, Any
+
+@dataclass
+class AgentRole:
+    name: str
+    expertise: List[str]
+    responsibilities: List[str]
+    tools: List[str]
+
+# Define agent roles
+RESEARCHER = AgentRole(
+    name="Researcher",
+    expertise=["information retrieval", "web search", "data analysis"],
+    responsibilities=["gather information", "verify facts", "cite sources"],
+    tools=["web_search", "database_query"]
+)
+
+CODER = AgentRole(
+    name="Coder",
+    expertise=["programming", "algorithm design", "code review"],
+    responsibilities=["write code", "debug issues", "optimize performance"],
+    tools=["code_executor", "compiler", "debugger"]
+)
+
+WRITER = AgentRole(
+    name="Writer",
+    expertise=["content creation", "editing", "storytelling"],
+    responsibilities=["draft content", "edit text", "ensure clarity"],
+    tools=["text_generator", "grammar_checker"]
+)
+```
+
+### Agent Communication Protocol
+
+```python
+class Message:
+    def __init__(self, sender: str, recipient: str, content: str, message_type: str):
+        self.sender = sender
+        self.recipient = recipient
+        self.content = content
+        self.message_type = message_type
+        self.timestamp = time.time()
+
+class AgentCommunication:
+    def __init__(self):
+        self.message_queue = []
+        self.agents = {}
+    
+    def send_message(self, message: Message):
+        self.message_queue.append(message)
+    
+    def route_message(self, message: Message):
+        if message.recipient == "broadcast":
+            for agent in self.agents.values():
+                agent.receive(message)
+        else:
+            self.agents[message.recipient].receive(message)
+```
+
+---
+
+## 3. CrewAI Framework
+
+### Setup and Installation
+
+```bash
+pip install crewai crewai-tools
+```
+
+### Creating Agents
+
+```python
+from crewai import Agent, Task, Crew
+
+# Create agents
+researcher = Agent(
+    role="Senior Research Analyst",
+    goal="Conduct thorough research on {topic}",
+    verbose=True,
+    backstory="""You are a seasoned researcher with 10+ years of experience.
+    You excel at finding reliable sources and synthesizing complex information.""",
+    tools=["web_search", "scraper"],
+    memory=True,
+    max_iter=5
+)
+
+writer = Agent(
+    role="Content Strategist",
+    goal="Create engaging, well-structured content about {topic}",
+    verbose=True,
+    backstory="""You are a professional writer with 8+ years of experience
+    in technical writing and content strategy.""",
+    tools=["text_generator", "editor"],
+    memory=True,
+    max_iter=3
+)
+```
+
+### Defining Tasks
+
+```python
+# Research task
+research_task = Task(
+    description="Research the latest developments in AI for 2026",
+    expected_output="A comprehensive report with 5 key findings and sources",
+    agent=researcher,
+    async_execution=True
+)
+
+# Writing task
+writing_task = Task(
+    description="Write a 1000-word article based on the research findings",
+    expected_output="A well-structured, engaging article ready for publication",
+    agent=writer,
+    async_execution=True,
+    dependencies=[research_task]
+)
+```
+
+### Running the Crew
+
+```python
+# Create crew
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, writing_task],
+    verbose=2
+)
+
+# Execute
+result = crew.kickoff(topic="AI trends 2026")
+print(result)
+```
+
+---
+
+## 4. AutoGen Framework
+
+### Agent Creation
+
+```python
+import autogen
+from autogen import ConversableAgent
+
+# Create user proxy agent
+user_proxy = ConversableAgent(
+    name="User",
+    human_input=True,
+    default_auto_reply="..."
+)
+
+# Create assistant agent
+assistant = ConversableAgent(
+    name="Assistant",
+    system_message="You are a helpful AI assistant.",
+    llm_config={
+        "config_list": [
+            {"model": "gpt-4", "api_key": "YOUR_API_KEY"}
+        ]
+    }
+)
+```
+
+### Group Chat
+
+```python
+# Create group chat
+groupchat = autogen.GroupChat(
+    agents=[user_proxy, assistant],
+    messages=[],
+    max_round=10
+)
+
+# Manager agent
+manager = autogen.GroupChatManager(
+    groupchat=groupchat,
+    llm_config={"config_list": [{"model": "gpt-4", "api_key": "YOUR_API_KEY"}]}
+)
+
+# Start conversation
+user_proxy.initiate_chat(
+    manager,
+    message="What are the latest AI trends?"
+)
+```
+
+---
+
+## 5. Delegation Patterns
+
+### Hierarchical Delegation
+
+```python
+class HierarchicalAgent:
+    def __init__(self, name: str, role: AgentRole, parent=None):
+        self.name = name
+        self.role = role
+        self.parent = parent
+        self.children = []
+        self.tasks = []
+    
+    def delegate_task(self, task_description: str, required_expertise: List[str]):
+        # Find suitable child agent
+        suitable_agent = self.find_suitable_agent(required_expertise)
+        if suitable_agent:
+            task = Task(description=task_description, agent=suitable_agent)
+            suitable_agent.tasks.append(task)
+            return task
+        else:
+            # Handle task locally or escalate
+            return self.handle_task_locally(task_description)
+    
+    def find_suitable_agent(self, expertise_required):
+        for child in self.children:
+            if any(exp in child.role.expertise for exp in expertise_required):
+                return child
+        return None
+```
+
+### Round-Robin Task Distribution
+
+```python
+class TaskDistributor:
+    def __init__(self, agents: List[HierarchicalAgent]):
+        self.agents = agents
+        self.current_index = 0
+    
+    def distribute_task(self, task):
+        agent = self.agents[self.current_index]
+        self.current_index = (self.current_index + 1) % len(self.agents)
+        agent.tasks.append(task)
+        return agent
+```
+
+### Load Balancing
+
+```python
+def balance_load(agents: List[HierarchicalAgent]) -> HierarchicalAgent:
+    # Find agent with least tasks
+    return min(agents, key=lambda a: len(a.tasks))
+
+def distribute_tasks(tasks: List[Task], agents: List[HierarchicalAgent]):
+    for task in tasks:
+        least_loaded_agent = balance_load(agents)
+        least_loaded_agent.tasks.append(task)
+```
+
+---
+
+## 6. Agent Memory and State
+
+### Long-term Memory
+
+```python
+class AgentMemory:
+    def __init__(self):
+        self.short_term_memory = []
+        self.long_term_memory = {}
+        self.episodic_memory = []
+    
+    def add_to_short_term(self, information):
+        self.short_term_memory.append(information)
+        if len(self.short_term_memory) > 10:
+            self.short_term_memory.pop(0)
+    
+    def add_to_long_term(self, key, information):
+        self.long_term_memory[key] = information
+    
+    def store_episode(self, episode):
+        self.episodic_memory.append(episode)
+        if len(self.episodic_memory) > 100:
+            self.episodic_memory.pop(0)
+```
+
+### Context Window Management
+
+```python
+def manage_context_window(messages: List[str], max_tokens: int = 4096):
+    total_tokens = sum(count_tokens(msg) for msg in messages)
+    
+    while total_tokens > max_tokens:
+        # Remove oldest message
+        removed = messages.pop(0)
+        total_tokens -= count_tokens(removed)
+    
+    return messages
+
+def count_tokens(text: str) -> int:
+    # Approximate token count
+    return len(text.split()) // 0.75
+```
+
+---
+
+## 7. Error Handling and Fault Tolerance
+
+### Retry Mechanisms
+
+```python
+import time
+import random
+from functools import wraps
+
+def retry_with_backoff(max_retries=3, base_delay=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise e
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    time.sleep(delay)
+            return None
+        return wrapper
+    return decorator
+
+@retry_with_backoff(max_retries=3)
+def call_llm(prompt):
+    return llm.invoke(prompt)
+```
+
+### Circuit Breaker for Agents
+
+```python
+class AgentCircuitBreaker:
+    def __init__(self, failure_threshold=5, timeout=60):
+        self.failure_threshold = failure_threshold
+        self.timeout = timeout
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.state = 'CLOSED'
+    
+    def call(self, agent_function):
+        if self.state == 'OPEN':
+            if time.time() - self.last_failure_time > self.timeout:
+                self.state = 'HALF_OPEN'
+            else:
+                raise Exception("Circuit breaker is OPEN")
+        
+        try:
+            result = agent_function()
+            self.on_success()
+            return result
+        except Exception as e:
+            self.on_failure()
+            raise e
+    
+    def on_success(self):
+        self.failure_count = 0
+        self.state = 'CLOSED'
+    
+    def on_failure(self):
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = 'OPEN'
+```
+
+---
+
+## 8. Resource Directory: Multi-Agent Systems
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Multi-Agent Systems** | O'Reilly | Paid | Agent design |
+| **Autonomous Agents** | Manning | Paid | Agent development |
+| **Distributed AI Systems** | O'Reilly | Paid | Multi-agent systems |
+| **AI Agents Handbook** | O'Reilly | Paid | Agent patterns |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **Multi-Agent Systems** | Instructor | ₹1,999-2,999 | Agent teams |
+| **CrewAI Masterclass** | Instructor | ₹1,499-2,299 | CrewAI framework |
+| **AutoGen Agents** | Instructor | ₹1,499-2,299 | Microsoft AutoGen |
+| **Agentic AI** | Instructor | ₹1,999-2,999 | Autonomous agents |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Multi-Agent Systems** | O'Reilly | Paid |
+| **Building Autonomous Agents** | O'Reilly | Paid |
+| **Distributed AI Systems** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **Multi-Agent Systems** | Instructor | Paid |
+| **Agent Orchestration** | Instructor | Paid |
+| **Autonomous AI Agents** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **CrewAI Docs** | Official docs | docs.crewai.com |
+| **AutoGen Docs** | Official docs | autogen.stanford.edu |
+| **Awesome Agents** | GitHub | github.com/eisne/awesome-agents |
+| **Multi-Agent Papers** | arXiv | arxiv.org/list/cs.MA/recent |
+
+---
+
+## 9. Common Multi-Agent Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **What is agent delegation?** | Assigning tasks to specialized agents based on expertise. |
+| **How to handle agent failures?** | Implement circuit breakers, retry mechanisms, fallback agents. |
+| **What is message passing?** | Agents communicate via structured messages with defined protocols. |
+| **How to ensure agent coordination?** | Use shared memory, message queues, or central orchestrator. |
+| **What are agent personalities?** | Configurable behavioral traits that influence agent responses. |
+
+---
+
+## 10. Part Navigation
+
+### Previous Parts
+[Part 25: LangGraph](/blog/it-career-guide/part-25-langgraph)
+
+### Next Parts
+[Part 27: Tool-Augmented Agents](/blog/it-career-guide/part-27-tool-agents) ·
+[Part 28: LLMOps](/blog/it-career-guide/part-28-llmops)
+
+---
+
+*[Proceed to Part 27: Tool-Augmented Agents →](/blog/it-career-guide/part-27-tool-agents)*

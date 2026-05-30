@@ -147,7 +147,7 @@ const topSeries = seriesPreview.slice(0, 3);
       <div class="flex flex-wrap gap-2">
         {allTags.map((tag) => (
           <a
-            href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`}
+            href={`/tags/${tag.toLowerCase().replace(/\//g, "-").replace(/\s+/g, "-")}`}
             class="px-3 py-1.5 text-sm rounded-lg bg-bg-tertiary text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all border border-border"
           >
             #{tag}

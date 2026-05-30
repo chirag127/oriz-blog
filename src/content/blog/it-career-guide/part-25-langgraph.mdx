@@ -1,0 +1,336 @@
+---
+title: "Part 25: LangGraph - Multi-Agent State Machines & Workflows"
+description: "Master state graphs, nodes, edges, conditional routing, checkpointing, human-in-the-loop, persistence, and agent orchestration with LangGraph."
+pubDate: 2026-05-29
+tags: ["LangGraph", "AI Agents", "Multi-Agent", "Career Guide"]
+category: "Career Guide"
+author: "Chirag Singhal"
+series: "The 2026 IT Career Blueprint"
+part: 25
+draft: false
+---
+
+# Part 25: LangGraph - Multi-Agent State Machines & Workflows
+
+*[← Back to Master Index](/blog/it-career-guide)*
+
+---
+
+## 1. Why LangGraph in 2026?
+
+LangGraph is the future of agentic AI. Engineers with LangGraph expertise command **50-100% higher salaries** in AI engineering roles.
+
+### Key Concepts
+- **State Graphs**: Manage complex agent workflows
+- **Nodes**: Processing units in the graph
+- **Edges**: Control flow between nodes
+- **Conditional Routing**: Dynamic workflow paths
+- **Persistence**: State management across sessions
+
+---
+
+## 2. LangGraph Fundamentals
+
+### Installation
+
+```bash
+pip install langgraph
+pip install -U langchain-google-genai  # For Google models
+```
+
+### Basic Agent Graph
+
+```python
+from langgraph.graph import StateGraph, END
+from langchain_core.messages import HumanMessage, AIMessage
+from typing import TypedDict, List
+
+# Define state
+class AgentState(TypedDict):
+    messages: List[HumanMessage | AIMessage]
+
+# Create state graph
+graph = StateGraph(AgentState)
+
+# Define nodes
+def agent_node(state: AgentState):
+    # Call LLM with messages
+    response = llm.invoke(state["messages"])
+    return {"messages": [response]}
+
+# Add nodes
+graph.add_node("agent", agent_node)
+
+# Add edges
+graph.add_edge(START, "agent")
+graph.add_edge("agent", END)
+
+# Compile graph
+agent_graph = graph.compile()
+```
+
+---
+
+## 3. Multi-Agent Workflows
+
+### Research Agent Example
+
+```python
+# Define specialized agents
+class ResearchState(TypedDict):
+    query: str
+    research_results: List[str]
+    summary: str
+
+def researcher_agent(state: ResearchState):
+    # Research using web search
+    results = web_search(state["query"])
+    return {"research_results": results}
+
+def summarizer_agent(state: ResearchState):
+    # Summarize research
+    prompt = f"Summarize: {state['research_results']}"
+    summary = llm.invoke(prompt)
+    return {"summary": summary}
+
+# Build multi-agent graph
+graph = StateGraph(ResearchState)
+
+graph.add_node("researcher", researcher_agent)
+graph.add_node("summarizer", summarizer_agent)
+
+graph.add_edge("researcher", "summarizer")
+graph.add_edge(START, "researcher")
+graph.add_edge("summarizer", END)
+
+multi_agent_graph = graph.compile()
+```
+
+### Agent Orchestration
+
+```python
+# Orchestrator pattern
+def orchestrator(state: AgentState):
+    query = state["query"]
+    
+    # Route to appropriate agent
+    if "code" in query.lower():
+        return "code_agent"
+    elif "research" in query.lower():
+        return "research_agent"
+    else:
+        return "general_agent"
+
+# Conditional routing
+graph.add_conditional_edges(
+    "router",
+    orchestrator,
+    {
+        "code_agent": "code_agent",
+        "research_agent": "research_agent",
+        "general_agent": "general_agent"
+    }
+)
+```
+
+---
+
+## 4. Checkpointing and Persistence
+
+### Memory Persistence
+
+```python
+from langgraph.checkpoint.memory import MemorySaver
+
+# Create memory saver
+memory = MemorySaver()
+
+# Compile with persistence
+graph_with_memory = graph.compile(checkpointer=memory)
+
+# Invoke with thread ID
+config = {"configurable": {"thread_id": "user_123"}}
+result = graph_with_memory.invoke(state, config)
+
+# Resume conversation
+next_state = {"messages": [HumanMessage(content="Continue")]}
+result = graph_with_memory.invoke(next_state, config)
+```
+
+### Database Persistence
+
+```python
+from langgraph.checkpoint.postgres import PostgresChecker
+
+# PostgreSQL checkpoint store
+checkpointer = PostgresChecker(
+    conn_string="postgresql://user:pass@host:5432/db"
+)
+
+graph = graph.compile(checkpointer=checkpointer)
+```
+
+---
+
+## 5. Human-in-the-Loop
+
+### Interruptible Agents
+
+```python
+def human_review_node(state: AgentState):
+    # Pause for human review
+    human_input = input("Review this output: ")
+    return {"human_review": human_input}
+
+# Add interrupt point
+graph.add_node("human_review", human_review_node)
+graph.add_edge("agent", "human_review")
+graph.add_conditional_edges("human_review", should_continue, {END})
+
+# Run with interrupts
+config = {
+    "configurable": {"thread_id": "user_123"},
+    "interrupt_after": ["agent"]  # Interrupt after agent node
+}
+```
+
+### Approval Workflows
+
+```python
+def approval_node(state: AgentState):
+    # Check if approval needed
+    if state.get("needs_approval"):
+        # Send for approval
+        send_approval_request(state["output"])
+        return {"status": "pending_approval"}
+    return {"status": "approved"}
+
+# Conditional approval flow
+graph.add_conditional_edges(
+    "process",
+    lambda x: "approve" if x.get("needs_approval") else "complete",
+    {"approve": "approval", "complete": END}
+)
+```
+
+---
+
+## 6. Tool-Augmented Agents
+
+### Tool Integration
+
+```python
+from langgraph.prebuilt import ToolNode, create_agent
+
+# Define tools
+tools = [
+    web_search_tool,
+    calculator_tool,
+    database_query_tool
+]
+
+# Create agent with tools
+agent = create_agent(llm, tools)
+
+# Add tool node
+graph.add_node("tools", ToolNode(tools))
+
+# Add conditional edge for tool use
+graph.add_conditional_edges(
+    "agent",
+    lambda x: "tools" if should_use_tools(x) else END,
+    {"tools": "tools", END: END}
+)
+```
+
+### Tool Schema Definition
+
+```python
+from langchain_core.tools import Tool
+
+web_search = Tool(
+    name="web_search",
+    description="Search the web for current information",
+    func=lambda query: search_web(query)
+)
+
+calculator = Tool(
+    name="calculator",
+    description="Perform mathematical calculations",
+    func=lambda expr: eval(expr)
+)
+```
+
+---
+
+## 7. Resource Directory: LangGraph
+
+### Best Books
+
+| Book | Author | Price | Key Topics |
+|------|--------|-------|------------|
+| **Building Agentic Systems** | O'Reilly | Paid | Agent design |
+| **LangGraph Documentation** | Official | Free | Official guide |
+| **Multi-Agent Systems** | Manning | Paid | Agent coordination |
+| **AI Agents Handbook** | O'Reilly | Paid | Agent development |
+
+### Best Udemy Courses
+
+| Course | Instructor | Price (INR) | Key Topics |
+|--------|------------|-------------|------------|
+| **LangGraph & Agents** | Instructor | ₹1,999-2,999 | LangGraph mastery |
+| **Multi-Agent Systems** | Instructor | ₹1,499-2,299 | Agent teams |
+| **Agentic AI** | Instructor | ₹1,499-2,299 | Autonomous agents |
+| **Building AI Agents** | Instructor | ₹999-1,499 | Agent development |
+
+### Best O'Reilly Resources
+
+| Resource | Topic | Access |
+|----------|-------|--------|
+| **Building Agentic Systems** | O'Reilly | Paid |
+| **LangGraph in Production** | O'Reilly | Paid |
+| **Multi-Agent AI** | O'Reilly | Paid |
+
+### Best LinkedIn Learning Courses
+
+| Course | Instructor | Access |
+|--------|------------|--------|
+| **LangGraph Essential Training** | Instructor | Paid |
+| **Agentic AI Systems** | Instructor | Paid |
+| **Multi-Agent Workflows** | Instructor | Paid |
+
+### Free Resources
+
+| Platform | Resource | Link |
+|----------|----------|------|
+| **LangGraph Docs** | Official docs | python.langchain.com/docs/langgraph |
+| **LangGraph Tutorials** | GitHub | github.com/langchain-ai/langgraph |
+| **Awesome LangGraph** | GitHub | github.com/ranahaani/awesome-langgraph |
+| **LangSmith** | Monitoring | smith.langchain.com |
+
+---
+
+## 8. Common LangGraph Interview Questions
+
+| Question | Answer |
+|----------|--------|
+| **What is a state graph?** | A directed graph that manages state transitions in agent workflows. |
+| **Difference between Runnable and Node?** | Nodes are graph components, Runnables are LangChain's execution interface. |
+| **How to handle long-running agents?** | Use checkpointing and persistence for state management. |
+| **What is conditional routing?** | Dynamic path selection based on state or conditions. |
+| **How to implement human-in-the-loop?** | Use interrupt points and approval nodes in the graph. |
+
+---
+
+## 9. Part Navigation
+
+### Previous Parts
+[Part 24: LangChain Foundations](/blog/it-career-guide/part-24-langchain)
+
+### Next Parts
+[Part 26: Multi-Agent Systems](/blog/it-career-guide/part-26-multi-agent) ·
+[Part 27: Tool-Augmented Agents](/blog/it-career-guide/part-27-tool-agents)
+
+---
+
+*[Proceed to Part 26: Multi-Agent Systems →](/blog/it-career-guide/part-26-multi-agent)*
