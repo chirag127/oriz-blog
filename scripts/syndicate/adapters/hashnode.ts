@@ -50,7 +50,7 @@ export class HashnodeAdapter implements SyndicationAdapter {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": apiKey,
+          Authorization: apiKey,
         },
         body: JSON.stringify({
           query,

@@ -38,7 +38,10 @@ export function mdToHtml(md: string): string {
   });
 
   // Images: ![alt](url) -> <img src="url" alt="alt" />
-  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%; height:auto;" />');
+  text = text.replace(
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    '<img src="$2" alt="$1" style="max-width:100%; height:auto;" />',
+  );
 
   // Links: [text](url) -> <a href="url">text</a>
   text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
@@ -56,7 +59,11 @@ export function mdToHtml(md: string): string {
   const formattedBlocks = blocks.map((block) => {
     const trimmed = block.trim();
     if (!trimmed) return "";
-    if (trimmed.startsWith("<h") || trimmed.startsWith("<pre") || trimmed.startsWith("<img")) {
+    if (
+      trimmed.startsWith("<h") ||
+      trimmed.startsWith("<pre") ||
+      trimmed.startsWith("<img")
+    ) {
       return trimmed;
     }
     return `<p>${trimmed.replace(/\n/g, "<br />")}</p>`;
@@ -78,12 +85,15 @@ export class WordPressAdapter implements SyndicationAdapter {
       return {
         success: false,
         platform: this.name,
-        error: "Missing WORDPRESS_URL, WORDPRESS_USERNAME, or WORDPRESS_APP_PASSWORD in environment.",
+        error:
+          "Missing WORDPRESS_URL, WORDPRESS_USERNAME, or WORDPRESS_APP_PASSWORD in environment.",
       };
     }
 
     // Prepare credentials header
-    const credentials = Buffer.from(`${username}:${appPassword}`).toString("base64");
+    const credentials = Buffer.from(`${username}:${appPassword}`).toString(
+      "base64",
+    );
 
     // Standardize URL structure
     const baseUrl = wpUrl.endsWith("/") ? wpUrl.slice(0, -1) : wpUrl;
@@ -107,7 +117,7 @@ export class WordPressAdapter implements SyndicationAdapter {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Basic ${credentials}`,
+          Authorization: `Basic ${credentials}`,
         },
         body: JSON.stringify({
           title: post.title,

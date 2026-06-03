@@ -1,5 +1,10 @@
 import * as crypto from "node:crypto";
-import { BlogMetadata, LinkShortener, SyndicationAdapter, SyndicationResult } from "../types";
+import {
+  BlogMetadata,
+  LinkShortener,
+  SyndicationAdapter,
+  SyndicationResult,
+} from "../types";
 
 /**
  * Robust, zero-dependency helper to generate Twitter/X OAuth 1.0a Authorization Headers.
@@ -11,7 +16,7 @@ export function generateOAuth1Header(
   consumerKey: string,
   consumerSecret: string,
   accessToken: string,
-  accessTokenSecret: string
+  accessTokenSecret: string,
 ): string {
   const nonce = crypto.randomBytes(32).toString("hex");
   const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -90,7 +95,8 @@ export class XAdapter implements SyndicationAdapter {
       return {
         success: false,
         platform: this.name,
-        error: "Missing X/Twitter API credentials in environment (X_CONSUMER_KEY, X_CONSUMER_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET).",
+        error:
+          "Missing X/Twitter API credentials in environment (X_CONSUMER_KEY, X_CONSUMER_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET).",
       };
     }
 
@@ -132,14 +138,14 @@ export class XAdapter implements SyndicationAdapter {
         consumerKey,
         consumerSecret,
         accessToken,
-        accessTokenSecret
+        accessTokenSecret,
       );
 
       // Step 4: Dispatch JSON POST request to Twitter API v2
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": authHeader,
+          Authorization: authHeader,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

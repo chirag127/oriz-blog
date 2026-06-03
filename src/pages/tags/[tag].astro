@@ -25,10 +25,12 @@ export async function getStaticPaths() {
     }
   });
 
-  return Array.from(tagsMap.entries()).map(([slug, { originalTag, posts }]) => ({
-    params: { tag: slug },
-    props: { tag: originalTag, posts },
-  }));
+  return Array.from(tagsMap.entries()).map(
+    ([slug, { originalTag, posts }]) => ({
+      params: { tag: slug },
+      props: { tag: originalTag, posts },
+    }),
+  );
 }
 
 const { tag, posts } = Astro.props;

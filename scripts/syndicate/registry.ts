@@ -13,12 +13,17 @@ export class SyndicationRegistry {
 
   constructor(customPath?: string) {
     // Default to src/content/syndication-registry.json relative to project root
-    this.registryPath = customPath || path.join(process.cwd(), "src", "content", "syndication-registry.json");
+    this.registryPath =
+      customPath ||
+      path.join(process.cwd(), "src", "content", "syndication-registry.json");
   }
 
   async load(): Promise<void> {
     try {
-      const exists = await fs.access(this.registryPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(this.registryPath)
+        .then(() => true)
+        .catch(() => false);
       if (!exists) {
         this.state = {};
         return;
@@ -26,7 +31,10 @@ export class SyndicationRegistry {
       const data = await fs.readFile(this.registryPath, "utf-8");
       this.state = JSON.parse(data);
     } catch (error) {
-      console.warn(`Failed to read syndication registry at ${this.registryPath}, initializing empty.`, error);
+      console.warn(
+        `Failed to read syndication registry at ${this.registryPath}, initializing empty.`,
+        error,
+      );
       this.state = {};
     }
   }
@@ -36,9 +44,16 @@ export class SyndicationRegistry {
       // Ensure directory exists
       const dir = path.dirname(this.registryPath);
       await fs.mkdir(dir, { recursive: true });
-      await fs.writeFile(this.registryPath, JSON.stringify(this.state, null, 2), "utf-8");
+      await fs.writeFile(
+        this.registryPath,
+        JSON.stringify(this.state, null, 2),
+        "utf-8",
+      );
     } catch (error) {
-      console.error(`Failed to write syndication registry to ${this.registryPath}`, error);
+      console.error(
+        `Failed to write syndication registry to ${this.registryPath}`,
+        error,
+      );
       throw error;
     }
   }

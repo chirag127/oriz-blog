@@ -27,19 +27,16 @@ const {
   index = 0,
 } = Astro.props;
 
-const formattedDate = latestDate.toLocaleDateString(
-  "en-US",
-  { year: "numeric", month: "short" },
-);
+const formattedDate = latestDate.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "short",
+});
 
 /**
  * Map categories to gradient color pairs
  * for visual differentiation.
  */
-const categoryGradients: Record<
-  string,
-  [string, string]
-> = {
+const categoryGradients: Record<string, [string, string]> = {
   Healthcare: ["#10b981", "#059669"],
   "Health & Medicine": ["#f43f5e", "#e11d48"],
   "Health & Beauty": ["#ec4899", "#db2777"],
@@ -50,8 +47,10 @@ const categoryGradients: Record<
   General: ["#6366f1", "#4f46e5"],
 };
 
-const [gradFrom, gradTo] =
-  categoryGradients[category] ?? ["#6366f1", "#4f46e5"];
+const [gradFrom, gradTo] = categoryGradients[category] ?? [
+  "#6366f1",
+  "#4f46e5",
+];
 ---
 
 <a

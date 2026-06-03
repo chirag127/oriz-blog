@@ -12,19 +12,13 @@ import { getCollection } from "astro:content";
 import SeriesCard from "../../components/SeriesCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const allPosts = await getCollection(
-  "blog",
-  ({ data }) => !data.draft,
-);
+const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 
 /**
  * Build a map: folderSlug → array of posts.
  * Only posts whose id contains "/" are in folders.
  */
-const folderMap = new Map<
-  string,
-  typeof allPosts
->();
+const folderMap = new Map<string, typeof allPosts>();
 
 for (const post of allPosts) {
   const slashIndex = post.id.indexOf("/");
@@ -52,27 +46,23 @@ interface SeriesInfo {
 const seriesList: SeriesInfo[] = [];
 
 for (const [folder, posts] of folderMap.entries()) {
-  const indexPost = posts.find(
-    (p) =>
-      p.id.endsWith("/index") ||
-      p.id.endsWith("/index.mdx") ||
-      p.id.endsWith("/index.md"),
-  ) ?? posts.find(
-    (p) => p.id === `${folder}/index`,
-  );
+  const indexPost =
+    posts.find(
+      (p) =>
+        p.id.endsWith("/index") ||
+        p.id.endsWith("/index.mdx") ||
+        p.id.endsWith("/index.md"),
+    ) ?? posts.find((p) => p.id === `${folder}/index`);
 
   const representative = indexPost ?? posts[0];
 
   // Count only non-index posts as "parts"
   const partPosts = posts.filter(
-    (p) =>
-      p.id !== `${folder}/index` &&
-      !p.id.endsWith("/index"),
+    (p) => p.id !== `${folder}/index` && !p.id.endsWith("/index"),
   );
 
   const latestDate = posts.reduce(
-    (max, p) =>
-      p.data.pubDate > max ? p.data.pubDate : max,
+    (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
     posts[0].data.pubDate,
   );
 
@@ -87,9 +77,7 @@ for (const [folder, posts] of folderMap.entries()) {
 }
 
 // Sort: newest first
-seriesList.sort(
-  (a, b) => b.latestDate.valueOf() - a.latestDate.valueOf(),
-);
+seriesList.sort((a, b) => b.latestDate.valueOf() - a.latestDate.valueOf());
 ---
 
 <BaseLayout

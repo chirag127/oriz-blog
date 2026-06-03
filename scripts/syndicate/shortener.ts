@@ -14,7 +14,9 @@ export class IsGdShortener implements LinkShortener {
 
       const data = await response.json();
       if (data.errorcode) {
-        throw new Error(`is.gd API Error [${data.errorcode}]: ${data.errormessage}`);
+        throw new Error(
+          `is.gd API Error [${data.errorcode}]: ${data.errormessage}`,
+        );
       }
 
       if (!data.shorturl) {
@@ -23,7 +25,10 @@ export class IsGdShortener implements LinkShortener {
 
       return data.shorturl;
     } catch (error) {
-      console.error(`Failed to shorten URL: ${longUrl}. Falling back to original URL. Error:`, error);
+      console.error(
+        `Failed to shorten URL: ${longUrl}. Falling back to original URL. Error:`,
+        error,
+      );
       // Return the long URL as fallback to avoid crashing the syndication pipeline
       return longUrl;
     }

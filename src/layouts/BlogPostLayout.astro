@@ -51,18 +51,18 @@ let isSeries = false;
 
 if (seriesSlug) {
   seriesPosts = allPosts.filter(
-    (p) => p.id === seriesSlug || p.id.startsWith(`${seriesSlug}/`)
+    (p) => p.id === seriesSlug || p.id.startsWith(`${seriesSlug}/`),
   );
-  
+
   const indexPost = seriesPosts.find(
-    (p) => p.id === seriesSlug || p.id === `${seriesSlug}/index`
+    (p) => p.id === seriesSlug || p.id === `${seriesSlug}/index`,
   );
   const parts = seriesPosts.filter(
-    (p) => p.id !== (indexPost ? indexPost.id : seriesSlug)
+    (p) => p.id !== (indexPost ? indexPost.id : seriesSlug),
   );
-  
+
   isSeries = parts.length > 0;
-  
+
   if (isSeries) {
     sortedSeriesParts = parts.sort((a, b) => {
       const partA = a.data.part;
@@ -75,35 +75,41 @@ if (seriesSlug) {
         sensitivity: "base",
       });
     });
-    
+
     if (indexPost) {
       seriesNavigationList.push({
         id: indexPost.id,
         isIndex: true,
-        data: indexPost.data
+        data: indexPost.data,
       });
     }
-    
+
     sortedSeriesParts.forEach((p) => {
       seriesNavigationList.push({
         id: p.id,
         isIndex: false,
-        data: p.data
+        data: p.data,
       });
     });
-    
+
     const representative = indexPost ?? sortedSeriesParts[0];
-    seriesTitle = representative?.data.series || indexPost?.data.title || "Blog Series";
-    
+    seriesTitle =
+      representative?.data.series || indexPost?.data.title || "Blog Series";
+
     currentItemIndex = seriesNavigationList.findIndex(
-      (p) => p.id === slug || (p.isIndex && (slug === seriesSlug || slug === `${seriesSlug}/index`))
+      (p) =>
+        p.id === slug ||
+        (p.isIndex && (slug === seriesSlug || slug === `${seriesSlug}/index`)),
     );
     currentPartIndex = sortedSeriesParts.findIndex((p) => p.id === slug);
-    
-    prevPost = currentItemIndex > 0 ? seriesNavigationList[currentItemIndex - 1] : null;
-    nextPost = currentItemIndex !== -1 && currentItemIndex < seriesNavigationList.length - 1 
-      ? seriesNavigationList[currentItemIndex + 1] 
-      : null;
+
+    prevPost =
+      currentItemIndex > 0 ? seriesNavigationList[currentItemIndex - 1] : null;
+    nextPost =
+      currentItemIndex !== -1 &&
+      currentItemIndex < seriesNavigationList.length - 1
+        ? seriesNavigationList[currentItemIndex + 1]
+        : null;
   }
 }
 

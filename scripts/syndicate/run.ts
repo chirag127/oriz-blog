@@ -13,7 +13,10 @@ import { BlogMetadata, SyndicationAdapter } from "./types";
 /**
  * Robust frontmatter and Markdown parser.
  */
-export function parseMarkdownPost(fileContent: string, slug: string): BlogMetadata | null {
+export function parseMarkdownPost(
+  fileContent: string,
+  slug: string,
+): BlogMetadata | null {
   const normalized = fileContent.replace(/\r\n/g, "\n");
   if (!normalized.startsWith("---")) return null;
 
@@ -63,16 +66,19 @@ export function parseMarkdownPost(fileContent: string, slug: string): BlogMetada
   // Mandatory fields validation with safe defaults
   const title = frontmatter.title || "";
   const description = frontmatter.description || "";
-  const pubDate = frontmatter.pubDate ? new Date(frontmatter.pubDate) : new Date();
+  const pubDate = frontmatter.pubDate
+    ? new Date(frontmatter.pubDate)
+    : new Date();
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags : [];
   const draft = frontmatter.draft === true;
   const author = frontmatter.author || "Chirag Singhal";
   const language = frontmatter.language === "hi" ? "hi" : "en";
 
   // Compute canonical URL based on Astro config domain
-  const canonicalUrl = language === "hi" 
-    ? `https://blog.oriz.in/hi/posts/${slug}` 
-    : `https://blog.oriz.in/posts/${slug}`;
+  const canonicalUrl =
+    language === "hi"
+      ? `https://blog.oriz.in/hi/posts/${slug}`
+      : `https://blog.oriz.in/posts/${slug}`;
 
   return {
     title,
@@ -92,7 +98,9 @@ export function parseMarkdownPost(fileContent: string, slug: string): BlogMetada
 /**
  * Scan a directory recursively for markdown posts.
  */
-async function getMarkdownFiles(dir: string): Promise<{ filePath: string; slug: string }[]> {
+async function getMarkdownFiles(
+  dir: string,
+): Promise<{ filePath: string; slug: string }[]> {
   const results: { filePath: string; slug: string }[] = [];
 
   async function walk(currentDir: string) {
@@ -103,11 +111,17 @@ async function getMarkdownFiles(dir: string): Promise<{ filePath: string; slug: 
 
       if (entry.isDirectory()) {
         await walk(fullPath);
-      } else if (entry.isFile() && (entry.name.endsWith(".md") || entry.name.endsWith(".mdx"))) {
+      } else if (
+        entry.isFile() &&
+        (entry.name.endsWith(".md") || entry.name.endsWith(".mdx"))
+      ) {
         // Compute slug based on Astro routing standards
         let slug = "";
         const dirName = path.basename(currentDir);
-        const fileNameWithoutExt = path.basename(entry.name, path.extname(entry.name));
+        const fileNameWithoutExt = path.basename(
+          entry.name,
+          path.extname(entry.name),
+        );
 
         if (fileNameWithoutExt === "index") {
           // If the file is index.md or index.mdx inside a folder, slug is folder name
@@ -134,7 +148,9 @@ async function main() {
   const dryRun = args.includes("--dry-run");
   const force = args.includes("--force");
 
-  console.log(`🚀 Starting Blog Syndication. Mode: ${dryRun ? "DRY-RUN (Simulated)" : "LIVE"}`);
+  console.log(
+    `🚀 Starting Blog Syndication. Mode: ${dryRun ? "DRY-RUN (Simulated)" : "LIVE"}`,
+  );
 
   // Resolve dependencies
   const shortener = new IsGdShortener();
@@ -162,7 +178,9 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Found ${files.length} markdown/mdx files in ${blogDir}. Parsing contents...`);
+  console.log(
+    `Found ${files.length} markdown/mdx files in ${blogDir}. Parsing contents...`,
+  );
 
   const activePosts: BlogMetadata[] = [];
   for (const file of files) {
@@ -182,7 +200,9 @@ async function main() {
     }
   }
 
-  console.log(`Loaded ${activePosts.length} active posts. Processing syndication...`);
+  console.log(
+    `Loaded ${activePosts.length} active posts. Processing syndication...`,
+  );
 
   let successCount = 0;
   let failureCount = 0;
@@ -194,12 +214,16 @@ async function main() {
       const isAlreadySyndicated = registry.isSyndicated(post.slug, adapter.id);
 
       if (isAlreadySyndicated && !force) {
-        console.log(`  - [SKIP] Already posted to ${adapter.name}: ${registry.getSyndicatedUrl(post.slug, adapter.id)}`);
+        console.log(
+          `  - [SKIP] Already posted to ${adapter.name}: ${registry.getSyndicatedUrl(post.slug, adapter.id)}`,
+        );
         continue;
       }
 
       if (dryRun) {
-        console.log(`  - [DRY-RUN] Would syndicate to ${adapter.name} (${adapter.id})`);
+        console.log(
+          `  - [DRY-RUN] Would syndicate to ${adapter.name} (${adapter.id})`,
+        );
         continue;
       }
 
@@ -207,11 +231,15 @@ async function main() {
       const result = await adapter.syndicate(post);
 
       if (result.success && result.url) {
-        console.log(`  - [SUCCESS] Published to ${adapter.name}: ${result.url}`);
+        console.log(
+          `  - [SUCCESS] Published to ${adapter.name}: ${result.url}`,
+        );
         registry.recordSuccess(post.slug, adapter.id, result.url);
         successCount++;
       } else {
-        console.error(`  - [ERROR] Failed to syndicate to ${adapter.name}: ${result.error}`);
+        console.error(
+          `  - [ERROR] Failed to syndicate to ${adapter.name}: ${result.error}`,
+        );
         failureCount++;
       }
     }
@@ -229,7 +257,10 @@ async function main() {
 }
 
 // Check if this module is run directly
-if (process.argv[1] && (process.argv[1].endsWith("run.ts") || process.argv[1].endsWith("run.js"))) {
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith("run.ts") || process.argv[1].endsWith("run.js"))
+) {
   main().catch((err) => {
     console.error("Fatal syndication error:", err);
     process.exit(1);

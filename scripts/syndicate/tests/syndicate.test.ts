@@ -25,10 +25,18 @@ Here is inline \`code\`.`;
   assert.ok(html.includes("<h2>Heading 2</h2>"), "Should compile H2");
   assert.ok(html.includes("<strong>bold</strong>"), "Should compile bold text");
   assert.ok(html.includes("<em>italic</em>"), "Should compile italic text");
-  assert.ok(html.includes('<a href="https://oriz.in">link</a>'), "Should compile links");
-  assert.ok(html.includes('<pre><code class="language-typescript">const val = "hello";</code></pre>'), "Should compile and escape code blocks");
+  assert.ok(
+    html.includes('<a href="https://oriz.in">link</a>'),
+    "Should compile links",
+  );
+  assert.ok(
+    html.includes(
+      '<pre><code class="language-typescript">const val = "hello";</code></pre>',
+    ),
+    "Should compile and escape code blocks",
+  );
   assert.ok(html.includes("<code>code</code>"), "Should compile inline code");
-  
+
   console.log("✅ Markdown to HTML tests passed!");
 }
 
@@ -46,14 +54,17 @@ language: en
 My markdown content body`;
 
   const parsed = parseMarkdownPost(content, "building-oriz");
-  
+
   assert.ok(parsed, "Parser should return a valid object");
   assert.strictEqual(parsed.title, "Building Oriz");
   assert.strictEqual(parsed.description, "How I built 1000+ tools");
   assert.deepStrictEqual(parsed.tags, ["Next.js", "Cloudflare"]);
   assert.strictEqual(parsed.draft, false);
   assert.strictEqual(parsed.language, "en");
-  assert.strictEqual(parsed.canonicalUrl, "https://blog.oriz.in/posts/building-oriz");
+  assert.strictEqual(
+    parsed.canonicalUrl,
+    "https://blog.oriz.in/posts/building-oriz",
+  );
   assert.strictEqual(parsed.contentMarkdown, "My markdown content body");
 
   console.log("✅ Markdown frontmatter parsing tests passed!");
@@ -65,7 +76,8 @@ function testCharacterTruncation() {
   // Mock post metadata
   const post = {
     title: "Awesome Title",
-    description: "A very long description that will definitely exceed the standard character limit of X.com when paired with a link and title. Let's make sure it truncates correctly. This is additional text to make it extremely long so that the total text of the tweet exceeds the 280 character limit and forces the truncation algorithm to run and append the ellipsis indicator to the description.",
+    description:
+      "A very long description that will definitely exceed the standard character limit of X.com when paired with a link and title. Let's make sure it truncates correctly. This is additional text to make it extremely long so that the total text of the tweet exceeds the 280 character limit and forces the truncation algorithm to run and append the ellipsis indicator to the description.",
     pubDate: new Date(),
     slug: "awesome-post",
     contentMarkdown: "",
@@ -96,10 +108,22 @@ function testCharacterTruncation() {
 
   const tweetText = `${text}${footer}`;
 
-  assert.ok(tweetText.length <= 280, `Tweet length (${tweetText.length}) should not exceed 280 characters`);
-  assert.ok(tweetText.endsWith(shortUrl), "Tweet must end with the shortened URL");
-  assert.ok(tweetText.includes("Awesome Title"), "Tweet must include the title");
-  assert.ok(tweetText.includes("..."), "Tweet must include truncation indicators");
+  assert.ok(
+    tweetText.length <= 280,
+    `Tweet length (${tweetText.length}) should not exceed 280 characters`,
+  );
+  assert.ok(
+    tweetText.endsWith(shortUrl),
+    "Tweet must end with the shortened URL",
+  );
+  assert.ok(
+    tweetText.includes("Awesome Title"),
+    "Tweet must include the title",
+  );
+  assert.ok(
+    tweetText.includes("..."),
+    "Tweet must include truncation indicators",
+  );
 
   console.log("✅ X/Twitter truncation tests passed!");
 }
@@ -109,7 +133,9 @@ function runAll() {
     testMarkdownToHtml();
     testFrontmatterParsing();
     testCharacterTruncation();
-    console.log("\n🥇 All test suites executed successfully and passed without errors!");
+    console.log(
+      "\n🥇 All test suites executed successfully and passed without errors!",
+    );
   } catch (error) {
     console.error("❌ Test assertion failure:", error);
     process.exit(1);

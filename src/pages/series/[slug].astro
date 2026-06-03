@@ -10,16 +10,10 @@ import PostCard from "../../components/PostCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
-  const allPosts = await getCollection(
-    "blog",
-    ({ data }) => !data.draft,
-  );
+  const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 
   // Discover all folder slugs
-  const folderMap = new Map<
-    string,
-    typeof allPosts
-  >();
+  const folderMap = new Map<string, typeof allPosts>();
 
   for (const post of allPosts) {
     const slashIndex = post.id.indexOf("/");
@@ -30,12 +24,10 @@ export async function getStaticPaths() {
     folderMap.set(folder, existing);
   }
 
-  return [...folderMap.entries()].map(
-    ([folder, posts]) => ({
-      params: { slug: folder },
-      props: { posts },
-    }),
-  );
+  return [...folderMap.entries()].map(([folder, posts]) => ({
+    params: { slug: folder },
+    props: { posts },
+  }));
 }
 
 const { slug } = Astro.params;
@@ -43,22 +35,17 @@ const { posts } = Astro.props;
 
 // Find index post for series metadata
 const indexPost = posts.find(
-  (p: any) =>
-    p.id === `${slug}/index` ||
-    p.id.endsWith("/index"),
+  (p: any) => p.id === `${slug}/index` || p.id.endsWith("/index"),
 );
 
 const representative = indexPost ?? posts[0];
 const seriesTitle = representative.data.title;
-const seriesDescription =
-  representative.data.description;
+const seriesDescription = representative.data.description;
 const seriesCategory = representative.data.category;
 
 // Separate index from parts
 const partPosts = posts.filter(
-  (p: any) =>
-    p.id !== `${slug}/index` &&
-    !p.id.endsWith("/index"),
+  (p: any) => p.id !== `${slug}/index` && !p.id.endsWith("/index"),
 );
 
 /**
@@ -82,8 +69,7 @@ const sortedParts = [...partPosts].sort((a, b) => {
 
 // Compute total word count for reading time
 const totalWords = posts.reduce(
-  (sum: number, p: any) =>
-    sum + (p.body?.split(/\s+/).length ?? 0),
+  (sum: number, p: any) => sum + (p.body?.split(/\s+/).length ?? 0),
   0,
 );
 const totalReadingTime = Math.ceil(totalWords / 200);
@@ -91,10 +77,7 @@ const totalReadingTime = Math.ceil(totalWords / 200);
 /**
  * Map categories to hero gradient pairs.
  */
-const categoryGradients: Record<
-  string,
-  [string, string]
-> = {
+const categoryGradients: Record<string, [string, string]> = {
   Healthcare: ["#10b981", "#059669"],
   "Health & Medicine": ["#f43f5e", "#e11d48"],
   "Health & Beauty": ["#ec4899", "#db2777"],
@@ -105,11 +88,10 @@ const categoryGradients: Record<
   General: ["#6366f1", "#4f46e5"],
 };
 
-const [gradFrom, gradTo] =
-  categoryGradients[seriesCategory] ?? [
-    "#6366f1",
-    "#4f46e5",
-  ];
+const [gradFrom, gradTo] = categoryGradients[seriesCategory] ?? [
+  "#6366f1",
+  "#4f46e5",
+];
 ---
 
 <BaseLayout

@@ -41,16 +41,11 @@ interface SeriesInfo {
 
 const seriesPreview: SeriesInfo[] = [];
 for (const [folder, posts] of folderMap.entries()) {
-  const indexPost = posts.find(
-    (p) => p.id === `${folder}/index`,
-  );
+  const indexPost = posts.find((p) => p.id === `${folder}/index`);
   const rep = indexPost ?? posts[0];
-  const parts = posts.filter(
-    (p) => p.id !== `${folder}/index`,
-  );
+  const parts = posts.filter((p) => p.id !== `${folder}/index`);
   const latest = posts.reduce(
-    (max, p) =>
-      p.data.pubDate > max ? p.data.pubDate : max,
+    (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
     posts[0].data.pubDate,
   );
   seriesPreview.push({
@@ -62,10 +57,7 @@ for (const [folder, posts] of folderMap.entries()) {
     latestDate: latest,
   });
 }
-seriesPreview.sort(
-  (a, b) =>
-    b.latestDate.valueOf() - a.latestDate.valueOf(),
-);
+seriesPreview.sort((a, b) => b.latestDate.valueOf() - a.latestDate.valueOf());
 const topSeries = seriesPreview.slice(0, 3);
 ---
 

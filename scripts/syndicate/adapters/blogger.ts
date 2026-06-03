@@ -5,7 +5,11 @@ export class BloggerAdapter implements SyndicationAdapter {
   id = "blogger";
   name = "Blogger";
 
-  private async getAccessToken(clientId: string, clientSecret: string, refreshToken: string): Promise<string> {
+  private async getAccessToken(
+    clientId: string,
+    clientSecret: string,
+    refreshToken: string,
+  ): Promise<string> {
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -42,13 +46,18 @@ export class BloggerAdapter implements SyndicationAdapter {
       return {
         success: false,
         platform: this.name,
-        error: "Missing Blogger environment variables (BLOGGER_BLOG_ID, BLOGGER_CLIENT_ID, BLOGGER_CLIENT_SECRET, BLOGGER_REFRESH_TOKEN).",
+        error:
+          "Missing Blogger environment variables (BLOGGER_BLOG_ID, BLOGGER_CLIENT_ID, BLOGGER_CLIENT_SECRET, BLOGGER_REFRESH_TOKEN).",
       };
     }
 
     try {
       // Step 1: Programmatically resolve a fresh access token via refresh token
-      const accessToken = await this.getAccessToken(clientId, clientSecret, refreshToken);
+      const accessToken = await this.getAccessToken(
+        clientId,
+        clientSecret,
+        refreshToken,
+      );
 
       // Step 2: Compile Markdown to HTML and inject canonical footer
       let compiledHtml = mdToHtml(post.contentMarkdown);
@@ -67,7 +76,7 @@ export class BloggerAdapter implements SyndicationAdapter {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           kind: "blogger#post",

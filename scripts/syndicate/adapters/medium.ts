@@ -18,9 +18,9 @@ export class MediumAdapter implements SyndicationAdapter {
       // Step 1: Retrieve User Details (Dynamic Author ID)
       const userResponse = await fetch("https://api.medium.com/v1/me", {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
       });
 
@@ -55,22 +55,25 @@ export class MediumAdapter implements SyndicationAdapter {
       // We prepend the Title to the Markdown body because Medium relies on headings inside the body
       const markdownBody = `# ${post.title}\n\n${post.contentMarkdown}`;
 
-      const publishResponse = await fetch(`https://api.medium.com/v1/users/${userId}/posts`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Accept": "application/json",
+      const publishResponse = await fetch(
+        `https://api.medium.com/v1/users/${userId}/posts`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            title: post.title,
+            contentFormat: "markdown",
+            content: markdownBody,
+            canonicalUrl: post.canonicalUrl,
+            publishStatus: "public", // Publish immediately as public
+            tags: post.tags.slice(0, 5), // Medium allows up to 5 tags
+          }),
         },
-        body: JSON.stringify({
-          title: post.title,
-          contentFormat: "markdown",
-          content: markdownBody,
-          canonicalUrl: post.canonicalUrl,
-          publishStatus: "public", // Publish immediately as public
-          tags: post.tags.slice(0, 5), // Medium allows up to 5 tags
-        }),
-      });
+      );
 
       if (!publishResponse.ok) {
         const errorText = await publishResponse.text();
@@ -94,7 +97,8 @@ export class MediumAdapter implements SyndicationAdapter {
         return {
           success: false,
           platform: this.name,
-          error: "Medium response did not include a valid published article URL.",
+          error:
+            "Medium response did not include a valid published article URL.",
         };
       }
 
