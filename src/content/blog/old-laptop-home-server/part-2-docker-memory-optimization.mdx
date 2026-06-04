@@ -1,0 +1,856 @@
+---
+title: "Turn Your Old HP Laptop Into a Home Server — Part 2: Docker Memory Optimization and Resource Management"
+description: "Maximize 16GB of RAM on your home server. Part 2 debunks the container memory sharing myth, compares Bun vs Node.js, configures PM2, sets Docker cgroup limits, details Python bot optimization, and maps a complete server memory budget."
+pubDate: 2026-06-04
+tags: ["Home-Server", "Docker", "Memory-Optimization", "Nodejs", "Bun", "Python", "PM2", "PostgreSQL"]
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Turn Your Old HP Laptop Into a Home Server"
+part: 2
+draft: false
+---
+
+# Turn Your Old HP Laptop Into a Home Server — Part 2: Docker Memory Optimization and Resource Management
+
+In Part 1 of this series, we successfully installed Ubuntu Server 24.04 LTS on
+our HP 15s-du2077TU laptop, hardened its network and SSH access, and configured
+the BIOS for 24/7 headless operation. At this point, we have a clean, bare-metal
+Linux system that boots into less than 400 MB of RAM. 
+
+Now comes the hard part: managing our software resources. 
+
+A 16 GB RAM limit might sound generous when compared to a standard 1 GB or 2 GB
+cloud VPS. However, as you begin self-hosting modern applications—databases,
+caches, workflow automations, APIs, and AI models—you will find that 16 GB of
+memory can vanish within minutes if you do not actively optimize your stack.
+
+In this guide, we are going to debunk the container memory-sharing myth, explore
+alternative runtime structures like PM2, compare the memory footprint of Bun vs.
+Node.js vs. Deno, dive into Docker cgroup resource limits, and build a highly
+pragmatic \"memory budget\" for a 16 GB machine. Furthermore, we will establish
+a decision framework to help you choose when to self-host and when to offload
+workloads to free tier cloud services like GitHub and Cloudflare.
+
+---
+
+## 1. Debunking the Container Memory Sharing Myth
+
+A common misconception among developers transitioning to containerized environments
+is that running multiple containers of the same type (e.g., three separate Node.js
+Express APIs or four Python scripts) shares the runtime memory overhead because
+\"they share the same OS kernel.\"
+
+This is fundamentally **false**. 
+
+### How Container Isolation Works Under the Hood
+Docker is not a hypervisor like VMware or VirtualBox. It doesn't run a guest
+operating system. Instead, it relies on two primary features of the Linux kernel:
+1.  **Namespaces**: Provide isolation by virtualizing system resources (processes,
+    network interfaces, mount points, IPC, user IDs). A process running inside a
+    container thinks it is the only process on the machine.
+2.  **Control Groups (cgroups)**: Control resource allocation. They dictate how
+    much CPU, memory, network bandwidth, and disk I/O a group of processes is allowed
+    to consume.
+
+While Docker containers share the host's Linux kernel and can share read-only disk
+layers (via the OverlayFS storage driver), **each container runs its own isolated
+instances of runtime environments in memory.**
+
+```
++---------------------------------------------------------+
+|                  THE DOCKER MEMORY REALITY              |
+|                                                         |
+|  +--------------------+         +--------------------+  |
+|  | Container A        |         | Container B        |  |
+|  |                    |         |                    |  |
+|  | [Node.js V8 Engine]|         | [Node.js V8 Engine]|  |
+|  | Heap: ~40MB - 100MB|         | Heap: ~40MB - 100MB|  |
+|  +--------------------+         +--------------------+  |
+|           |                               |             |
+|           +---------------+---------------+             |
+|                           v                             |
+|           +-------------------------------+             |
+|           |      Shared Host Kernel       |             |
+|           +-------------------------------+             |
++---------------------------------------------------------+
+```
+
+### The Cost of Runtime Environments
+If you deploy three separate Docker containers, each running a standard Node.js
+application, you are executing three distinct V8 engine processes. 
+*   **Node.js Baseline**: A basic Node.js Hello World process consumes roughly 35 MB 
+    to 50 MB of RSS (Resident Set Size) memory.
+*   **V8 Engine Overhead**: V8 compiles JavaScript to machine code, handles garbage 
+    collection, and allocates a default heap space. As soon as your application imports 
+    libraries (like Express, Prisma, Mongoose, or Lodash), the baseline RSS memory jumps 
+    to 80 MB–120 MB per container, even when idle.
+*   **Python Baseline**: Similarly, a basic Python process running a script consumes 
+    around 15 MB to 25 MB. But once you load dependencies (like PyTorch, pandas, or heavy 
+    bot frameworks like python-telegram-bot with async support), the interpreter heap 
+    balloons to 60 MB–150 MB per process.
+
+Therefore, running 10 microservices inside 10 separate Docker containers will cost you 
+at least **800 MB to 1.5 GB of RAM** just in runtime overhead, completely independent 
+of the actual business logic of the code.
+
+---
+
+## 2. Strategy 1: PM2 Process Management Without Docker
+
+If you are running multiple Node.js or Bun applications on a single machine and need to 
+minimize RAM usage, containerization might not be the most efficient path. Instead, you 
+can run your applications bare-metal on the host OS using **PM2 (Process Manager 2)**.
+
+PM2 allows you to manage multiple applications, monitor their logs, and ensure they 
+restart automatically on failure or boot, all while sharing the host's runtime binaries 
+and environment.
+
+### Restricting the V8 Heap Size
+By default, Node.js allocates a large maximum heap size based on available system memory 
+(which can be up to 4 GB on a 16 GB machine). In a multi-app environment, a single app 
+with a minor memory leak can consume all your RAM.
+
+You can restrict the heap size by passing the `--max-old-space-size` flag to the V8 engine. 
+This tells the garbage collector to run aggressively once heap memory reaches the specified 
+limit (in megabytes).
+
+```bash
+# Run a Node app limiting its heap to 128 MB
+node --max-old-space-size=128 server.js
+```
+
+### Configuring a PM2 Ecosystem File
+Rather than launching processes manually, you can define a declarative configuration file 
+(`ecosystem.config.js`) that manages your entire stack, configures memory thresholds, 
+and sets auto-restart rules.
+
+Create a file named `ecosystem.config.js`:
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: "express-api-1",
+      script: "./api-1/dist/server.js",
+      node_args: "--max-old-space-size=128",
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: "180M",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3001
+      }
+    },
+    {
+      name: "express-api-2",
+      script: "./api-2/dist/server.js",
+      node_args: "--max-old-space-size=128",
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: "180M",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3002
+      }
+    },
+    {
+      name: "background-worker",
+      script: "./worker/index.js",
+      node_args: "--max-old-space-size=192",
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: "250M",
+      env: {
+        NODE_ENV: "production"
+      }
+    }
+  ]
+};
+```
+
+### Key Parameters:
+*   `node_args: "--max-old-space-size=128"`: Limits the active heap size to 128 MB.
+*   `max_memory_restart: "180M"`: If the RSS memory of the process exceeds 180 MB 
+    (indicating a slow memory leak), PM2 will gracefully restart the process, clearing 
+    the accumulated leaks.
+
+Launch all configured apps with a single command:
+```bash
+pm2 start ecosystem.config.js
+```
+To ensure PM2 starts your processes automatically on system boot:
+```bash
+pm2 startup systemd
+# Run the command outputted by the startup script, then run:
+pm2 save
+```
+
+---
+
+## 3. Strategy 2: Migrating to Bun for Runtime Efficiency
+
+If you want to keep the containerized workflow but reduce memory overhead, consider 
+replacing **Node.js** with **Bun**.
+
+Bun is a modern JavaScript runtime built from scratch using Zig, and powered by 
+Apple's **JavaScriptCore (JSC)** engine rather than Google's V8 engine. JSC is designed 
+specifically for low memory consumption and fast startup speeds (optimized for mobile 
+devices).
+
+### Memory Footprint Comparison (Base RSS Memory)
+
+| Runtime | Empty HTTP Server (Idle) | Import Express/Elysia + DB Client | Build Tooling Overhead |
+| :--- | :--- | :--- | :--- |
+| **Node.js 20+** | ~32 MB | ~78 MB | High |
+| **Deno 1.40+** | ~28 MB | ~65 MB | Medium |
+| **Bun 1.1+** | **~15 MB** | **~34 MB** | **Extremely Low** |
+
+### Why Bun Wins on a Home Server:
+1.  **Lower Runtime Memory**: Bun's base footprint is less than half of Node.js. 
+    If you deploy 10 separate microservices, using Bun instead of Node.js can save you 
+    between **300 MB and 500 MB of system RAM** just at idle.
+2.  **Built-in Tooling**: Bun includes its own bundler, test runner, package manager, 
+    and native API clients. You don't need to run heavy Node modules like `ts-node` or 
+    compile TypeScript files beforehand, which consumes memory during CI/CD or startup phases.
+3.  **Drop-in Compatibility**: Bun has extensive support for Node.js APIs and npm modules. 
+    Most Express or NestJS APIs can be run with Bun without code modifications:
+    ```bash
+    bun run server.js
+    ```
+
+---
+
+## 4. Strategy 3: Docker Cgroup Memory Limits
+
+If you must run your services inside Docker containers, you **must configure explicit 
+memory limits**. By default, a Docker container has no memory limit and can consume 
+every byte of RAM on the host system. If one of your containers experiences a memory leak, 
+it can starve the Linux kernel, leading to a system freeze or triggering the kernel's 
+**OOM (Out Of Memory) Killer** to terminate critical processes like the SSH daemon or 
+Docker engine itself.
+
+### Configuring Memory Limits in Docker Compose (V3)
+You can define CPU and memory limits inside your `docker-compose.yml` file using the 
+`deploy` key.
+
+```yaml
+version: '3.8'
+
+services:
+  web-api:
+    image: my-node-app:latest
+    ports:
+      - "3000:3000"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.50'
+        reservations:
+          memory: 128M
+          cpus: '0.10'
+```
+
+### Explaining Limits vs. Reservations:
+*   **limits.memory (256M)**: This is a hard limit. The Linux kernel's cgroup subsystem 
+    will enforce this boundary. If the container tries to allocate more than 256 MB, the 
+    kernel will immediately terminate the process inside the container with an OOM error 
+    (Exit Code 137).
+*   **reservations.memory (128M)**: This is a soft limit. It tells the Docker engine 
+    that the container requires at least 128 MB of RAM to run. During system scheduling, 
+    Docker uses this to determine if the physical host has enough capacity to run the container.
+*   **limits.cpus ('0.50')**: Restricts the container to a maximum of 50% of a single CPU 
+    core, preventing a runaway loop in one container from freezing the other services.
+
+### Tuning Docker Memory Swap Limits
+By default, Docker allocates swap memory equal to the memory limit if it is configured. 
+This means a container with a 256 MB memory limit can also allocate 256 MB of swap space. 
+While swap prevents OOM crashes by writing memory to the disk, writing to an HDD or SSD is 
+painfully slow and causes high disk I/O wait times, dragging down the performance of the entire server.
+
+You can configure memory-swap limits in your compose file or docker run commands:
+```yaml
+    # In older Compose specifications or via configuration options:
+    mem_limit: 256m
+    memswap_limit: 384m # 256 MB RAM + 128 MB swap
+```
+
+---
+
+## 5. Python Memory Optimization for Telegram Bots
+
+Python is a popular language for writing Telegram bots, automations, and scripting tasks. 
+However, running five separate Python scripts as individual processes is highly inefficient. 
+Each Python process spins up its own CPython interpreter, loads standard libraries, and 
+allocates private heaps.
+
+### Consolidation via Asyncio
+Instead of running separate scripts, you can consolidate all your Telegram bots and background 
+workers into a **single Python process** utilizing Python's native `asyncio` loop and the 
+`python-telegram-bot` package.
+
+Here is an architectural template for a consolidated Python runner (`runner.py`):
+```python
+import asyncio
+import logging
+from telegram.ext import ApplicationBuilder, CommandHandler
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Bot 1 Logic
+async def start_bot_1(update, context):
+    await update.message.reply_text("Hello from Bot 1!")
+
+# Bot 2 Logic
+async def start_bot_2(update, context):
+    await update.message.reply_text("Hello from Bot 2!")
+
+async def main():
+    # Initialize Bot 1 Application
+    app1 = ApplicationBuilder().token("BOT_1_TOKEN").build()
+    app1.add_handler(CommandHandler("start", start_bot_1))
+
+    # Initialize Bot 2 Application
+    app2 = ApplicationBuilder().token("BOT_2_TOKEN").build()
+    app2.add_handler(CommandHandler("start", start_bot_2))
+
+    # Start both bots inside the same asyncio event loop
+    async with app1, app2:
+        await app1.start()
+        await app1.updater.start_polling()
+        
+        await app2.start()
+        await app2.updater.start_polling()
+        
+        logger.info("Both bots are running in a single process event loop.")
+        
+        # Keep the event loop running indefinitely
+        while True:
+            await asyncio.sleep(3600)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Why consolidation is powerful:
+*   **Memory Savings**: Running two separate bots in two processes costs roughly 160 MB–240 MB of RAM. Running them together inside a single event loop costs only **80 MB–100 MB**.
+*   **Shared Packages**: All modules and libraries are loaded into memory once by the interpreter.
+
+### Python Package and Venv Optimization with `uv`
+For dependencies, use **`uv`**, a fast Python package installer and resolver written in Rust.
+*   Instead of separate virtual environments (`.venv`) for every project which wastes disk space, you can use `uv` workspaces or a single shared virtual environment for similar services.
+*   Run your Python containers using minimal base images: prefer `python:3.11-slim` or `python:3.11-alpine` over the heavy default `python:3.11` image (which contains build tools, compilers, and packages that consume storage and runtime memory).
+
+---
+
+## 5.4 Advanced Memory Allocator Tuning: jemalloc and mimalloc
+
+When tuning long-running server processes (like Node.js Express APIs, Python background
+workers, or Ruby sidekiq containers), we often encounter memory fragmentation. In Linux
+environments, the default memory allocator is part of the GNU C Library (glibc) and is
+known as **ptmalloc**. 
+
+While `ptmalloc` is highly robust and performs well across a broad range of applications, 
+it has a significant drawback for multi-threaded or long-running applications: **memory 
+fragmentation**. Over time, as memory is allocated and released, `ptmalloc` can fail to return 
+pages back to the operating system, causing the Resident Set Size (RSS) of your application 
+to grow indefinitely, even when the active heap size remains low.
+
+To combat this, we can replace the default allocator with a more efficient alternative:
+1.  **jemalloc**: Originally developed by Jason Evans for FreeBSD and extensively used 
+    by Facebook, `jemalloc` is designed to avoid lock contention and reduce memory fragmentation 
+    through slab allocation.
+2.  **mimalloc**: A free and open-source compact allocator developed by Microsoft, which 
+    exhibits excellent performance and memory efficiency.
+
+```
++---------------------------------------------------------+
+|                  MEMORY ALLOCATION REDIRECTION          |
+|                                                         |
+|  +---------------------------------------------------+  |
+|  |           Node.js / Python Process                |  |
+|  |                                                   |  |
+|  |  [ malloc() ] --> [ LD_PRELOAD ] --> [ jemalloc ] |  |
+|  |                           |                       |  |
+|  |                           v                       |  |
+|  |                  (Skip default ptmalloc)          |  |
+|  +---------------------------------------------------+  |
++---------------------------------------------------------+
+```
+
+### Implementing jemalloc in Docker Containers
+Instead of using Alpine Linux (which uses the `musl` allocator, which can sometimes be slow 
+under high concurrency), you can use a Debian or Ubuntu `slim` base image and preload `jemalloc`.
+
+Here is how to configure it in your Dockerfile:
+```dockerfile
+FROM node:20-bookworm-slim
+
+# Install jemalloc
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libjemalloc2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variable to preload jemalloc
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"
+
+WORKDIR /app
+COPY . .
+
+CMD ["node", "server.js"]
+```
+
+### Why this works:
+By preloading `libjemalloc.so.2` using the dynamic linker's `LD_PRELOAD` mechanism, all memory 
+allocation requests (`malloc`, `calloc`, `realloc`, `free`) made by the Node.js or Python runtime 
+bypass glibc's default allocator and are handled by `jemalloc`. 
+
+Under heavy, continuous API request load, this configuration can reduce the RSS memory footprint of 
+your Node.js or Python containers by **10% to 25%** simply by reducing heap fragmentation.
+
+### 5.5 Garbage Collector Tuning in V8 & JSC
+In addition to allocators, you can pass parameters to the garbage collectors of the engines.
+
+#### Tuning Node.js (V8 Engine) GC:
+If your Node.js application runs simple API logic and you want it to prioritize memory release over absolute CPU speed, you can use these flags:
+*   `--optimize-for-size`: Tells V8 to configure its compiler and GC strategies to optimize for memory usage.
+*   `--max-semi-space-size=8`: Reduces the size of the "new generation" space, forcing more frequent but smaller garbage collections, keeping memory footprint compact.
+```bash
+node --optimize-for-size --max-semi-space-size=8 --max-old-space-size=128 server.js
+```
+
+#### Tuning Bun (JavaScriptCore) GC:
+Bun's JavascriptCore engine has an incredibly fast garbage collector, but you can also force a garbage collection cycle manually in your application. For example, if you run a heavy background sync job every hour, you can trigger a full garbage collection at the end of the sync run:
+```javascript
+// Force JSC garbage collector to release memory back to the OS
+if (globalThis.Bun) {
+  Bun.gc(true);
+}
+```
+
+---
+
+## 6. Self-Host vs. Free Cloud Services: A Pragmatic Decision Framework
+
+When building a home server, the temptation is to self-host *everything*—databases, 
+version control, static frontends, CI/CD runners, and caches. However, this is an 
+inefficient use of resources. Self-hosting static assets or heavy repository managers 
+on a 16 GB machine is a waste of local memory and CPU cycles, especially when large 
+cloud providers offer generous, production-grade free tiers for these specific tasks.
+
+Here is a pragmatic decision matrix:
+
+```
+                                 DECISION TREE
+                                 
+                       What are you trying to host?
+                                      |
+         +----------------------------+----------------------------+
+         |                                                         |
+    Static Site / SPA                                         Database / API
+         |                                                         |
+         v                                                         v
++------------------+                                      Is it dev/private?
+| Cloudflare Pages |                                       |               |
+| (Always Free)    |                                 Yes  v               v  No (Public/Heavy)
++------------------+                                 +------------+   +-------------------+
+                                                     | Neon Free  |   | Self-Host local   |
+                                                     | Supabase   |   | Docker PG / Redis |
+                                                     +------------+   +-------------------+
+```
+
+### 1. Static Web Sites (React, Vue, Astro, HTML/CSS)
+*   **Self-Hosted Cost**: 128 MB RAM (Nginx/Caddy) + bandwidth limits of your home internet connection.
+*   **Cloud Alternative**: **Cloudflare Pages** or **GitHub Pages** (Always Free).
+*   **Pragmatic Choice**: **Cloud Alternative**. Cloudflare Pages offers unlimited bandwidth, free SSL, a global edge CDN, and direct integration with GitHub. Hosting a static site on your home server adds load, exposes a port, and relies on your home internet upload speed. Keep static sites on the cloud.
+
+### 2. Version Control & Git Hosting
+*   **Self-Hosted Cost**: 256 MB–1.5 GB RAM (Gitea/Forgejo or GitLab).
+*   **Cloud Alternative**: **GitHub** (Free private/public repos, free actions runner time).
+*   **Pragmatic Choice**: **Cloud Alternative**. Using GitHub is free, secure, and has zero impact on your local server. We will write our blogs and store our project repositories on GitHub, pushing directly from our local editor.
+
+### 3. Databases (PostgreSQL / Redis)
+*   **Self-Hosted Cost**: 1 GB–2 GB RAM (PostgreSQL) + 256 MB RAM (Redis).
+*   **Cloud Alternative**: **Neon** (1 Free PostgreSQL instance with branching) or **Supabase** (2 Free PostgreSQL databases), **Upstash** (Free serverless Redis).
+*   **Pragmatic Choice**: **Hybrid**.
+    *   For **local projects, internal dashboards, and heavy caching**, self-host a Dockerized PostgreSQL/Redis instance. This keeps data access localized (`\<1ms` latency) and avoids external dependencies.
+    *   For **small test applications or public APIs** where you want to minimize local read/write IOPS on your SSD, offload the databases to Neon or Supabase free tiers.
+
+### 4. Background Workers & Telegram Bots
+*   **Self-Hosted Cost**: 80 MB–200 MB RAM.
+*   **Cloud Alternative**: PaaS free tiers (Koyeb, Render) have strict uptime limits (e.g., sleeping after 15 mins of inactivity).
+*   **Pragmatic Choice**: **Self-Host**. Background services and Telegram bots must run 24/7 without sleeping. Your home server is the perfect place to run these persistent services.
+
+---
+
+## 7. The 16 GB Memory Budget
+
+To prevent host crashes, let's establish a strict memory budget. This blueprint allocates resources for the host, cache layers, dynamic services, dynamic bots, local AI, and monitoring tools.
+
+### Memory Allocation Plan
+
+| Component | Target Runtime | RAM Allocation | cgroup hard-limit | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ubuntu Server OS** | Bare Metal Kernel | 400 MB | N/A | Base OS processes, systemd, sshd, netplan. |
+| **PostgreSQL 16** | Docker Container | 1.5 GB | 2.0 GB | Tuned shared buffers and cache. |
+| **Redis** | Docker Container | 256 MB | 512 MB | Cache memory limit eviction active. |
+| **Reverse Proxy (Caddy)** | Docker Container | 128 MB | 256 MB | Reverse routing and automatic SSL. |
+| **Dynamic API 1 (Elysia)** | Bun Container | 64 MB | 128 MB | Main web API, low base RSS. |
+| **Dynamic API 2 (Express)** | Node.js Container | 128 MB | 256 MB | Legacy API, memory-capped heap. |
+| **Consolidated Bots** | Single Python Process | 128 MB | 256 MB | Asyncio handling multiple Telegram bots. |
+| **n8n Automation** | Docker Container | 380 MB | 512 MB | Workflow execution engine. |
+| **Vaultwarden** | Docker Container | 32 MB | 64 MB | Password manager, Rust implementation. |
+| **Uptime Kuma** | Docker Container | 128 MB | 256 MB | Service heartbeat monitoring. |
+| **Ollama (AI Inference)** | Docker Container | 3.5 GB | 4.5 GB | Runs models like Phi-4 Mini (3.8B). |
+| **Host System Cache** | Linux Page Cache | 5.5 GB | N/A | Reserved by OS for disk filesystem caching. |
+| **Total Capped Usage** | — | **~14.1 GB** | **—** | **Leaves ~1.9 GB safe safety headroom.** |
+
+---
+
+## 8. Optimizing local Services (PostgreSQL & Docker)
+
+Now let's apply our memory optimization strategies to our core self-hosted services.
+
+### 8.1 PostgreSQL Memory Tuning
+By default, PostgreSQL is configured for conservative hardware configurations (e.g., 256 MB systems). To ensure it runs efficiently on our server without consuming excessive RAM, we must tune its memory parameters.
+
+Create a custom PostgreSQL configuration file (`/mnt/data/postgres/pg_tuned.conf`):
+```ini
+# Memory Parameters for a 16GB system (allocating ~1.5GB to Postgres)
+max_connections = 50
+shared_buffers = 1024MB
+effective_cache_size = 3072MB
+maintenance_work_mem = 256MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+default_statistics_target = 100
+random_page_cost = 1.1
+effective_io_concurrency = 200
+work_mem = 10MB
+huge_pages = off
+min_wal_size = 1GB
+max_wal_size = 4GB
+```
+
+In your `docker-compose.yml` file, mount this configuration file:
+```yaml
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: main_db
+      POSTGRES_USER: chirag_user
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - /mnt/data/postgres/data:/var/lib/postgresql/data
+      - /mnt/data/postgres/pg_tuned.conf:/etc/postgresql/postgresql.conf
+    command: "postgres -c config_file=/etc/postgresql/postgresql.conf"
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+        reservations:
+          memory: 1024M
+    ports:
+      - "5432:5432"
+```
+
+### 8.2 Redis Caching Limits
+A Redis cache can grow indefinitely as it stores more keys in memory. We must set a memory cap and tell Redis how to behave when it runs out of space.
+
+Create a Redis configuration file (`/mnt/data/redis/redis.conf`):
+```text
+# Cap memory usage at 256 MB
+maxmemory 256mb
+
+# Evict the least recently used keys when limit is reached
+maxmemory-policy allkeys-lru
+```
+
+Mount this configuration inside your Redis service. Now, let's look at the complete, unified production `docker-compose.yml` file that orchestrates both PostgreSQL and Redis together within their restricted memory envelopes and binds them to an isolated, internal database network:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: main_db
+      POSTGRES_USER: chirag_user
+      POSTGRES_PASSWORD: secure_password
+    volumes:
+      - /mnt/data/postgres/data:/var/lib/postgresql/data
+      - /mnt/data/postgres/pg_tuned.conf:/etc/postgresql/postgresql.conf
+    command: "postgres -c config_file=/etc/postgresql/postgresql.conf"
+    networks:
+      - database_net
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+        reservations:
+          memory: 1024M
+    ports:
+      - "127.0.0.1:5432:5432" # Bind only to localhost for security!
+
+  redis_cache:
+    image: redis:7-alpine
+    container_name: redis_cache
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - /mnt/data/redis/data:/data
+      - /mnt/data/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - database_net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    ports:
+      - "127.0.0.1:6379:6379" # Bind only to localhost for security!
+
+networks:
+  database_net:
+    driver: bridge
+    internal: true # Ensures no direct ingress/egress to the public internet
+```
+
+### Explaining Security and Network Limits:
+1.  **Local Host Port Binding (`127.0.0.1:5432:5432`)**: By prefixing our ports with `127.0.0.1`, we ensure that these database services are *only* accessible from the host system itself or through local containers. They are completely invisible to other devices on the local Wi-Fi/Ethernet network, preventing unauthorized scanning.
+2.  **Internal Network Isolation (`internal: true`)**: The `database_net` bridge is flagged as `internal`. This prevents containers on this network from connecting to the external internet, and blocks external networks from initiating connections directly to these databases, reducing the vectors of potential container breakout attacks.
+
+---
+
+## 9. Real-Time Resource Monitoring
+
+To verify that your limits are active and to audit your memory footprint, use these terminal diagnostic tools:
+
+### 1. `htop`
+The classic interactive process viewer.
+*   Run `htop`.
+*   Press `F6` to sort processes by **percent memory (MEM%)** or **resident memory (RES)**.
+*   Look for green/yellow memory bars on top. Green shows active memory, blue shows buffer cache, orange shows shared memory.
+
+### 2. `ctop`
+Like `top`, but designed specifically for Docker containers. It displays real-time CPU, memory, network, and disk I/O metrics per container.
+```bash
+# Install ctop via repository or run via Docker
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 -O /usr/local/bin/ctop
+sudo chmod +x /usr/local/bin/ctop
+
+# Run it
+ctop
+```
+
+```text
+ctop - 2026-06-04 15:30:00
+[9] containers
+NAME                 CID          CPU          MEM          NET          RX/TX
+[x] postgres_db      a1b2c3d4     0.2%         1.01G / 2G   0B / 0B      0B / 0B
+[x] redis_cache      e5f6g7h8     0.1%         12.4M / 512M 0B / 0B      0B / 0B
+[x] node_api_1       i9j0k1l2     0.5%         118M / 256M  12K / 4K     0B / 0B
+```
+
+### 3. Native Docker Stats
+If you don't want to install extra packages:
+```bash
+docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}"
+```
+
+## 10. Multi-Stage Docker Builds and Container Footprint Reduction
+
+Using default Dockerfiles leads to bloated images that waste disk space and can
+increase container startup time and memory footprint (due to unnecessary build
+tool processes running inside the container). To maximize efficiency, we must
+implement **multi-stage builds**.
+
+Multi-stage builds allow you to use a heavy, dependency-rich base image (like
+`node:20` or `bun:1.1` with compiler tools and `devDependencies` installed) for the
+compilation and build phases, and then copy *only* the compiled production artifacts
+(like the transpiled JS code and production `node_modules`) into a super-lightweight
+runtime image (like `node:20-slim` or `alpine`).
+
+Let's look at optimized Dockerfile blueprints for Node.js and Bun:
+
+### Optimized Node.js Multi-Stage Dockerfile (`Dockerfile.node`)
+```dockerfile
+# Stage 1: Build & compile dependencies
+FROM node:20-bookworm-slim AS builder
+WORKDIR /app
+
+# Copy lockfiles first for caching
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source and compile
+COPY . .
+RUN npm run build
+
+# Remove development dependencies to save space
+RUN npm prune --production
+
+# Stage 2: Runtime image
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy only production dependencies and build artifacts from builder
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Run as non-root user for security hardening
+USER node
+
+EXPOSE 3000
+CMD ["node", "dist/server.js"]
+```
+
+### Optimized Bun Multi-Stage Dockerfile (`Dockerfile.bun`)
+```dockerfile
+# Stage 1: Build dependencies
+FROM oven/bun:1.1-slim AS builder
+WORKDIR /app
+
+# Install dependencies
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
+
+# Copy source files and build
+COPY . .
+RUN bun run build # If you bundle/transpile
+
+# Stage 2: Production runtime
+FROM oven/bun:1.1-distroless AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy built code
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src ./src
+
+# Expose port and run as non-root
+USER bun
+EXPOSE 3000
+CMD ["bun", "run", "src/server.js"]
+```
+
+### Key Differences & RAM Benefits:
+1.  **Distroless and Alpine**: Distroless images contain *only* your application and its runtime dependencies. They do not contain package managers, shells, or standard Unix utilities. This reduces the attack surface and saves disk I/O.
+2.  **No `devDependencies`**: Tools like TypeScript compilers (`tsc`), Webpack, Vite, and testing frameworks (`jest`, `vitest`) are excluded from the runtime container. This ensures the Node runtime isn't processing heavy modules at startup.
+
+---
+
+## 11. Troubleshooting Memory Leaks on a Headless Server
+
+Even with cgroups and heap limits, a poorly written application can still experience a memory leak, causing it to restart repeatedly. Diagnosing a memory leak on a remote, headless server requires running node's inspector and tunneling it to your local machine.
+
+### Step 11.1: Start Node with Inspector Active
+To profile a running Node.js application, start the process with the `--inspect` flag. Do not bind the inspector to public interfaces (like `127.0.0.1`) as it allows arbitrary code execution. Bind it to localhost:
+```bash
+node --inspect=127.0.0.1:9229 dist/server.js
+```
+
+If the application is running in PM2, update your `ecosystem.config.js` to include the argument:
+```javascript
+node_args: "--inspect=127.0.0.1:9229"
+```
+
+### Step 11.2: Set Up an SSH Tunnel
+On your local PC, create a secure SSH tunnel to forward the inspector port from the server to your local machine:
+```bash
+ssh -L 9229:127.0.0.1:9229 chiragadmin@<SERVER_IP>
+```
+
+### Step 11.3: Connect with Chrome DevTools
+1.  Open Google Chrome or Microsoft Edge on your local PC.
+2.  Navigate to `chrome://inspect`.
+3.  You should see your Node.js application listed under **Remote Target**.
+4.  Click **Inspect** to open Chrome DevTools.
+5.  Navigate to the **Memory** tab.
+6.  Take a **Heap Snapshot**. Let the app run under load for a few minutes, take another snapshot, and use the **Comparison** view to find which objects are growing in size and are not being garbage collected.
+
+Common culprits of memory leaks in Node/Bun:
+*   **Global Variables**: Accidental global allocations that are never cleaned up.
+*   **Uncleared Timers**: `setInterval` loops that keep holding references to parent scopes.
+*   **Active Event Listeners**: Adding event listeners repeatedly to long-lived streams or objects without removing them when they are no longer needed.
+*   **Database connection leaks**: Failing to release database clients back to the connection pool.
+
+---
+
+## 12. Automated Local Database Backup Script
+
+Because we are running our PostgreSQL database locally on our primary SSD, we must set up a robust, automated backup system that dumps the database, compresses it, and saves it to our large, secondary 1 TB HDD storage partition `/mnt/data/` for safety.
+
+Create the backup script:
+```bash
+sudo mkdir -p /opt/scripts
+sudo nano /opt/scripts/db_backup.sh
+```
+
+Paste the following script content:
+```bash
+#!/bin/bash
+
+# Configuration
+BACKUP_DIR="/mnt/data/backups/postgres"
+DB_CONTAINER_NAME="postgres_db"
+DB_USER="chirag_user"
+DB_NAME="main_db"
+RETENTION_DAYS=7
+DATE=$(date +%Y%m%d_%H%M%S)
+FILENAME="pg_backup_${DATE}.sql.zst"
+
+# Create backup directory if it does not exist
+mkdir -p "$BACKUP_DIR"
+
+# Perform backup using pg_dump inside the running container
+# We pipe the output directly into zstd for ultra-fast, high-ratio compression
+echo "Starting PostgreSQL backup..."
+docker exec -t "$DB_CONTAINER_NAME" pg_dump -U "$DB_USER" "$DB_NAME" | zstd -o "${BACKUP_DIR}/${FILENAME}"
+
+if [ $? -eq 0 ]; then
+    echo "Backup completed successfully: ${BACKUP_DIR}/${FILENAME}"
+else
+    echo "ERROR: PostgreSQL backup failed!"
+    exit 1
+fi
+
+# Clean up backups older than RETENTION_DAYS to prevent disk filling
+echo "Cleaning up old backups..."
+find "$BACKUP_DIR" -type f -name "pg_backup_*.sql.zst" -mtime +$RETENTION_DAYS -delete
+
+echo "Backup job completed."
+```
+
+Save and exit. Make the script executable:
+```bash
+sudo chmod +x /opt/scripts/db_backup.sh
+```
+
+To run this backup daily at 2:00 AM, edit the system crontab:
+```bash
+sudo crontab -e
+```
+Add the following line:
+```text
+0 2 * * * /opt/scripts/db_backup.sh > /var/log/db_backup.log 2>&1
+```
+
+This simple setup leverages your laptop's secondary storage (the 1 TB HDD) to guarantee that even if your primary SSD fails, you will never lose more than 24 hours of data.
+
+---
+
+## Next Steps
+
+We now have a highly optimized memory architecture. By restricting our V8 runtimes, consolidating our Python processes, setting hard Docker cgroup boundaries, and properly tuning our database servers, we have successfully fit our entire operational stack inside our 16 GB ceiling.
+
+In **Part 3**, we will look at networking and connectivity. We will explore how to safely expose these services to the public internet using **Cloudflare Tunnels** (avoiding port forwarding risks), establish private administrative mesh networks using **Tailscale**, configure automatic SSL certificates with **Caddy**, and set up webhook routes for our Telegram bots.

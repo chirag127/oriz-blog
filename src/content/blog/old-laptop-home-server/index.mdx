@@ -1,0 +1,69 @@
+---
+title: "Turn Your Old HP Laptop Into a Home Server: Master Index"
+description: "Why let old hardware go to waste? A comprehensive, 5-part engineering guide to transforming a retired HP 15s laptop (i5-1035G1, 16GB RAM) into a secure, optimized bare-metal home server."
+pubDate: 2026-06-04
+tags:
+  - Home-Server
+  - Self-Hosting
+  - Docker
+  - Local-AI
+  - Cloudflare-Tunnels
+  - Tailscale
+  - Finops
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Turn Your Old HP Laptop Into a Home Server"
+part: 0
+draft: false
+---
+
+# Turn Your Old HP Laptop Into a Home Server
+
+## Reusing Retired Hardware to Build a Secure, Capped Local Infrastructure
+
+> **Why a Laptop Makes an Incredible Server:**
+> Most developers rent virtual private servers (VPS) from cloud providers, paying
+> recurring monthly fees for resource-capped environments. Reusing an old laptop
+> provides a dedicated multi-core CPU, substantial RAM, dual storage interfaces,
+> and a built-in battery backup (which functions as an uninterruptible power supply).
+> Best of all, it has an idle power consumption of less than 10W.
+
+---
+
+## The Series Anatomy: A 5-Part Deep Dive
+
+This comprehensive blog series is structured into 5 logical modules, guiding you
+from bare-metal installation to production-grade deployment:
+
+### [Part 1: Hardware Assessment, BIOS Tuning, and OS Setup](/blog/old-laptop-home-server/part-1-hardware-os-setup)
+A hardware breakdown of the HP 15s-du2077TU (i5-1035G1), managing battery swelling
+prevention (60% charge limit), physical cooling setups, configuring BIOS for 
+automatic restarts after power loss, bare-metal Proxmox vs. Ubuntu Server analysis, 
+and post-install security hardening.
+
+### [Part 2: Docker Memory Optimization & Resource Budgeting](/blog/old-laptop-home-server/part-2-docker-memory-optimization)
+Debunking the container RAM-sharing myth, using PM2 process management on bare-metal Node.js
+apps to share binaries, migrating applications to Bun for massive runtime footprint reductions,
+setting strict Docker cgroup container memory limits, and tuning PostgreSQL and Redis caches.
+
+### [Part 3: Internet Exposure, Tunnels, VPNs, and Proxies](/blog/old-laptop-home-server/part-3-networking-security)
+Configuring ingress securely. Bypassing ISP CGNAT using outbound-only Cloudflare Tunnels (no 
+open WAN ports), setting up a private WireGuard mesh network via Tailscale, deploying a 
+lightweight Caddy reverse proxy with automatic SSL, configuring secure HTTPS Telegram webhooks, 
+and automating container updates using Watchtower.
+
+### [Part 4: Local AI Stack, Agent Loops, and Visual Builders](/blog/old-laptop-home-server/part-4-local-ai-agents)
+Tuning local CPU LLM inference (DDR4-2666 bandwidth bottleneck math), deploying Ollama,
+assessing lightweight models (Phi-4 Mini, Qwen3 4B, Hermes-3 8B), comparing agent architectures
+(OpenClaw vs. Hermes Agent), and deploying a local RAG pipeline using Qdrant and Flowise.
+
+### [Part 5: Total Cost of Ownership (TCO) & Hybrid Architecture](/blog/old-laptop-home-server/part-5-cost-analysis)
+Measuring electricity power costs using real Indian state-wise tariffs, calculating the 3-year TCO
+savings compared to budget and enterprise cloud providers, evaluating the 15-dimension pros and cons matrix,
+and designing a hybrid architecture that combines local hardware with free cloud services (Cloudflare Pages, GitHub, Neon).
+
+---
+
+*Let's begin the journey.*
+
+**[Proceed to Part 1: Hardware Assessment, BIOS Tuning, and OS Setup →](/blog/old-laptop-home-server/part-1-hardware-os-setup)**

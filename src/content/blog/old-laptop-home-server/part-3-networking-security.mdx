@@ -1,0 +1,942 @@
+---
+title: "Turn Your Old HP Laptop Into a Home Server — Part 3: Networking, Security, and Cloudflare Tunnels"
+description: "Securely expose your home server to the internet without port forwarding. Part 3 covers CGNAT workarounds, Cloudflare Tunnels, Tailscale VPN, Caddy reverse proxy, HTTPS Telegram webhooks, and advanced security hardening."
+pubDate: 2026-06-04
+tags: ["Home-Server", "Networking", "Security", "Cloudflare-Tunnels", "Tailscale", "Caddy", "Telegram-Bots"]
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Turn Your Old HP Laptop Into a Home Server"
+part: 3
+draft: false
+---
+
+# Turn Your Old HP Laptop Into a Home Server — Part 3: Networking, Security, and Cloudflare Tunnels
+
+A home server is only useful if you can access it. Whether you want to check
+your system status while traveling, host a public website, run API endpoints,
+or listen for incoming Telegram bot webhooks, you need to establish secure 
+inbound routing.
+
+However, exposing a physical machine inside your home network to the public 
+internet is a high-risk operation. Traditional approaches like opening ports on 
+your home router (port forwarding) and using Dynamic DNS (DDNS) introduce severe 
+vulnerabilities: they leak your residential IP address to potential attackers, 
+expose open ports directly to global botnet scanners, and fail completely if 
+your ISP places your connection behind Carrier-Grade NAT (CGNAT).
+
+In this third installment, we are going to explore secure, modern ingress patterns. 
+We will analyze the CGNAT dilemma, walk through step-by-step configurations of 
+**Cloudflare Tunnels** for public access and **Tailscale** for private administrative 
+access, compare reverse proxies (Caddy, Nginx Proxy Manager, Traefik), and set up a 
+secure HTTPS webhook handler for Telegram bots. Finally, we will configure 
+**Watchtower** for automatic container updates and secure our admin dashboards 
+using **Cloudflare Access**.
+
+---
+
+## 1. The CGNAT Dilemma and Dynamic IP Problems
+
+In the early days of the internet, every home router was assigned a unique, public 
+IPv4 address. If you wanted to run a server, you simply configured port forwarding 
+on your router to map incoming WAN port traffic (e.g., port 443) to your server's 
+local IP address, set up a script to update a Dynamic DNS host record when your 
+ISP changed your WAN IP, and your server was live.
+
+Today, this approach is obsolete for two reasons: **IPv4 Exhaustion** and **Residential Security**.
+
+### Understanding Carrier-Grade NAT (CGNAT)
+Because the global pool of IPv4 addresses is fully exhausted, most modern consumer 
+Internet Service Providers (ISPs) in India (such as Jio, Airtel, Excitel) and globally 
+no longer assign a unique public IPv4 address to individual households. Instead, they 
+implement **Carrier-Grade NAT (CGNAT)**.
+
+Under CGNAT, the ISP groups hundreds of households together behind a single public 
+IP address. 
+*   Your router's WAN port is assigned a private IP address from the reserved block 
+    `100.64.0.0/10` (as defined in RFC 6598).
+*   When your server makes an outbound request, the ISP's carrier-grade router translates 
+    your private connection to a shared public IP.
+*   Because you do not own the public IP, and you cannot configure port forwarding on 
+    the ISP's upstream router, **traditional port forwarding is physically impossible**. 
+    No matter what settings you configure on your home router, inbound traffic from the 
+    internet cannot find its way to your laptop.
+
+```
++---------------------------------------------------------+
+|                  THE CGNAT INGRESS BARRIER              |
+|                                                         |
+|  [Internet] -> [Public IP: 203.0.113.1]                 |
+|                      |                                  |
+|                      v                                  |
+|              [ISP CGNAT Router]                         |
+|                      |                                  |
+|         +------------+------------+                     |
+|         | (RFC 6598 Private IPs)  |                     |
+|         v                         v                     |
+|  [Neighbor's Router]       [Your Router]                |
+|  WAN: 100.64.1.20          WAN: 100.64.1.50             |
+|                                   |                     |
+|                                   v (No Port Forward)   |
+|                            [Laptop Server]              |
++---------------------------------------------------------+
+```
+
+### Checking for CGNAT
+To verify if you are behind CGNAT:
+1.  Log in to your router's administration web panel.
+2.  Find the **WAN Status** page and locate your WAN IP Address.
+3.  Open a browser and visit a public site like `icanhazip.com` to see your public IP.
+4.  If the WAN IP in your router status page starts with **`100.64.x.x`** through **`100.127.x.x`**, 
+    or if it does not match the IP shown on `icanhazip.com`, you are behind CGNAT.
+
+### The Security Risk of Port Forwarding
+Even if your ISP provides a public IP (or if you configure IPv6 pinholes), opening ports (22, 80, 443) 
+directly to the internet is highly discouraged:
+*   **IP Leaks**: Attackers can resolve your domain name directly to your home coordinates 
+    and target your home connection with Distributed Denial of Service (DDoS) attacks, 
+    clogging your bandwidth.
+*   **Zero-Day Exploits**: If a vulnerability is discovered in your reverse proxy (e.g., Nginx) 
+    or SSH daemon, an attacker scanning the internet can exploit it immediately.
+
+To solve both CGNAT limitations and port forwarding security risks, we utilize **outbound-initiated tunnels**.
+
+---
+
+## 2. Cloudflare Tunnels: Secure Public Ingress
+
+A **Cloudflare Tunnel** (formerly Argo Tunnel) creates a secure, encrypted link between your 
+home server and the Cloudflare global network. 
+
+### How It Works:
+1.  You run a lightweight daemon named `cloudflared` as a Docker container on your server.
+2.  `cloudflared` establishes multiple **outbound** TCP connections to the nearest Cloudflare 
+    edge servers. It does not listen on any local port for incoming connections from the WAN.
+3.  When a user visits your public domain (e.g., `api.oriz.in`), the request hits Cloudflare's 
+    edge first.
+4.  Cloudflare inspects the request, applies DDoS protection and Web Application Firewall (WAF) 
+    rules, and passes the request through the existing outbound tunnel connection down to the 
+    `cloudflared` container on your laptop.
+5.  `cloudflared` proxies the request to your local services (like Caddy or a specific Docker container) 
+    and returns the response up the tunnel.
+
+This configuration bypasses CGNAT completely (since all connections are outbound) and keeps your 
+residential IP address completely hidden.
+
+```
++-----------------------------------------------------------------------------+
+|                        CLOUDFLARE TUNNEL TRAFFIC FLOW                       |
+|                                                                             |
+|  [Public User]                                                              |
+|        |                                                                    |
+|        v                                                                    |
+|  [Cloudflare Edge DNS / WAF]                                                |
+|        |                                                                    |
+|        v (Outbound Established connection)                                  |
+|  === SECURE ENCRYPTED TUNNEL ===                                            |
+|        |                                                                    |
+|        v                                                                    |
+|  [cloudflared Docker Container]  (Local Home Network)                       |
+|        |                                                                    |
+|        v (Local bridge network)                                             |
+|  [Caddy Reverse Proxy] --> [Target App Containers]                          |
++-----------------------------------------------------------------------------+
+```
+
+### Step-by-Step Configuration (Dashboard Managed)
+
+We will set up a Cloudflare Tunnel using the Cloudflare Zero Trust Dashboard, which is free 
+for up to 50 users.
+
+#### Step 1: Create the Tunnel in Zero Trust Dashboard
+1.  Log in to your Cloudflare account and navigate to **Zero Trust**.
+2.  Go to **Networks** -> **Tunnels** and click **Add a tunnel**.
+3.  Select **Cloudflare Tunnel** (connector) and click **Next**.
+4.  Name your tunnel (e.g., `oriz-home-server-tunnel`) and click **Save tunnel**.
+5.  Cloudflare will display commands to install the connector on various platforms. Copy the 
+    **Token** string shown in the Docker install command. It is a long alphanumeric string.
+
+#### Step 2: Deploy cloudflared via Docker Compose
+We will add `cloudflared` to our Docker environment to ensure it restarts automatically.
+
+Add the service to `/mnt/data/docker-compose.yml` (or your central compose configuration):
+```yaml
+services:
+  cloudflare_tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared_tunnel
+    restart: always
+    command: tunnel run --token ${TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=your_copied_cloudflare_token_here
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+```
+
+Launch the container:
+```bash
+docker compose up -d cloudflare_tunnel
+```
+
+Verify in the Cloudflare Dashboard that the status changes to **Active**.
+
+#### Step 3: Configure Hostname Routing
+Once active, configure routing:
+1.  In the Cloudflare Tunnel edit page, navigate to the **Public Hostname** tab.
+2.  Click **Add a public hostname**.
+3.  Configure your public domain details:
+    *   **Subdomain**: `api`
+    *   **Domain**: `oriz.in` (assuming you have added your domain to Cloudflare DNS)
+    *   **Path**: Leave empty.
+    *   **Service Type**: `HTTP`
+    *   **URL**: `caddy_proxy:80` (or the local container address running your reverse proxy)
+4.  Under **Additional Application Settings** -> **HTTP Settings**, set:
+    *   **HTTP Host Header**: `api.oriz.in` (required if your reverse proxy relies on virtual hosts).
+5.  Click **Save Hostname**. Cloudflare will automatically generate the CNAME record mapping 
+    `api.oriz.in` to your secure tunnel UUID.
+
+---
+
+## 3. Tailscale: Secure Private Access
+
+While Cloudflare Tunnels are excellent for exposing public endpoints, you **should never** expose 
+administrative dashboards (like Portainer, Coolify, database ports, or SSH console interfaces) to 
+the public internet.
+
+For private, secure administration, we will set up **Tailscale**.
+
+### What is Tailscale?
+Tailscale is a zero-config mesh VPN based on the **WireGuard** protocol. It installs a lightweight 
+agent on your home server and your client devices (your primary laptop, mobile phone, tablet). 
+It coordinates peer-to-peer connections between all your devices, assigning each device a static, 
+private IP address in the `100.64.0.0/10` block.
+
+Even behind CGNAT or strict corporate firewalls, Tailscale uses STUN/ICE traversal techniques to 
+establish direct, encrypted connections between your client and your home server. Traffic does 
+not pass through any central server, maximizing bandwidth.
+
+### Step-by-Step Installation on Ubuntu Server
+
+#### Step 1: Install Tailscale via One-Line Script:
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+```
+
+#### Step 2: Authenticate Your Server:
+Run the authentication command:
+```bash
+sudo tailscale up
+```
+Tailscale will output a login URL. Copy this URL, paste it into your local browser, log in 
+using your identity provider (GitHub, Google, Microsoft), and authorize the machine.
+
+Once authenticated, Tailscale will assign a DNS name and private IP to your server:
+```bash
+# Get your Tailscale IP
+tailscale ip -4
+```
+It will output something like `100.75.12.84`. You can now access your server's SSH daemon 
+remotely from any device running Tailscale using:
+```bash
+ssh chiragadmin@100.75.12.84
+```
+
+### Step 3: Enable Tailscale SSH (Optional but highly recommended)
+Tailscale includes a built-in feature to manage SSH connections, replacing SSH keys with your 
+central Tailscale identity authentication.
+To enable it, run:
+```bash
+sudo tailscale up --ssh
+```
+This lets you log in via SSH securely from your client devices without configuring physical SSH keys 
+on every machine, utilizing your Tailscale login.
+
+### Step 4: Tailscale Access Control Lists (ACLs) Hardening
+By default, Tailscale operates in \"full mesh\" mode, meaning all devices on your tailnet can 
+communicate with each other on any port. If you share your tailnet with family members, or if you 
+have an experimental IoT device (like a smart camera) connected to Tailscale, this full-mesh 
+routing poses a security risk.
+
+To restrict access, you can define an ACL policy in the Tailscale admin console. The policy is 
+written in JSON-like syntax. Here is a hardened policy that:
+1.  Defines an admin tag (`tag:admin`) and assigns it to your main home server.
+2.  Creates a group for your personal administrator accounts (`group:admin`).
+3.  Allows only members of `group:admin` to connect via SSH to the server.
+4.  Restricts all other devices on the tailnet to web traffic (ports 80, 443) only.
+
+```json
+{
+  // Define groups for organization
+  "groups": {
+    "group:admin": ["whyiswhen@gmail.com"]
+  },
+
+  // Define tags for physical servers
+  "tagOwners": {
+    "tag:server": ["group:admin"]
+  },
+
+  // Access Control Lists mapping what can talk to what
+  "acls": [
+    // Admins can access everything
+    {
+      "action": "accept",
+      "src":    ["group:admin"],
+      "dst":    ["*:*"]
+    },
+    // General tailnet nodes can only access web proxies on servers
+    {
+      "action": "accept",
+      "src":    ["*"],
+      "dst":    ["tag:server:80", "tag:server:443"]
+    }
+  ],
+
+  // Enforce Tailscale SSH authentication rules
+  "ssh": [
+    {
+      "action": "accept",
+      "src":    ["group:admin"],
+      "dst":    ["tag:server"],
+      "users":  ["chiragadmin"]
+    }
+  ]
+}
+```
+
+By uploading this policy, you guarantee that even if another device on your Tailscale network 
+is compromised, the attacker cannot probe your database ports or attempt to SSH into your server, 
+as the Tailscale kernel driver will silently drop the packets at the source device.
+
+---
+
+## 4. Reverse Proxy Configuration: Caddy vs. Others
+
+A reverse proxy sits in front of your internal applications, acting as a traffic cop. It accepts 
+incoming requests, inspects the HTTP headers, and forwards them to the appropriate Docker 
+container based on the domain name or URL path.
+
+Let's compare the three leading reverse proxy configurations:
+
+### Proxy Comparison
+
+| Dimension | Caddy | Nginx Proxy Manager (NPM) | Traefik |
+| :--- | :--- | :--- | :--- |
+| **Configuration Style** | Simple Text File (Caddyfile) | Graphical User Interface (Web UI) | Declarative Labels / YAML |
+| **SSL Management** | Automatic Let's Encrypt / ZeroSSL | Semi-Automatic via UI | Automatic |
+| **Memory Footprint** | **~15 MB–30 MB** (Golang) | **~150 MB–300 MB** (Nginx + Node + DB) | **~30 MB–60 MB** (Golang) |
+| **Performance** | Excellent (HTTP/3 native) | Good (HTTP/2 default) | Excellent |
+
+### Why Caddy Wins for Home Servers
+Nginx Proxy Manager is popular because of its visual UI. However, NPM requires running an Nginx container, 
+a Node.js administrative interface container, and a MariaDB/PostgreSQL database to store configuration data. 
+This stack consumes 200 MB–300 MB of RAM just to manage domain routing.
+
+Caddy, written in Go, compiles into a single binary. It handles SSL certificates out of the box, 
+supports HTTP/3 natively, and consumes less than 30 MB of RAM at idle.
+
+### Step-by-Step Caddy Deployment in Docker
+
+#### Step 1: Create Local Directories for Configuration and State:
+```bash
+sudo mkdir -p /mnt/data/caddy/config
+sudo mkdir -p /mnt/data/caddy/data
+```
+
+#### Step 2: Create a Caddyfile:
+Create `/mnt/data/caddy/Caddyfile`:
+```caddy
+# Global configuration block
+{
+    email whyiswhen@gmail.com
+    admin off # Disable local admin API port to save memory
+}
+
+# Hostname configurations
+api.oriz.in {
+    reverse_proxy express_api:3000
+}
+
+bot.oriz.in {
+    reverse_proxy python_bot:8000
+}
+
+# Private admin dash access (only routing when accessed via Tailscale IP)
+100.75.12.84:80 {
+    reverse_proxy coolify:8000
+}
+```
+
+#### Step 3: Deploy Caddy in `docker-compose.yml`
+Add the following configuration:
+```yaml
+services:
+  caddy_proxy:
+    image: caddy:2-alpine
+    container_name: caddy_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Required for HTTP/3 (QUIC) speed benefits
+    volumes:
+      - /mnt/data/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - /mnt/data/caddy/data:/data
+      - /mnt/data/caddy/config:/config
+    networks:
+      - web_net
+      - database_net # If it needs access to databases
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+
+networks:
+  web_net:
+    driver: bridge
+```
+
+---
+
+## 5. Setting Up a Secure HTTPS Telegram Webhook
+
+If you run Telegram bots, you have two options for processing messages:
+1.  **Long Polling**: Your bot script initiates loop requests to Telegram (`getUpdates`) 
+    asking for new messages. This creates constant outbound TCP overhead, wastes CPU cycles, 
+    and introduces minor delay latency.
+2.  **Webhooks**: You register your server's public URL with Telegram. When a user sends 
+    a message, Telegram pushes an HTTP POST request directly to your server (`setWebhook`). 
+    This is highly efficient, instantaneous, and consumes zero idle CPU.
+
+Telegram requires webhooks to run over secure **HTTPS** endpoints. Since we are using 
+Cloudflare Tunnels and Caddy, we can implement webhooks securely.
+
+```
++-----------------------------------------------------------------------------+
+|                          TELEGRAM WEBHOOK SEQUENCE                          |
+|                                                                             |
+|  [User Message] --> [Telegram Server]                                       |
+|                            |                                                |
+|                            v (HTTPS POST to https://bot.oriz.in/webhook)    |
+|                     [Cloudflare Edge]                                       |
+|                            |                                                |
+|                            v (Tunnel)                                       |
+|                     [cloudflared Container]                                 |
+|                            |                                                |
+|                            v                                                |
+|                     [Caddy Reverse Proxy]                                   |
+|                            |                                                |
+|                            v (Validate X-Telegram-Bot-Api-Secret-Token)    |
+|                     [Python Bot Container]                                  |
++-----------------------------------------------------------------------------+
+```
+
+### Step 1: Write Webhook Handling Logic in Python
+To protect your webhook endpoint from malicious requests, Telegram allows you to specify a 
+secret token (`X-Telegram-Bot-Api-Secret-Token`) when registering your URL. You must validate 
+this token in your application code.
+
+Here is a webhook application blueprint using **FastAPI**:
+```python
+import os
+import secrets
+from fastapi import FastAPI, Request, Header, HTTPException
+from telegram import Update, Bot
+
+app = FastAPI()
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET") # Generate a secure random string
+
+bot = Bot(token=BOT_TOKEN)
+
+@app.post("/webhook")
+async def telegram_webhook(
+    request: Request,
+    x_telegram_bot_api_secret_token: str = Header(None)
+):
+    # Validate secret token
+    if not x_telegram_bot_api_secret_token or x_telegram_bot_api_secret_token != WEBHOOK_SECRET:
+        raise HTTPException(status_code=403, detail="Unauthorized request")
+    
+    # Process updates
+    data = await request.json()
+    update = Update.de_json(data, bot)
+    
+    # Run async handlers (enqueue or process asynchronously)
+    asyncio.create_task(process_update(update))
+    
+    return {"status": "ok"}
+
+async def process_update(update: Update):
+    if update.message and update.message.text:
+        await update.message.reply_text(f"Processed: {update.message.text}")
+```
+
+### Step 2: Register Your Webhook with Telegram
+To tell Telegram to start pushing updates to your domain, make an HTTP request to the 
+Telegram API (replace placeholders with your real values):
+
+```bash
+curl -F "url=https://bot.oriz.in/webhook" \
+     -F "secret_token=your_generated_secure_webhook_secret_here" \
+     "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook"
+```
+
+Verify status:
+```bash
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
+```
+
+---
+
+## 5.3 Local DNS Management and Ad-Blocking: Pi-hole Setup
+
+While exposing services publicly, you should also optimize how your internal devices
+resolve network addresses locally. Normally, your router uses your ISP's DNS servers, 
+which can be slow, log your query history, and fail to filter malicious domains.
+
+By self-hosting **Pi-hole**, you can route all local DNS requests through your server. 
+Pi-hole acts as a local DNS resolver and blocklist engine, stripping out advertisements, 
+malicious telemetry trackers, and phishing domains at the DNS level before they are 
+ever loaded by your browser.
+
+Here is the Docker Compose configuration to deploy Pi-hole on your laptop:
+
+```yaml
+services:
+  pihole:
+    container_name: pihole_dns
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80/tcp" # Exposed for the Pi-hole web interface
+    environment:
+      TZ: 'Asia/Kolkata'
+      WEBPASSWORD: 'your_secure_admin_password'
+      FTLCONF_LOCAL_IPV4: '192.168.1.150' # Your server static IP
+    volumes:
+      - /mnt/data/pihole/config:/etc/pihole
+      - /mnt/data/pihole/dnsmasq:/etc/dnsmasq.d
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+```
+
+### Explaining Local Domain Resolution:
+1.  **DNS Port (53)**: Binding to port 53 allows Pi-hole to intercept standard DNS queries. Note that systemd-resolved on Ubuntu Server binds to port 53 by default. You must disable systemd-resolved's stub listener before launching:
+    ```bash
+    sudo nano /etc/systemd/resolved.conf
+    # Uncomment and set: DNSStubListener=no
+    # Save, exit, and link resolv.conf:
+    sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+    sudo systemctl restart systemd-resolved
+    ```
+2.  **Local DNS Records**: Inside the Pi-hole web dashboard (`http://192.168.1.150:8080/admin`), you can navigate to **Local DNS** -> **DNS Records** and map your custom local subdomains (like `server.local` or `coolify.local`) directly to your server's static IP `192.168.1.150`. This allows you to resolve local addresses instantly without querying the public internet.
+
+---
+
+## 5.4 Autodiscovery Routing: Traefik vs. Caddy Label-Based Routing
+
+While Caddy uses a central Caddyfile, **Traefik** is a popular alternative proxy that excels in dynamic Docker environments. Instead of writing routing paths in a configuration file, Traefik queries the Docker socket directly and routes traffic based on **labels** attached to your containers.
+
+Let's look at a comparative example. Here is how you deploy your Elysia API and configure Traefik to route traffic to it by adding labels to your container inside `docker-compose.yml`:
+
+```yaml
+services:
+  reverse-proxy:
+    image: traefik:v3.0
+    container_name: traefik_proxy
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8082:8080" # Dashboard port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik_net
+
+  elysia-api:
+    image: elysia-api:latest
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elysia.rule=Host(`api.oriz.in`)"
+      - "traefik.http.routers.elysia.entrypoints=web"
+      - "traefik.http.services.elysia.loadbalancer.server.port=8000"
+
+networks:
+  traefik_net:
+    driver: bridge
+```
+
+### Deciding Between Caddy and Traefik:
+*   **Use Traefik** if you run a highly dynamic microservices stack where containers spin up and down frequently, and you want automatic routing without modifying proxy config files.
+*   **Use Caddy** if you prefer a central, readable file, or need advanced configurations (like file serving, header stripping, or complex rewrite loops) that are easier to write in standard text than in verbose YAML labels.
+
+---
+
+## 6. Advanced Security Hardening Checklist
+
+To wrap up our networking and security configuration, apply these hardening settings:
+
+### 6.1 Limit Docker Capabilities
+By default, Docker containers run with a default set of Linux capabilities (permissions). 
+Most web APIs do not need capability permissions like mounting systems, altering kernel clocks, 
+or managing network tables.
+
+You can drop all capabilities by default and only add back the required ones:
+```yaml
+services:
+  web-api:
+    image: my-app:latest
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+```
+`no-new-privileges:true` prevents processes inside the container from gaining permissions 
+via SUID binaries.
+
+### 6.2 Automate Updates with Watchtower
+Keeping containers updated ensures that security vulnerability patches in runtime images 
+are applied automatically. **Watchtower** monitors running containers, pulls updated base 
+images from registries, and performs clean restarts.
+
+Add Watchtower to your compose configurations:
+```yaml
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower_autoupdate
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 86400 # Run check every 24 hours
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+```
+*Note: Mounting `/var/run/docker.sock` exposes the host's Docker socket. Keep this container isolated.*
+
+### 6.3 Secure dashboards with Cloudflare Access
+For sensitive web dashboards (like Portainer, or internal staging APIs), you can configure 
+**Cloudflare Access Policies** inside Zero Trust:
+1.  Navigate to **Zero Trust** -> **Access** -> **Applications**.
+2.  Click **Add an application** -> **Self-hosted**.
+3.  Configure your subdomain (e.g., `portainer.oriz.in`).
+4.  Define an identity provider (e.g., allow logins only from `whyiswhen@gmail.com` authenticated via Google or GitHub).
+Now, when you navigate to the URL, Cloudflare forces authentication before passing any traffic through the tunnel, protecting the dashboard.
+
+## 7. Advanced Webhook Handling in Node.js / Elysia
+
+While Part 2 focused on Python consolidation, you might prefer writing your APIs
+or bots using a modern TypeScript runtime like Bun. Let's look at how to implement 
+the exact same secure webhook validation using **Elysia.js**, which runs on top of 
+Bun.
+
+### Elysia.js Webhook Blueprint (`src/webhook.ts`)
+```typescript
+import { Elysia, t } from 'elysia';
+
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+
+if (!BOT_TOKEN || !WEBHOOK_SECRET) {
+  throw new Error("Missing required environment variables!");
+}
+
+const app = new Elysia()
+  .post('/webhook', async ({ headers, body, set }) => {
+    // Validate secret token from Telegram header
+    const secretHeader = headers['x-telegram-bot-api-secret-token'];
+    if (!secretHeader || secretHeader !== WEBHOOK_SECRET) {
+      set.status = 403;
+      return { error: "Unauthorized access" };
+    }
+
+    const update = body as any;
+    
+    // Process update asynchronously without blocking the Telegram connection
+    processTelegramUpdate(update).catch(err => {
+      console.error("Error processing update:", err);
+    });
+
+    return { status: "accepted" };
+  }, {
+    body: t.Object({
+      update_id: t.Number(),
+      message: t.Optional(t.Object({
+        message_id: t.Number(),
+        text: t.Optional(t.String()),
+        chat: t.Object({
+          id: t.Number()
+        })
+      }))
+    })
+  })
+  .listen(8000);
+
+async function processTelegramUpdate(update: any) {
+  if (update.message?.text) {
+    console.log(`Received message: ${update.message.text} from chat ${update.message.chat.id}`);
+    
+    // Send response back using fetch API
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: update.message.chat.id,
+        text: `Echo: ${update.message.text}`
+      })
+    });
+  }
+}
+
+console.log(`Webhook server is running on port 8000`);
+```
+
+### Caddy Header Stripping
+To ensure your backend applications don't accidentally write the `X-Telegram-Bot-Api-Secret-Token` 
+into public application logs (which is a security audit failure), you can tell Caddy to strip the 
+header before passing the request to the upstream Docker container.
+
+Update your `Caddyfile`:
+```caddy
+bot.oriz.in {
+    # Strip the secret header before proxying to the application
+    header_up -X-Telegram-Bot-Api-Secret-Token
+    reverse_proxy python_bot:8000
+}
+```
+
+---
+
+## 8. Network Troubleshooting: Common Ingress Errors
+
+When dealing with tunnels, VPNs, and proxies, things will occasionally go wrong. Here is a 
+diagnostic manual for the most common network errors.
+
+### Error 1: \"502 Bad Gateway\" in Caddy
+This error means Caddy received the request, but when it tried to pass it to the destination 
+upstream server (your app container), the connection failed.
+
+#### Checklist:
+1.  **Container Status**: Is your app container running? Run `docker ps` to verify.
+2.  **Shared Networks**: Are Caddy and your app container on the same Docker network? If Caddy 
+    is on `web_net` and your app is on `database_net`, they cannot resolve each other's hostnames. 
+    Verify using:
+    ```bash
+    docker inspect -f '{{json .NetworkSettings.Networks}}' container_name
+    ```
+3.  **Port Matching**: Does the port inside your Caddyfile match the port exposing the application 
+    *inside* the container? (e.g. if the API listens on port 3000 inside the container, route to 
+    `app:3000`, not the host-exposed port like `3001`).
+
+### Error 2: \"504 Gateway Timeout\"
+This means Caddy contacted your application, but the application failed to return a response 
+within the default timeout window.
+
+#### Checklist:
+1.  **Inspect App Logs**: Check if your application has crashed, is blocked by a database lock, 
+    or is stuck in an infinite CPU loop:
+    ```bash
+    docker compose logs -f container_name
+    ```
+2.  **Database Connection**: Is your application waiting indefinitely for a database connection 
+    because your PostgreSQL pool is exhausted? Audit database connections using:
+    ```sql
+    -- Run inside PostgreSQL client
+    SELECT count(*), state FROM pg_stat_activity GROUP BY state;
+    ```
+
+### Error 3: Tunnel Connection Loops in cloudflared
+If your `cloudflared` container logs show repeated disconnects and reconnects:
+```text
+ERR Connection terminated error="connection with edge closed"
+INF Retrying connection in 2s...
+```
+
+#### Checklist:
+1.  **DNS Issues**: Can the host resolve Cloudflare's servers? Check local resolution:
+    ```bash
+    docker run --rm busybox nslookup route.argotunnel.com
+    ```
+    If it fails, check your Netplan nameserver configuration `/etc/netplan/50-cloud-init.yaml`.
+2.  **MTU Size Mismatch**: If you are running over a PPPoE broadband connection, your WAN interface 
+    MTU might be lower than the standard 1500 (often 1492 or 1480). Large packets sent via the tunnel 
+    can get dropped.
+    Diagnose Path MTU by pinging Cloudflare with the Don't Fragment flag:
+    ```bash
+    ping -M do -s 1464 1.1.1.1
+    ```
+    If you see `Frag needed and DF set`, lower your network interface MTU using Netplan by adding:
+    ```yaml
+      ethernets:
+        enp2s0:
+          mtu: 1480
+    ```
+
+---
+
+## 9. Detailed Network Auditing and Hardening
+
+Once you have configured UFW, Caddy, Tailscale, and Tunnels, you must audit your configurations 
+to verify that no ports are unintentionally open.
+
+### Step 9.1: Socket Auditing
+Log in to your server and check what processes are actively listening for incoming TCP/UDP connections:
+```bash
+sudo ss -tulpn
+```
+
+Review the list carefully:
+*   **Good**: Processes binding to `127.0.0.1:<port>` or `::1:<port>` (only accessible locally).
+*   **Good**: Tailscale interfaces binding to `100.x.y.z:<port>`.
+*   **Expected**: Caddy binding to `*:80` and `*:443` (to allow Caddy to receive HTTP traffic).
+*   **Expected**: SSH binding to `*:22` (or your custom SSH port).
+*   **Dangerous**: PostgreSQL (`5432`) or Redis (`6379`) binding to `0.0.0.0` or `*`. If you see 
+    this, it means these ports are exposed to your entire local home Wi-Fi network. Update your 
+    `docker-compose.yml` immediately to restrict host ports (use `127.0.0.1:5432:5432`).
+
+### Step 9.2: External Port Scan
+From your client PC (outside your network, e.g., on a mobile network hotspot), scan your home's 
+public IP using `nmap` to verify your firewall is dropping incoming requests:
+```bash
+nmap -Pn -p 22,80,443,5432,6379 <YOUR_HOME_PUBLIC_IP>
+```
+If you are behind CGNAT, this scan will fail completely because your public IP points to the ISP's 
+carrier gateway, which is expected. If you have a direct public IP, all ports except those explicitly allowed in UFW should show as `filtered` or `closed`.
+
+### Step 9.3: GoAccess Logging for Web Analytics
+To monitor who is accessing your public endpoints via Caddy, you can configure access logging 
+without installing heavy databases. **GoAccess** is a fast, terminal-based log analyzer that 
+consumes less than 10 MB of RAM.
+
+Configure Caddy to output JSON logs. Update your `Caddyfile`:
+```caddy
+api.oriz.in {
+    log {
+        output file /var/log/caddy/api_access.log
+        format json
+    }
+    reverse_proxy express_api:3000
+}
+```
+
+Run GoAccess in a Docker container to parse Caddy logs and generate a static HTML dashboard 
+(which you can host privately over Tailscale):
+```yaml
+services:
+  goaccess:
+    image: allinone/goaccess
+    container_name: goaccess_analytics
+    restart: always
+    volumes:
+      - /mnt/data/caddy/logs:/srv/logs
+      - /mnt/data/goaccess/report:/srv/report
+    command: goaccess /srv/logs/api_access.log --log-format=CADDY --output=/srv/report/index.html --real-time-html
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+```
+
+### Step 9.4: Intrusion Prevention with Fail2ban and Caddy JSON Logs
+
+While Cloudflare Tunnels hide your residential IP, malicious actors or automated bots scanning the web can still hit your public domain `api.oriz.in` and attempt to scan for common web vulnerabilities (such as probing for PHPMyAdmin scripts, WordPress backdoors, `.env` file exposes, or hidden `.git` directories).
+
+To prevent this probing traffic from wasting your server's resources, we can configure **Fail2ban** on the host to monitor Caddy's JSON access logs and automatically ban scanning IPs.
+
+#### 1. Define Caddy Log Format:
+Ensure that Caddy's logs are outputted to a shared directory that both the Caddy container and the host Fail2ban system can read. In our Caddy setup, logs are written to `/mnt/data/caddy/logs/api_access.log`.
+
+A typical Caddy JSON log entry for a bad request looks like this:
+```json
+{"level":"info","ts":1717514800.123,"logger":"http.log.access.log0","msg":"handled request","request":{"remote_ip":"203.0.113.88","proto":"HTTP/2.0","method":"GET","uri":"/.env","headers":{"User-Agent":["curl/7.68.0"]}},"bytes_read":0,"user_id":"","duration":0.002,"size":14,"status":404}
+```
+
+#### 2. Create the Custom Fail2ban Filter:
+On your server host, create a new filter file:
+```bash
+sudo nano /etc/fail2ban/filter.d/caddy-scan.conf
+```
+
+Add the following regex rule (designed to match IP addresses from the JSON log that trigger 404 responses or seek forbidden files):
+```text
+[Definition]
+# Match remote_ip and request for common exploit files or 403/404 scans
+failregex = ^\{.*"remote_ip":"<HOST>".*"uri":"/(?:\.env|\.git|wp-login\.php|xmlrpc\.php|admin).*".*\}$
+            ^\{.*"remote_ip":"<HOST>".*"status":(?:403|404).*\}$
+
+ignoreregex = 
+```
+*Note: `<HOST>` is a special Fail2ban token that matches standard IPv4 and IPv6 addresses.*
+
+#### 3. Enable the Jail:
+Open your `/etc/fail2ban/jail.local` configuration:
+```bash
+sudo nano /etc/fail2ban/jail.local
+```
+
+Add the following jail block to the end of the file:
+```text
+[caddy-scan]
+enabled  = true
+filter   = caddy-scan
+logpath  = /mnt/data/caddy/logs/api_access.log
+port     = http,https
+maxretry = 5
+findtime = 5m
+bantime  = 48h
+backend  = polling
+```
+*Tip: We set `backend = polling` because the log file is written to by a Docker container, and default system notify listeners may not trigger on container filesystem updates.*
+
+Restart Fail2ban:
+```bash
+sudo systemctl restart fail2ban
+```
+
+Check the status of your new Caddy scanning jail:
+```bash
+sudo fail2ban-client status caddy-scan
+```
+
+Now, if a bot probes your public endpoints for `.env` files or triggers 5 consecutive 404 errors within 5 minutes, Fail2ban will automatically block their IP at the host's iptables firewall layer for 48 hours. The packets will never even reach the Caddy container, conserving your laptop's memory and CPU cycles.
+
+---
+
+## 10. Networking and Security Summary Table
+
+To visualize our complete network and security configuration, here is a breakdown of our ingress, routing, and defense systems:
+
+| Access Path | Inbound Protocol | Local Port | Target Destination | Security / Routing Mechanism |
+| :--- | :--- | :--- | :--- | :--- |
+| **Public Internet** | HTTPS (443) | No local ports open | `cloudflared` -> Caddy -> Apps | Cloudflare Tunnel (outbound connector). DDoS & WAF active. Hidden IP. |
+| **Private Admin** | WireGuard | UDP 41641 / Local sockets | Coolify / Portainer / SSH | Tailscale Mesh VPN. Authentication required. Access restricted to owned tailnet. |
+| **Local DNS** | DNS (53) | Port 53 | Pi-hole | DNS level ad-blocking and local domain resolution. |
+| **Host CLI** | SSH (22) | Port 22 | Host OS (`sshd`) | Key-only authentication, disabled passwords, Fail2ban integration. |
+| **Inter-container** | TCP | Isolated docker network bridge | PostgreSQL / Redis | Bridge networks, `internal: true`, ports bound to `127.0.0.1`. |
+
+---
+
+## Next Steps
+
+Our home server is now connected to the internet securely. Public sites are accessible via Cloudflare Tunnels with WAF protections, administrative functions are isolated to private Tailscale networks, Caddy routes traffic with minimal memory overhead, and Telegram bots process updates instantly via HTTPS webhooks.
+
+In **Part 4**, we will explore the AI capabilities of our server. We will deploy **Ollama** on our Intel i5-1035G1 CPU, compare lightweight models optimized for 16 GB of RAM, analyze open-source AI coding agents (Aider, OpenHands, Kilo Code), compare multi-agent frameworks (CrewAI, LangGraph), and review visual AI builders (Dify, Flowise).

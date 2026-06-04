@@ -1,0 +1,754 @@
+---
+title: "Turn Your Old HP Laptop Into a Home Server — Part 1: Hardware, BIOS, and OS Setup"
+description: "Transform an old HP 15s laptop (Intel i5-1035G1, 16GB RAM) into a high-performance home server. Part 1 covers hardware assessment, thermal mitigation, battery safety, BIOS tuning, Ubuntu Server 24.04 LTS installation, and security hardening."
+pubDate: 2026-06-04
+tags: ["Home-Server", "Ubuntu-Server", "Hardware", "Security", "Networking", "Self-Hosting"]
+category: "Engineering"
+author: "Chirag Singhal"
+series: "Turn Your Old HP Laptop Into a Home Server"
+part: 1
+draft: false
+---
+
+# Turn Your Old HP Laptop Into a Home Server — Part 1: Hardware, BIOS, and OS Setup
+
+For many developers, system administrators, and technology enthusiasts, there
+comes a moment when an older laptop is retired. It might be replaced by a faster
+machine, a sleeker ultrabook, or a desktop workstation. Often, these laptops
+find their way into drawers, gathering dust, or are sold for a fraction of
+their original value. However, an older laptop possesses all the fundamental
+components of an enterprise-grade server: a multi-core processor, a built-in
+uninterruptible power supply (the battery), a low-power design, integrated storage
+interfaces, and a built-in screen/keyboard for recovery.
+
+In this comprehensive five-part series, we are going to walk through the complete
+process of transforming an old budget-to-midrange laptop—specifically the **HP
+15s-du2077TU**—into a highly optimized, production-grade home server. This isn't
+just a basic tutorial to run a simple Node.js script; this is an engineering guide to
+setting up a robust, secure, and resource-efficient infrastructure on bare metal.
+
+Here is what we will cover in this first part:
+1. A detailed hardware assessment of the HP 15s-du2077TU.
+2. The physics of laptop server hosting: thermals, cooling, and battery safety.
+3. BIOS/UEFI configuration for headless, 24/7 reliability.
+4. OS selection: Proxmox VE vs. Ubuntu Server 24.04 LTS on 16 GB RAM.
+5. Step-by-step installation of Ubuntu Server with optimal disk partitioning.
+6. Post-install security hardening (SSH keys, UFW, Fail2ban, unattended-upgrades).
+7. Network configuration (static IP, Netplan, Ethernet optimization).
+
+---
+
+## 1. Hardware Assessment: HP 15s-du2077TU
+
+Before turning any machine into a server, you must understand its constraints, capabilities,
+and bottlenecks. The HP 15s-du2077TU is a budget-focused 15.6-inch laptop released around 
+2020-2021. It was originally priced in the range of ₹46,000 to ₹50,999 INR ($600–$650 USD). 
+Let’s examine its specifications and analyze how they translate to server workloads.
+
+### Full Specification Sheet
+
+| Component | Specification | Server Capability Analysis |
+| :--- | :--- | :--- |
+| **Processor** | Intel Core i5-1035G1 (10th Gen \"Ice Lake\") | 4 Cores, 8 Threads. 1.0 GHz Base / 3.6 GHz Turbo. 6MB Smart Cache. 15W TDP. Supports Intel VT-x and VT-d. |
+| **Memory** | 16 GB DDR4-2666 MHz (Upgraded / Dual-Channel) | Crucial for virtualization and container density. DDR4-2666 provides adequate memory bandwidth (~21.3 GB/s). |
+| **Storage (Primary)** | 256 GB PCIe NVMe M.2 SSD | High IOPS, low latency. Ideal for OS installation, active databases, Docker volumes, and system logs. |
+| **Storage (Secondary)** | 1 TB 5400 RPM SATA HDD | High capacity, low speed. Perfect for database dumps, local backups, media storage, and archived data. |
+| **Graphics** | Intel UHD Graphics G1 (Ice Lake) | Integrated GPU. Useful for hardware acceleration (Plex/Jellyfin transcoding via Intel Quick Sync Video). |
+| **Network (Wired)** | Realtek RTL8111H Gigabit Ethernet | Dedicated RJ45 port. Delivers 1 Gbps full-duplex speed. Mandatory for server workloads. |
+| **Network (Wireless)**| Realtek RTL8821CE 802.11ac Wi-Fi | 1x1 Wi-Fi + Bluetooth 4.2. Not recommended for host networking; useful as a backup interface. |
+| **I/O Ports** | 1x USB-C (5 Gbps), 2x USB-A (5 Gbps), 1x HDMI 1.4b | Expansion potential for external drives (NAS configurations) or UPS communication cables. |
+| **Power Supply** | 45W Smart AC Power Adapter | Extremely efficient. The server's idle power draw is significantly lower than a standard desktop. |
+
+### Processor Analysis: Intel Core i5-1035G1
+The heart of this home server is the Intel Core i5-1035G1. Fabricated on Intel's 10nm 
+process, this chip utilizes the **Sunny Cove** microarchitecture. Sunny Cove introduced a 
+significant IPC (Instructions Per Cycle) increase over the aging Skylake architecture (which 
+had been refreshed repeatedly). 
+
+*   **TDP (Thermal Design Power)**: The default TDP is 15 Watts. In laptop configurations, 
+    this TDP can be configured up to 25W (TDP-up) or down to 13W (TDP-down). For a home 
+    server, a low TDP is highly advantageous. It means the system will draw minimal power at 
+    idle (often between 5W and 12W on bare metal), keeping electricity costs negligible.
+*   **Virtualization support**: It supports **Intel VT-x** (hardware-assisted virtualization) 
+    and **Intel VT-d** (Directed I/O virtualization). This means you can run hypervisors, 
+    Docker containers, and pass physical devices (like USB controllers or the integrated GPU) 
+    directly to virtual environments.
+*   **Cryptographic Acceleration**: It includes support for **Intel AES-NI** (Advanced 
+    Encryption Standard New Instructions) and **Intel SHA Extensions**. This speeds up SSH 
+    encryption, TLS handshakes, VPN tunnels (WireGuard/OpenVPN), and disk encryption (LUFS/dm-crypt) 
+    without causing CPU spikes.
+
+### Memory & Storage Configuration
+The 16 GB of RAM is the absolute sweet spot for a modern home server. While 8 GB is sufficient 
+for a few simple Docker containers, 16 GB allows us to run a complex ecosystem: a relational 
+database, a Redis cache, an automation engine (n8n), multiple API services, a private VPN node, 
+and even a lightweight LLM (Large Language Model) via Ollama. 
+
+Having a **dual-drive configuration** (SSD + HDD) is the optimal storage layout for a self-hosted 
+server:
+1.  **The NVMe SSD** handles the \"hot\" data. Any read/write-heavy operations, such as system binaries, 
+    running Docker containers, database tables, and indexes, must live here. This prevents the severe 
+    performance degradation associated with disk I/O bottlenecks.
+2.  **The SATA HDD** handles the \"cold\" data. It is slow (5400 RPM), but its 1 TB capacity is perfect 
+    for keeping local backups, storing heavy assets, media files, and running a local time-series 
+    backup engine like Restic or Borg.
+
+---
+
+## 2. Thermal Mitigation & Battery Safety
+
+Laptops are designed for transient workloads. They are built to heat up during intensive tasks 
+(compiling code, loading web pages, rendering video) and cool down quickly during periods of 
+inactivity. Running a laptop as a 24/7 server introduces two major engineering challenges: 
+**thermal dissipation** and **battery degradation**.
+
+```
++-------------------------------------------------------------+
+|                     LAPTOP HOME SERVER                      |
+|                                                             |
+|   +---------------+     +----------------+     +--------+   |
+|   |  Vertical     | --> | Air Intake     | --> | Clean  |   |
+|   |  Stand / Open |     | (Underside)    |     | Vents  |   |
+|   +---------------+     +----------------+     +--------+   |
+|           |                     |                           |
+|           v                     v                           |
+|   +---------------+     +----------------+                  |
+|   | Charge Limit  |     | Cool Ambient   |                  |
+|   | 50% - 60%     |     | Environment    |                  |
+|   +---------------+     +----------------+                  |
++-------------------------------------------------------------+
+```
+
+### Thermal Management in 24/7 Server Operations
+Laptops have dense internal layouts. When you close the lid of a laptop and keep it running 
+indefinitely under load, heat accumulates. 
+
+1.  **Lid-Closed Thermal Trapping**: On many modern laptops (including the HP 15s series), 
+    a portion of the heat is dissipated through the keyboard deck. Closing the lid traps this 
+    heat between the screen and the keyboard, which can damage the display panel over time and 
+    increase internal temperatures. 
+    *   *Solution*: If possible, keep the lid slightly open (about 5-10 degrees) to let heat 
+        escape, or use a vertical laptop stand that holds the laptop in an inverted \"V\" shape 
+        or upright position, maximizing the surface area exposed to ambient air.
+2.  **Active Cooling Maintenance**: Laptop fans accumulate dust rapidly when run continuously. 
+    Dust blocks the fins of the copper heat pipes, leading to thermal throttling where the CPU 
+    drops its frequency to prevent self-destruction.
+    *   *Solution*: Perform a physical cleaning every 6 months. Use compressed air to blow 
+        dust out of the heatsink. If the laptop is more than 3 years old, open the chassis 
+        and replace the factory thermal paste with a high-conductivity compound like Noctua 
+        NT-H1 or Arctic MX-4.
+3.  **Cooling Pads**: While cooling pads with external USB fans can drop temperatures by 
+    3°C to 7°C, they introduce another failure point (the fan bearings degrade) and consume 
+    additional USB power. A high-quality passive aluminum vertical stand is often more reliable 
+    long-term.
+
+### The Danger of Battery Swelling (\"Spicy Pillows\")
+Lithium-ion batteries do not like being kept at 100% state of charge (SoC) indefinitely, 
+especially at elevated temperatures. Doing so causes accelerated chemical degradation, gas 
+generation, and eventually, physical swelling. A swollen battery can crack the trackpad, 
+warp the chassis, and in worst-case scenarios, cause a thermal runaway fire.
+
+Because this laptop will be plugged into the wall 24/7/365, we must actively manage the battery.
+
+#### Option A: Physical Battery Removal
+The safest way to handle the battery of a permanent home server is to **remove it entirely**. 
+Unscrew the back cover of the HP 15s, disconnect the battery connector from the motherboard, 
+unscrew the battery pack, and remove it. Store it safely or dispose of it responsibly if it's 
+already degraded.
+*   *Pros*: Zero risk of battery swelling or thermal runaway.
+*   *Cons*: You lose the \"built-in UPS\" feature. If there is a power cut, the server turns 
+    off instantly, potentially corrupting database files.
+
+#### Option B: Software/BIOS Charge Threshold Limiting
+If you want to keep the battery inside the laptop to act as a built-in UPS, you **must limit the 
+maximum charge level to 50% or 60%**. This voltage level minimizes chemical stress on the cells 
+and dramatically reduces the risk of swelling.
+*   **HP BIOS Battery Care Function**: Restart the laptop, spam `F10` to enter BIOS. Navigate 
+    to `Advanced` or `System Configuration`. Look for **Battery Care Function** or **Adaptive 
+    Battery Optimizer**. Set the limit to **50%** or **80%** (80% is common in HP consumer 
+    laptops, though 50% is better).
+*   **Linux Kernel Level Limiting**: If your HP laptop's BIOS does not support charge limits, 
+    you can try writing to the ACPI sysfs interface once Ubuntu Server is installed.
+    Verify if the device node exists:
+    ```bash
+    ls /sys/class/power_supply/
+    ```
+    If you see `BAT0` or `BAT1`, check if the threshold limit file exists:
+    ```bash
+    cat /sys/class/power_supply/BAT0/charge_control_limit_max
+    ```
+    If it exists, you can limit the charge to 60% by running:
+    ```bash
+    echo 60 | sudo tee /sys/class/power_supply/BAT0/charge_control_limit_max
+    ```
+    To make this permanent, you can create a systemd service or udev rule that runs this command 
+    on every boot.
+
+---
+
+## 3. BIOS/UEFI Configuration
+
+To ensure our laptop behaves like a server (reboots after power cuts, doesn't suspend when the 
+lid is closed, boots without user intervention), we must configure the BIOS/UEFI properly.
+
+### BIOS Step-by-Step Configuration (HP BIOS)
+
+1.  **Shutdown the laptop** completely.
+2.  Connect the power adapter. Press the power button, and immediately start tapping the **`F10`** 
+    key (or **`Esc`** key to show the startup menu, then select `F10` BIOS Setup).
+3.  Once inside the BIOS utility, configure the following settings:
+    *   **Intel Virtualization Technology (VT-x)**: Set to **Enabled**. (Required for running 
+        KVM, LXC, and Docker features).
+    *   **Intel VT-d**: Set to **Enabled**. (Allows PCI passthrough if you ever need it).
+    *   **Fan Always On**: Set to **Enabled**. In a server environment, you want the fan to run 
+        continuously at a low speed to keep the thermals stable, rather than turning off and 
+        causing thermal spikes before spinning back up.
+    *   **Action Keys Mode**: Set to **Disabled**. This restores standard function keys (F1-F12) 
+        without needing to press the `Fn` modifier key, which is highly useful when using a 
+        physical console.
+    *   **Adaptive Battery Optimizer**: Set to **Enabled** (if present). This lets the laptop's 
+        internal microcontroller handle battery safety and throttle charge rates based on heat.
+4.  Navigate to the **Boot Options** menu:
+    *   **Post Hotkey Delay (sec)**: Set to **0** or **1** to speed up boot times.
+    *   **USB Boot**: Set to **Enabled** (required for the initial Ubuntu installation).
+    *   **Network Boot (Wake On LAN - WOL)**: Set to **Enabled** if you plan to boot the laptop 
+        remotely using magic packets sent from your local network.
+    *   **Legacy Support**: Set to **Disabled** (we will install the OS in modern UEFI mode).
+    *   **Secure Boot**: You can leave this **Enabled** (Ubuntu Server 24.04 supports UEFI Secure 
+        Boot out of the box, which adds a layer of signature verification for kernel modules).
+5.  Press **`F10`** to Save Changes and Exit.
+
+---
+
+## 4. OS Selection: Proxmox VE vs. Ubuntu Server
+
+When setting up a home server, the first architectural choice is the operating system layer: 
+do you install a Type-1 Hypervisor (like Proxmox VE) or a bare-metal Linux distribution 
+(like Ubuntu Server)?
+
+```
++------------------------------------------+   +------------------------------------------+
+|            PROXMOX VE HYPERVISOR         |   |          BARE-METAL UBUNTU SERVER        |
+|                                          |   |                                          |
+|  +------------------+ +---------------+  |   |  +------------------+ +---------------+  |
+|  |     VM 1 (OS)    | |   VM 2 (OS)   |  |   |  | Docker Container | | Docker Container|  |
+|  +------------------+ +---------------+  |   |  +------------------+ +---------------+  |
+|  +------------------------------------+  |   |  +------------------------------------+  |
+|  |         Hypervisor (KVM/QEMU)      |  |   |  |         Docker Engine (Daemon)     |  |
+|  +------------------------------------+  |   |  +------------------------------------+  |
+|  +------------------------------------+  |   |  +------------------------------------+  |
+|  |     Host OS (Debian + ZFS/LVM)     |  |   |  |           Ubuntu OS Kernel         |  |
+|  +------------------------------------+  |   |  +------------------------------------+  |
+|  |         Physical Hardware          |  |   |  |           Physical Hardware        |  |
+|  +------------------------------------+  |   |  +------------------------------------+  |
++------------------------------------------+   +------------------------------------------+
+```
+
+Let's compare these two approaches specifically for a hardware configuration with **16 GB of RAM**:
+
+### Proxmox VE
+Proxmox VE is an enterprise virtualization platform based on Debian GNU/Linux. It uses Kernel-based 
+Virtual Machines (KVM) for virtual machines and Linux Containers (LXC) for lightweight isolation.
+
+*   *Advantages*:
+    *   Web-based management UI (accessible via port 8006).
+    *   Easy backup and restore snapshots of entire systems.
+    *   Excellent for isolating experimental operating systems or running complex cluster setups.
+*   *Disadvantages*:
+    *   **Resource Overhead**: Proxmox itself requires memory for its management daemon (`pvedaemon`), 
+        cluster service (`corosync`), and local web server. If using ZFS (Proxmox's default filesystem 
+        for RAID/snapshots), the ZFS Arc Cache can consume 50% of your system RAM by default unless manually restricted.
+    *   On a 16 GB system, you lose ~2 GB to ~4 GB of RAM just for the host layer before spinning up 
+        your first VM.
+    *   Double-virtualization complexity if you run Docker inside a Proxmox VM.
+
+### Ubuntu Server 24.04 LTS (Bare Metal)
+Ubuntu Server is a highly optimized, headless Linux distribution that sits directly on the physical 
+hardware.
+
+*   *Advantages*:
+    *   **Zero Overhead**: A clean installation of Ubuntu Server 24.04 LTS boots into a memory footprint 
+        of **less than 400 MB of RAM**. This leaves over 15.5 GB of RAM completely free for your Docker 
+        containers, databases, and LLM inference.
+    *   Direct access to the hardware (Intel Quick Sync Video, physical drives) without configuration of 
+        passthrough devices.
+    *   Simpler networking model.
+*   *Disadvantages*:
+    *   No built-in web dashboard (everything is managed via SSH CLI or tools like Cockpit/Portainer).
+    *   No native VM-level snapshot system (you must handle backups at the file/database level).
+
+### The Verdict
+For our HP 15s-du2077TU with 16 GB of RAM, **Ubuntu Server 24.04 LTS is the clear winner**. Because 
+our target architecture is centered around Docker containers, running Docker natively on bare-metal 
+Ubuntu maximizes RAM efficiency, eliminates virtualization overhead, and prevents unnecessary disk 
+I/O degradation on our secondary HDD.
+
+---
+
+## 5. Step-by-Step OS Installation
+
+Now, let's proceed with installing Ubuntu Server 24.04 LTS.
+
+### Step 5.1: Create the Bootable USB Drive
+1.  Download the **Ubuntu Server 24.04 LTS (Noble Numbat)** ISO image from the official Ubuntu website.
+2.  Download **Rufus** (for Windows).
+3.  Insert a USB flash drive (minimum 8 GB) into your computer.
+4.  Open Rufus:
+    *   **Device**: Select your USB drive.
+    *   **Boot selection**: Click `SELECT` and choose the downloaded Ubuntu Server ISO.
+    *   **Partition scheme**: Select **GPT** (do not select MBR).
+    *   **Target system**: Select **UEFI (non-CSM)**.
+    *   **File system**: FAT32.
+5.  Click `START` to flash. If prompted, select \"Write in ISO Image mode.\"
+
+### Step 5.2: Boot the Installer
+1.  Insert the USB drive into one of the USB-A ports of the HP laptop.
+2.  Connect the laptop directly to your router using a physical **Ethernet cable**.
+3.  Power on the laptop and immediately start tapping the **`F9`** key to bring up the HP Boot Device Options menu.
+4.  Select your UEFI USB drive from the list and press `Enter`.
+5.  Choose `Try or Install Ubuntu Server` from the GRUB menu.
+
+### Step 5.3: Run the Installer Settings
+1.  **Language**: Choose your preferred language (e.g., English).
+2.  **Keyboard Configuration**: Select your layout.
+3.  **Type of Install**: Choose **Ubuntu Server** (do not choose minimized unless you are extremely 
+    concerned about disk space; standard Ubuntu Server contains important diagnostic packages).
+4.  **Network Connections**: The installer will detect your Ethernet connection (`eth0` or `enp2s0`) 
+    and request an IP address via DHCP. Make note of this IP address.
+5.  **Configure Proxy**: Leave blank unless required by your ISP.
+6.  **Configure Ubuntu Archive Mirror**: Leave default (usually `http://in.archive.ubuntu.com/ubuntu/` for India).
+7.  **Guided Storage Configuration**: This is the most critical step. We must configure our dual-drive layout correctly.
+
+```
+PHYSICAL DISKS:
++-----------------------------------+     +-----------------------------------+
+|     256 GB NVMe SSD (Fast)        |     |       1 TB SATA HDD (Slow)        |
++-----------------------------------+     +-----------------------------------+
+                  |                                         |
+PARTITIONING:     v                                         v
++---------------+-------------------+     +-----------------------------------+
+| ESP (/boot)   | OS Root (/)       |     | Data Storage (/mnt/data)          |
+| 1 GB FAT32    | 255 GB Ext4 / LVM |     | 1000 GB Ext4                      |
++---------------+-------------------+     +-----------------------------------+
+```
+
+#### Manual Storage Layout Details:
+By default, the installer wants to partition the entire primary SSD. We want to configure the layout manually to leverage the SSD for OS speed and the HDD for storage capacity:
+*   Uncheck **Set up this disk as an LVM group** if you want simple, direct partitioning, or check it if you plan to resize partitions later. For maximum performance and simplicity, we will partition manually.
+*   Select **Custom storage layout** and click `Done`.
+*   Under the **256 GB NVMe SSD**:
+    *   Create a **1 GB boot partition**: Format: `FAT32`, Mount: `/boot/efi` (EFI System Partition).
+    *   Create the **OS Root partition**: Format: `ext4` (or `xfs`), Mount: `/` (Root), Size: Use the remaining space of the SSD (approx 254 GB).
+*   Under the **1 TB HDD**:
+    *   Create a single large partition. Format: `ext4`, Mount: `/mnt/data` (we will use this mount point for mounting heavy Docker volumes, logs, backups, and media files).
+*   Click `Done`, review the partitioning schematic, and select `Continue` to write the changes to disk.
+
+8.  **Profile Setup**:
+    *   **Your name**: Chirag Singhal
+    *   **Your server's name**: `oriz-home-server`
+    *   **Pick a username**: Choose a secure username (e.g., `chiragadmin`). *Never use 'root' or 'admin' as they are the primary targets of SSH brute-force bots.*
+    *   **Password**: Create a strong, unique password.
+9.  **SSH Setup**:
+    *   Check **Install OpenSSH server**.
+    *   *Do not* import SSH identities yet (we will configure key-only authentication manually next).
+10. **Featured Server Snaps**: Do not select any snaps (we will install our services via Docker/apt to keep the system clean).
+11. Select **Install** and wait for the process to complete.
+12. Once finished, select **Reboot Now**, pull out the USB drive when prompted, and press `Enter`.
+
+---
+
+## 6. Post-Installation Hardening and Security
+
+A home server, especially one that will be exposed to the internet, must be hardened immediately. 
+Within minutes of exposing a standard SSH port to the internet, automated scripts from all over the 
+world will begin testing common credentials.
+
+### Step 6.1: Update System Packages
+Log in using your physical keyboard or local SSH using the password created during installation:
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Step 6.2: Configure SSH Key-Only Authentication
+Using passwords for SSH is a significant vulnerability. We will disable password authentication 
+completely and require a cryptographic SSH key pair.
+
+#### 1. Generate SSH Key on Your Client Machine (your local PC):
+If you are on Windows (using PowerShell) or macOS/Linux:
+```powershell
+ssh-keygen -t ed25519 -C "chirag127@oriz"
+```
+*Note: Ed25519 is faster and more secure than older RSA keys.*
+This command generates two files: a private key (`id_ed25519`) and a public key (`id_ed25519.pub`).
+
+#### 2. Copy the Public Key to Your Home Server:
+From your client PC, run:
+```powershell
+ssh-copy-id -i ~/.ssh/id_ed25519.pub chiragadmin@<YOUR_SERVER_LOCAL_IP>
+```
+If `ssh-copy-id` is not available on Windows, you can append the contents of `id_ed25519.pub` manually 
+to `/home/chiragadmin/.ssh/authorized_keys` on your server:
+```bash
+# On Server:
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+nano ~/.ssh/authorized_keys  # Paste public key string here
+chmod 600 ~/.ssh/authorized_keys
+```
+
+#### 3. Harden SSH Daemon Configuration:
+Open the SSH config file on the server:
+```bash
+sudo nano /etc/ssh/sshd_config.d/hardening.conf
+```
+*Tip: Creating files in `sshd_config.d/` is better than editing the main `/etc/ssh/sshd_config` 
+directly because it prevents upgrade conflicts.*
+
+Add the following security directives to this new configuration file:
+```text
+# Disable password authentication; force cryptographic keys
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+
+# Disable root login
+PermitRootLogin no
+
+# Limit maximum authentication attempts
+MaxAuthTries 3
+
+# Timeout idle connections after 10 minutes
+ClientAliveInterval 600
+ClientAliveCountMax 0
+
+# Limit protocol version to SSHv2
+Protocol 2
+
+# restrict access to specific users
+AllowUsers chiragadmin
+```
+Save the file (`Ctrl+O`, `Enter`) and exit (`Ctrl+X`).
+
+Test the syntax of your SSH configuration:
+```bash
+sudo sshd -t
+```
+If no errors are returned, reload the SSH daemon to apply the new configuration:
+```bash
+sudo systemctl reload ssh
+```
+
+> [!WARNING]
+> Do NOT close your current SSH terminal window. Open a NEW terminal window on your local PC and 
+> attempt to log in using your SSH key: `ssh chiragadmin@<SERVER_IP>`. Verify that it logs in 
+> without prompting for a password. Then, verify that you cannot log in using password auth 
+> alone. Once verified, you can close the session safely.
+
+### Step 6.3: Configure the Uncomplicated Firewall (UFW)
+UFW is a user-friendly frontend for managing iptables firewall rules. We want to drop all 
+incoming connections by default and only allow specific services.
+
+```bash
+# Define default policies
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow SSH access
+sudo ufw allow ssh
+
+# Allow HTTP and HTTPS traffic (for reverse proxy and web app access)
+sudo ufw allow http
+sudo ufw allow https
+
+# Enable the firewall
+sudo ufw enable
+```
+Check status:
+```bash
+sudo ufw status verbose
+```
+
+### Step 6.4: Install and Configure Fail2ban
+Fail2ban scans system logs (e.g., `/var/log/auth.log`) and bans IPs that show malicious behavior 
+(too many failed login attempts, password brute-forcing, etc.).
+
+#### 1. Install Fail2ban:
+```bash
+sudo apt install fail2ban -y
+```
+
+#### 2. Configure Local Settings:
+Copy the default configuration to a `.local` file to prevent updates from overwriting your custom rules:
+```bash
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo nano /etc/fail2ban/jail.local
+```
+
+Under the `[DEFAULT]` section, configure the following:
+```text
+# Ban host for 24 hours if they trigger a rule
+bantime  = 24h
+
+# Find attacks in a 10-minute window
+findtime  = 10m
+
+# Allow 3 failed attempts before banning
+maxretry = 3
+```
+
+Under the `[sshd]` section, ensure it is enabled:
+```text
+[sshd]
+enabled = true
+port    = ssh
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
+```
+
+Save and exit. Start and enable the service:
+```bash
+sudo systemctl start fail2ban
+sudo systemctl enable fail2ban
+```
+Check the status of your SSH jail:
+```bash
+sudo fail2ban-client status sshd
+```
+
+### Step 6.5: Configure Unattended Upgrades
+Security patches must be applied as soon as they are released. We don't want to log in every 
+single day to run update scripts manually. The `unattended-upgrades` package handles security 
+updates automatically in the background.
+
+```bash
+# Install the package
+sudo apt install unattended-upgrades update-notifier-common -y
+
+# Enable it
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+Select **Yes** when prompted to enable automatic updates.
+
+To configure what updates get installed, edit the config:
+```bash
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+```
+Ensure that only security updates are allowed, and you can also configure the system to reboot 
+automatically at 3:00 AM if a kernel update requires it:
+```text
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+```
+
+---
+
+## 7. Network Configuration & Optimization
+
+A reliable server requires a consistent network footprint. If the router changes the server's 
+local IP address via DHCP lease expiration, all our API endpoints, SSH connections, and web services 
+will break.
+
+### Step 7.1: Configure a Static Local IP
+We will configure Ubuntu's network configuration tool, **Netplan**, to request a static IP 
+instead of DHCP.
+
+#### 1. Identify Your Active Network Interface:
+```bash
+ip addr
+```
+Look for your physical Ethernet card name (typically starts with `en`, such as `enp2s0` or `eth0`). Let's assume it is `enp2s0`.
+
+#### 2. Edit the Netplan Configuration:
+Open your YAML configuration file in the `/etc/netplan/` directory (name may vary):
+```bash
+sudo nano /etc/netplan/50-cloud-init.yaml
+```
+
+Modify the configuration to look like this (adjust your subnet and IP range based on your local router configuration):
+```yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp2s0:
+      dhcp4: no
+      addresses:
+        - 192.168.1.150/24
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses:
+          - 1.1.1.1
+          - 8.8.8.8
+```
+*Note: Indentation is critical in YAML. Make sure to use spaces, not tabs.*
+
+#### 3. Test and Apply Network Settings:
+```bash
+sudo netplan try
+```
+Netplan will test the configuration. If you lose connection because you made a mistake, it will revert in 120 seconds. If everything looks good, press `Enter` to commit the changes.
+
+Alternatively, you can assign a static IP via **DHCP Reservation** in your router's administration portal. This is often cleaner because it centralizes all IP assignments inside your router.
+
+### Step 7.2: Ethernet vs. Wi-Fi
+*Never run a production server over Wi-Fi if Ethernet is physically available.*
+1.  **Packet Loss & Jitter**: Wi-Fi is subject to environmental interference (microwave ovens, walls, other router channels). A single packet drop can drop a TCP connection or slow down a database transaction.
+2.  **Latency**: Local ping times over Ethernet are sub-millisecond (`\<1ms`), while Wi-Fi varies between `2ms` and `50ms+` depending on load, adding latency to API calls.
+3.  **Duplex**: Wi-Fi is half-duplex (devices share the medium; they cannot transmit and receive at the exact same instant). Ethernet is full-duplex.
+
+### Step 7.3: Disable Wi-Fi and Bluetooth to Save Power
+Since we are using Ethernet, we should turn off the laptop's Wi-Fi and Bluetooth chips to save power and reduce kernel interrupts.
+
+#### 1. Turn Off Interfaces via rfkill:
+```bash
+sudo rfkill block wifi
+sudo rfkill block bluetooth
+```
+
+#### 2. Make it Permanent:
+Blacklist the Wi-Fi driver or disable the interface in `/etc/network/interfaces` or via netplan by omission.
+Alternatively, use systemd to disable the Bluetooth service:
+```bash
+sudo systemctl stop bluetooth
+sudo systemctl disable bluetooth
+```
+
+---
+
+## 8. Physical Server Placement & Maintenance
+
+Now that the system is software-configured, where should it live?
+
+1.  **The Closet or Utility Room**: Choose a location that is cool, dry, and dust-free. If you are placing it in a closet, ensure there is enough airflow so ambient temperatures do not rise.
+2.  **The Vertical Position**: Keep the laptop folded in a vertical position on an aluminum laptop stand. This exposes the base chassis and keyboard to cool air, and lets warm air rise naturally out of the exhaust vents.
+3.  **Power Supply Considerations**: Connect the laptop adapter to a high-quality surge protector or UPS (Uninterruptible Power Supply). Even though the laptop has an internal battery, a surge protector prevents high-voltage spikes from frying the charging controller.
+4.  **Lid Close Suspend Fix**: By default, systemd will put the laptop to sleep when you close the lid. We must disable this behavior.
+    Edit the systemd login daemon configuration:
+    ```bash
+    sudo nano /etc/systemd/logind.conf
+    ```
+    Uncomment or modify the following lines:
+    ```text
+    HandleLidSwitch=ignore
+    HandleLidSwitchExternalPower=ignore
+    HandleLidSwitchDocked=ignore
+    LidSwitchIgnoreInhibit=no
+    ```
+    Save and exit. Restart the logind service:
+    ```bash
+    sudo systemctl restart systemd-logind
+    ```
+    Now you can close the lid (or leave it slightly open for thermals) without the server going to sleep.
+
+## 9. Real-time Thermal Monitoring and Alerting
+
+Because consumer laptops do not possess the heavy-duty active cooling components
+of rackmount servers, you must actively monitor the system temperature. If a fan
+fails or a heat vent gets blocked, the CPU temperature will spike. While the Intel
+processor has built-in thermal protection (which will force it to shut down to
+prevent melting), thermal throttling degrades performance, and prolonged heat exposure
+can destroy adjacent components on the motherboard, such as the power delivery capacitors.
+
+### Step 9.1: Install lm-sensors
+The standard tool for reading physical sensors (temperature, fan speeds, voltages) on
+Linux is `lm-sensors`.
+
+```bash
+# Install the sensors package
+sudo apt install lm-sensors -y
+
+# Detect hardware sensors automatically
+sudo sensors-detect
+```
+*Tip: During the `sensors-detect` run, you can safely press `Enter` to select the default
+answers for all questions. This scans your motherboard for ISA, PCI, and I2C sensors.*
+
+Once detection is complete, run the `sensors` command to read current temperatures:
+```bash
+sensors
+```
+
+The output will look similar to this:
+```text
+coretemp-isa-0000
+Adapter: ISA adapter
+Package id 0:  +42.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 0:        +40.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 1:        +41.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 2:        +39.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 3:        +42.0°C  (high = +100.0°C, crit = +100.0°C)
+```
+
+In this output:
+*   `Package id 0` is the average package temperature of the CPU.
+*   `high` is the temperature at which the motherboard begins throttling.
+*   `crit` is the critical shutdown threshold.
+
+### Step 9.2: Create a Telegram Thermal Alerting Script
+We will write a lightweight Bash script that polls our sensors every 5 minutes and sends
+an alert notification to our Telegram channel or group using a simple HTTP POST request if the
+CPU temperature exceeds `80°C`.
+
+First, create a Telegram bot using the `BotFather` on Telegram to obtain an API **Bot Token** 
+and a **Chat ID** (we will cover this in detail in Part 3, but for now, we will use it for alerts).
+
+Create the script file:
+```bash
+sudo mkdir -p /opt/scripts
+sudo nano /opt/scripts/thermal_check.sh
+```
+
+Paste the following script content:
+```bash
+#!/bin/bash
+
+# Configuration
+THRESHOLD=80
+TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
+HOSTNAME=$(hostname)
+
+# Get the highest temperature among CPU cores
+CURRENT_TEMP=$(sensors | grep -i "Core 0" | awk '{print $3}' | tr -d '+°C' | cut -d. -f1)
+
+# Fallback: if Core 0 isn't found, check Package id
+if [ -z "$CURRENT_TEMP" ]; then
+    CURRENT_TEMP=$(sensors | grep -i "Package id 0" | awk '{print $4}' | tr -d '+°C' | cut -d. -f1)
+fi
+
+# Send Telegram warning if threshold is breached
+if [ "$CURRENT_TEMP" -gt "$THRESHOLD" ]; then
+    MESSAGE="⚠️ WARNING: Home Server thermal alert! Host: $HOSTNAME. CPU Temp: ${CURRENT_TEMP}°C has exceeded the safety threshold of ${THRESHOLD}°C. Check laptop airflow immediately!"
+    
+    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+        -d "chat_id=$TELEGRAM_CHAT_ID" \
+        -d "text=$MESSAGE" \
+        -d "parse_mode=Markdown"
+fi
+```
+
+Save and exit. Make the script executable:
+```bash
+sudo chmod +x /opt/scripts/thermal_check.sh
+```
+
+Now, let's create a cron job to run this check every 5 minutes:
+```bash
+sudo crontab -e
+```
+Add the following line at the end of the file:
+```text
+*/5 * * * * /opt/scripts/thermal_check.sh >/dev/null 2>&1
+```
+
+This ensures that even if you are not sitting in front of your server, you will receive an active mobile alert if your laptop's cooling fan fails or the vents are covered.
+
+---
+
+## Next Steps
+
+In this first part, we have built the foundation. Our HP 15s-du2077TU laptop is now running bare-metal Ubuntu Server 24.04 LTS. It is secure, hardened against external attacks, optimized for local network routing, and set up for long-term thermal safety.
+
+In **Part 2**, we will address the most critical software challenge: memory optimization. We will debunk the container memory sharing myth, explore PM2 configurations, migrate applications to Bun for massive RAM savings, configure strict Docker container cgroup memory limits, and build a complete resource budget to run our entire application suite inside our 16 GB RAM limitation.
