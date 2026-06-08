@@ -1,0 +1,546 @@
+---
+title: "Part 3: The Automated Library Organizer — Category Limits, Folder Manifests, and a Production-Grade Agent Prompt"
+description: "A research-backed guide to re-evaluating category limits for a large personal library. Introduces the concept of Category Manifest MDX files and provides a massive, actionable prompt for coding agents to organize and validate a library repository of 5000+ books."
+pubDate: 2026-06-08
+tags:
+  - Reading List
+  - Books
+  - Library Science
+  - Automation
+  - LLM Prompt
+  - Scripting
+  - GitHub
+  - MDX
+category: "Learning & Growth"
+author: "Chirag Singhal"
+series: "Lifetime Reading Curriculum"
+part: 3
+draft: false
+---
+
+# Part 3: The Automated Library Organizer
+
+In [Part 1](/blog/lifetime-reading-curriculum-book-categories) and [Part 2](/blog/lifetime-reading-curriculum-book-categories/part-02-definitive-category-taxonomy), we laid out the repository specifications, the folder architecture, and a baseline classification of 20 categories. 
+
+But as any developer or librarian knows, a static architecture breaks down the moment it meets real-world scale. What happens when your library expands past 500 books? Is a strict limit of 20 categories truly optimal? How do we prevent our folders from becoming silent graveyard slots where books are dropped and forgotten?
+
+This guide covers:
+1. **Re-evaluating Category Limits:** A research-backed exploration of breadth vs. depth in taxonomy design.
+2. **Category Manifest Files:** Bringing folders to life using `_category.mdx` files.
+3. **The Automated Organizer Prompt:** A massive, production-grade prompt you can feed directly into any coding agent to automate folder structures, migrate books, and validate schema integrity.
+
+---
+
+## 1. Re-evaluating Category Limits: How Many Is Too Many?
+
+In Part 2, we proposed a taxonomy of exactly 20 categories. However, library science and cognitive ergonomics tell us that locking a taxonomy to a fixed number is a mistake. A library is a dynamic system.
+
+To find the optimal number of categories for a library scaling to 5,000+ books, let's look at the established standards:
+
+### 1.1 The Breadth vs. Depth Trade-off
+Taxonomy design is governed by two conflicting cognitive constraints:
+
+*   **Hick’s Law (Breadth):** The time it takes to make a decision increases logarithmically with the number of choices. If a user is faced with 100 top-level categories, they experience cognitive overload and scan fatigue.
+*   **Click Fatigue (Depth):** If you limit yourself to only 3 top-level folders (e.g., `Tech`, `Money`, `Life`), you have to nest folders 6 layers deep to reach a specific book. This increases navigation friction.
+
+| Classification System | Top-Level Classes | Target Scale | Structure Style |
+| :--- | :---: | :---: | :--- |
+| **Dewey Decimal (DDC)** | 10 | Public Libraries | 3-digit numeric hierarchy |
+| **Library of Congress (LCC)** | 21 | Academic Libraries | Alphanumeric (Letter + Number) |
+| **BISAC Subject Codes** | 54 | Retailers / Amazon | Flat, descriptive categories |
+| **Miller's Law (UX)** | 7 ± 2 | Web Navigation | Standard working memory limit |
+
+### 1.2 The Dynamic Taxonomy Model
+For a personal library of 5,000+ books focusing on intellectual elite status, the optimal number of top-level categories sits between **15 and 25**, with a strict hierarchical limit of **3 nested folder levels**. 
+
+Rather than a static framework, the folder structure must adapt based on **Growth Metrics**:
+1.  **The Splitting Rule:** If a subcategory grows beyond 50 books, it must split into sub-subcategories.
+2.  **The Merging Rule:** If a top-level category has fewer than 5 books after a year, it must merge into a broader parent class.
+3.  **The Promotion Rule:** If a subcategory consistently exceeds 150 books and has its own distinct epistemology (method of acquiring knowledge), it earns promotion to a top-level category.
+
+---
+
+## 2. Category Manifest Files (`_category.mdx`)
+
+To keep a folder tree readable, we introduce **Category Manifest Files** (`_category.mdx`). Every category, subcategory, and sub-subcategory folder in your repository must contain one. 
+
+> [!NOTE]
+> We use the leading underscore (`_category.mdx`) to signal to Astro's content loader that this file contains directory-level metadata and should not be processed as a standard public blog post route.
+
+### 2.1 The Manifest Schema
+A category manifest provides three critical assets:
+1.  **Context:** Why does this category exist in your curriculum?
+2.  **Taxonomy:** What subfolders live under it?
+3.  **Indexing:** A dynamic or auto-generated index of the books in that folder.
+
+```md
+---
+title: "Distributed Systems"
+description: "Designing scalable, fault-tolerant, and highly available architectures."
+type: "subcategory"
+booksCount: 18
+primarySubject: "Systems Engineering"
+icon: "network-wired"
+---
+
+# Systems Design & Architecture → Distributed Systems
+
+This subcategory covers the design of systems whose components are distributed across multiple network nodes.
+
+## Why This Category Exists
+Modern applications do not live on a single server. To build wealth-generating platforms, you must understand consensus algorithms (Raft/Paxos), partition tolerances, replication lags, and message streaming.
+
+## Core Concepts to Master
+*   **The CAP Theorem:** Consistency, Availability, and Partition Tolerance.
+*   **Consensus Protocols:** Leader election and log replication.
+*   **Message Queues:** Event-driven pipelines and partition keys.
+
+## Recommended Reading Order
+1.  *Designing Data-Intensive Applications* — Martin Kleppmann (Conceptual Anchor)
+2.  *Distributed Systems: Principles and Paradigms* — Andrew S. Tanenbaum (Theoretical Foundation)
+```
+
+---
+
+## 3. The Master Organizer Agent Prompt
+
+Below is the complete, production-grade prompt block. You can copy and paste this entire block into any programming agent (like OpenCode, Windsurf, or Cursor) to execute the migration and set up validation.
+
+````markdown
+# TASK: Automated Book Library Organizer & Validator
+
+You are an expert systems engineer and scripting agent. Your task is to write a set of Node.js scripts to organize a flat directory of book folders into a clean, hierarchical category taxonomy, generate category manifest files (`_category.mdx`), and validate the entire repository's schema and path integrity.
+
+## 1. System Context & File Structures
+
+We have a library repository with the following flat structure:
+```text
+books_flat/
+├── sapiens/
+│   ├── index.mdx        # Book introduction/summary
+│   ├── analysis.mdx     # Detailed study notes
+│   ├── narration.mdx    # Audio/narration transcript
+│   └── metadata.json    # Book metadata (schema defined below)
+├── clean-code/
+│   ├── index.mdx
+│   ├── analysis.mdx
+│   ├── narration.mdx
+│   └── metadata.json
+└── ...
+```
+
+Our goal is to build a structured library inside `books/` matching a nested category path:
+`books/[category]/[subcategory]/[sub-subcategory]/[book-slug]/`
+
+Each folder level in the directory tree must also contain a `_category.mdx` manifest file.
+
+### 1.1 The Book `metadata.json` Schema
+Each book's `metadata.json` has the following schema:
+```json
+{
+  "title": "Book Title",
+  "author": "Author Name",
+  "slug": "book-title-slug",
+  "primary_category": "computer-science",
+  "subcategory": "algorithms-and-data-structures",
+  "sub_subcategory": "algorithms",
+  "tags": ["dsa", "interview", "programming"],
+  "rating": 5,
+  "read_status": "read"
+}
+```
+
+---
+
+## 2. Requirements
+
+You must implement two Node.js scripts in the root directory using modern ESM (`import` syntax) and standard `fs/promises` library.
+
+### 2.1 Script 1: `scripts/organize-library.js`
+This script must:
+1. Scan the `books_flat/` directory.
+2. Read the `metadata.json` for each book.
+3. Compute the target path:
+   `books/${metadata.primary_category}/${metadata.subcategory}/${metadata.sub_subcategory || ""}/${metadata.slug}/`
+4. Create the target directory recursively (handling cases where `sub_subcategory` is absent or empty).
+5. Move all files from `books_flat/[book-slug]/` to the target directory.
+6. Automatically create or update the `_category.mdx` file in every parent folder along the path. 
+
+The generated `_category.mdx` should use the following format:
+```markdown
+---
+title: "[Category/Subcategory Name]"
+description: "Auto-generated directory manifest for [Name]"
+type: "[category | subcategory | sub-subcategory]"
+booksCount: [Count of books nested inside this folder]
+---
+
+# [Category/Subcategory Name]
+
+Auto-generated curriculum manifest for this domain.
+
+## Books In This Category
+*   [[Book Title]](./[book-slug]/index.mdx) - [Author Name]
+```
+
+### 2.2 Script 2: `scripts/validate-library.js`
+This script must perform a full validation suite on the organized `books/` directory and return a non-zero exit code if any errors are found:
+1. **File Completeness:** Ensure every book folder contains exactly:
+   *   `index.mdx`
+   *   `analysis.mdx`
+   *   `narration.mdx`
+   *   `metadata.json`
+2. **Metadata Validation:** Verify that `metadata.json` is valid JSON and contains all required keys (`title`, `author`, `slug`, `primary_category`, `subcategory`, `read_status`).
+3. **Path Alignment:** Verify that the book's physical directory matches the paths specified in its `metadata.json` (e.g., if `primary_category` is `finance`, the folder must be inside `books/finance/`).
+4. **Duplicate Slugs Checker:** Ensure no two books have the same slug.
+5. **Manifest Check:** Ensure every folder under `books/` has its own `_category.mdx` file.
+
+---
+
+## 3. Reference Implementation
+
+Here are the complete, production-grade scripts to execute this task. Write these files to your scripts directory, run them, and verify output.
+
+### 3.1 Script: `scripts/organize-library.js`
+```javascript
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const FLAT_DIR = path.resolve('./books_flat');
+const DEST_DIR = path.resolve('./books');
+
+// Helper to format folder names into readable titles
+function formatTitle(slug) {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+async function ensureDir(dirPath) {
+  await fs.mkdir(dirPath, { recursive: true });
+}
+
+async function buildCategoryManifest(dirPath, levelName, type) {
+  const manifestPath = path.join(dirPath, '_category.mdx');
+  
+  // Scan directory for subdirectories (excluding hidden ones and files)
+  const items = await fs.readdir(dirPath, { withFileTypes: true });
+  const subdirs = items.filter(item => item.isDirectory());
+  
+  // Calculate nested books recursively
+  let booksCount = 0;
+  const booksList = [];
+
+  async function countBooksRecursive(folderPath) {
+    const files = await fs.readdir(folderPath, { withFileTypes: true });
+    const hasMetadata = files.some(file => file.name === 'metadata.json');
+    
+    if (hasMetadata) {
+      booksCount++;
+      try {
+        const metaRaw = await fs.readFile(path.join(folderPath, 'metadata.json'), 'utf8');
+        const meta = JSON.parse(metaRaw);
+        const relativeBookPath = path.relative(dirPath, folderPath).replace(/\\/g, '/');
+        booksList.push({
+          title: meta.title,
+          author: meta.author,
+          relPath: `./${relativeBookPath}/index.mdx`
+        });
+      } catch (err) {
+        // Fallback if metadata is unreadable
+        const folderName = path.basename(folderPath);
+        booksList.push({
+          title: formatTitle(folderName),
+          author: "Unknown",
+          relPath: `./${folderName}/index.mdx`
+        });
+      }
+    } else {
+      for (const subdir of files.filter(f => f.isDirectory())) {
+        await countBooksRecursive(path.join(folderPath, subdir.name));
+      }
+    }
+  }
+
+  await countBooksRecursive(dirPath);
+
+  const title = formatTitle(levelName);
+  const mdxContent = `---
+title: "${title}"
+description: "Auto-generated curriculum manifest for ${title}"
+type: "${type}"
+booksCount: ${booksCount}
+---
+
+# ${title}
+
+Auto-generated curriculum manifest for this domain.
+
+## Books / Subfolders in this Section
+${booksList.map(b => `*   [${b.title}](${b.relPath}) - ${b.author}`).join('\n')}
+`;
+
+  await fs.writeFile(manifestPath, mdxContent, 'utf8');
+  console.log(`Generated manifest: ${manifestPath}`);
+}
+
+async function runMigration() {
+  try {
+    const books = await fs.readdir(FLAT_DIR, { withFileTypes: true });
+    
+    for (const book of books) {
+      if (!book.isDirectory()) continue;
+      
+      const srcPath = path.join(FLAT_DIR, book.name);
+      const metaFile = path.join(srcPath, 'metadata.json');
+      
+      let meta;
+      try {
+        const metaRaw = await fs.readFile(metaFile, 'utf8');
+        meta = JSON.parse(metaRaw);
+      } catch (err) {
+        console.error(`[-] Error reading metadata.json for ${book.name}:`, err.message);
+        continue;
+      }
+      
+      // Calculate target directory
+      const cat = meta.primary_category;
+      const sub = meta.subcategory;
+      const subsub = meta.sub_subcategory || '';
+      
+      const destFolder = path.join(DEST_DIR, cat, sub, subsub, meta.slug);
+      await ensureDir(destFolder);
+      
+      // Move all files
+      const files = await fs.readdir(srcPath);
+      for (const file of files) {
+        await fs.rename(path.join(srcPath, file), path.join(destFolder, file));
+      }
+      
+      // Clean flat folder
+      await fs.rmdir(srcPath);
+      console.log(`[+] Migrated ${meta.title} to: ${destFolder}`);
+    }
+
+    // Generate manifests for all levels
+    console.log('[*] Generating category manifests...');
+    const categories = await fs.readdir(DEST_DIR, { withFileTypes: true });
+    for (const cat of categories.filter(c => c.isDirectory())) {
+      const catPath = path.join(DEST_DIR, cat.name);
+      await buildCategoryManifest(catPath, cat.name, 'category');
+      
+      const subcategories = await fs.readdir(catPath, { withFileTypes: true });
+      for (const sub of subcategories.filter(s => s.isDirectory())) {
+        const subPath = path.join(catPath, sub.name);
+        await buildCategoryManifest(subPath, sub.name, 'subcategory');
+        
+        const subsubs = await fs.readdir(subPath, { withFileTypes: true });
+        for (const subsub of subsubs.filter(ss => ss.isDirectory())) {
+          // Check if it's a sub-subcategory folder or a book folder
+          const subsubFiles = await fs.readdir(path.join(subPath, subsub.name));
+          const isBook = subsubFiles.includes('metadata.json');
+          
+          if (!isBook) {
+            await buildCategoryManifest(path.join(subPath, subsub.name), subsub.name, 'sub-subcategory');
+          }
+        }
+      }
+    }
+    console.log('[+] Migration and manifest generation complete!');
+  } catch (err) {
+    console.error('[-] Fatal Migration Error:', err);
+    process.exit(1);
+  }
+}
+
+runMigration();
+```
+
+### 3.2 Script: `scripts/validate-library.js`
+```javascript
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const DEST_DIR = path.resolve('./books');
+
+async function validateLibrary() {
+  let errors = 0;
+  const bookSlugs = new Set();
+  
+  async function checkBookFolder(dirPath, relativePath) {
+    const files = await fs.readdir(dirPath);
+    const requiredFiles = ['index.mdx', 'analysis.mdx', 'narration.mdx', 'metadata.json'];
+    
+    // Check completeness
+    for (const file of requiredFiles) {
+      if (!files.includes(file)) {
+        console.error(`[-] File missing: ${path.join(relativePath, file)}`);
+        errors++;
+      }
+    }
+    
+    // Validate metadata
+    if (files.includes('metadata.json')) {
+      try {
+        const metaRaw = await fs.readFile(path.join(dirPath, 'metadata.json'), 'utf8');
+        const meta = JSON.parse(metaRaw);
+        
+        // Check required fields
+        const requiredFields = ['title', 'author', 'slug', 'primary_category', 'subcategory', 'read_status'];
+        for (const field of requiredFields) {
+          if (!meta[field]) {
+            console.error(`[-] Missing field '${field}' in ${path.join(relativePath, 'metadata.json')}`);
+            errors++;
+          }
+        }
+        
+        // Check path consistency
+        const parts = relativePath.replace(/\\/g, '/').split('/');
+        // parts should look like: [primary_category, subcategory, optional_sub_subcategory, slug]
+        const expectedCat = meta.primary_category;
+        const expectedSub = meta.subcategory;
+        
+        if (parts[0] !== expectedCat) {
+          console.error(`[-] Path category mismatch: expected '${expectedCat}', got '${parts[0]}' for ${relativePath}`);
+          errors++;
+        }
+        if (parts[1] !== expectedSub) {
+          console.error(`[-] Path subcategory mismatch: expected '${expectedSub}', got '${parts[1]}' for ${relativePath}`);
+          errors++;
+        }
+        
+        // Check duplicate slugs
+        if (bookSlugs.has(meta.slug)) {
+          console.error(`[-] Duplicate book slug found: '${meta.slug}' in ${relativePath}`);
+          errors++;
+        } else {
+          bookSlugs.add(meta.slug);
+        }
+      } catch (err) {
+        console.error(`[-] Invalid JSON in ${path.join(relativePath, 'metadata.json')}:`, err.message);
+        errors++;
+      }
+    }
+  }
+
+  async function walkDir(dirPath) {
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+    
+    // Check if current directory has a manifest file (excluding root DEST_DIR itself)
+    if (dirPath !== DEST_DIR) {
+      const filenames = items.map(i => i.name);
+      const isBookFolder = filenames.includes('metadata.json');
+      
+      if (!isBookFolder && !filenames.includes('_category.mdx')) {
+        const relPath = path.relative(DEST_DIR, dirPath);
+        console.error(`[-] Missing _category.mdx manifest in folder: books/${relPath}`);
+        errors++;
+      }
+    }
+
+    const subdirs = items.filter(item => item.isDirectory());
+    const files = items.filter(item => !item.isDirectory());
+    
+    const isBook = files.some(file => file.name === 'metadata.json');
+    if (isBook) {
+      const relPath = path.relative(DEST_DIR, dirPath);
+      await checkBookFolder(dirPath, relPath);
+    } else {
+      for (const subdir of subdirs) {
+        await walkDir(path.join(dirPath, subdir.name));
+      }
+    }
+  }
+
+  try {
+    console.log('[*] Starting validation on books/ directory...');
+    await walkDir(DEST_DIR);
+    
+    if (errors > 0) {
+      console.error(`\n[-] Validation Failed: ${errors} errors found.`);
+      process.exit(1);
+    } else {
+      console.log('\n[+] Validation Succeeded: Zero errors found! Library is in perfect shape.');
+      process.exit(0);
+    }
+  } catch (err) {
+    console.error('[-] Fatal Validation Error:', err.message);
+    process.exit(1);
+  }
+}
+
+validateLibrary();
+```
+````
+
+---
+
+## 4. Re-mapping the Core Library: 230+ Books
+
+To show the coding agent exactly how to map your core library, here is the official mapping blueprint for your existing book collection. Use this mapping matrix to configure the migration logic or to manually check assignments.
+
+### 4.1 Engineering & Computer Science
+
+| Title | Author | Primary Category | Subcategory | Sub-Subcategory |
+| :--- | :--- | :--- | :--- | :--- |
+| *Designing Data-Intensive Applications* | Martin Kleppmann | `computer-science` | `distributed-systems` | |
+| *Structure and Interpretation of Computer Programs* | Harold Abelson | `computer-science` | `programming-languages` | |
+| *Introduction to Algorithms* | Thomas H. Cormen | `computer-science` | `algorithms-and-data-structures` | |
+| *Compilers: Principles, Techniques, and Tools* | Alfred V. Aho | `computer-science` | `compilers-and-interpreters` | |
+| *Computer Networks* | Andrew S. Tanenbaum | `computer-science` | `computer-networking` | |
+| *Operating Systems: Three Easy Pieces* | Remzi H. Arpaci-Dusseau | `computer-science` | `operating-systems` | |
+| *Clean Code* | Robert C. Martin | `software-engineering` | `software-engineering-craft` | |
+| *Refactoring* | Martin Fowler | `software-engineering` | `software-engineering-craft` | |
+| *Domain-Driven Design* | Eric Evans | `software-engineering` | `software-architecture` | |
+| *Site Reliability Engineering* | Betsy Beyer | `software-engineering` | `site-reliability-and-devops` | |
+| *The Pragmatic Programmer* | David Thomas | `software-engineering` | `software-engineering-craft` | |
+
+### 4.2 Artificial Intelligence & ML
+
+| Title | Author | Primary Category | Subcategory | Sub-Subcategory |
+| :--- | :--- | :--- | :--- | :--- |
+| *Deep Learning* | Ian Goodfellow | `artificial-intelligence` | `deep-learning` | |
+| *Pattern Recognition and Machine Learning* | Christopher Bishop | `artificial-intelligence` | `ml-fundamentals` | |
+| *Reinforcement Learning: An Introduction* | Richard S. Sutton | `artificial-intelligence` | `reinforcement-learning` | |
+| *Speech and Language Processing* | Daniel Jurafsky | `artificial-intelligence` | `natural-language-processing` | |
+| *Designing Machine Learning Systems* | Chip Huyen | `artificial-intelligence` | `mlops-and-production-ai` | |
+| *Superintelligence* | Nick Bostrom | `artificial-intelligence` | `ai-safety-and-alignment` | |
+
+### 4.3 Finance & Capital Markets
+
+| Title | Author | Primary Category | Subcategory | Sub-Subcategory |
+| :--- | :--- | :--- | :--- | :--- |
+| *The Intelligent Investor* | Benjamin Graham | `finance` | `investing-fundamentals` | |
+| *The Psychology of Money* | Morgan Housel | `finance` | `personal-finance` | |
+| *The Dhandho Investor* | Mohnish Pabrai | `finance` | `value-investing` | |
+| *Value Investing and Behavioral Finance* | Parag Parikh | `finance` | `behavioral-finance` | |
+| *Expected Returns* | Antti Ilmanen | `finance` | `quantitative-investing` | |
+| *The Simple Path to Wealth* | JL Collins | `finance` | `personal-finance` | |
+
+### 4.4 Decision Making, Psychology & Business
+
+| Title | Author | Primary Category | Subcategory | Sub-Subcategory |
+| :--- | :--- | :--- | :--- | :--- |
+| *Poor Charlie's Almanack* | Charles T. Munger | `decision-making` | `multidisciplinary-wisdom` | |
+| *Thinking, Fast and Slow* | Daniel Kahneman | `psychology` | `cognitive-psychology` | |
+| *Atomic Habits* | James Clear | `productivity-performance` | `habit-formation` | |
+| *Influence: The Psychology of Persuasion* | Robert C. Cialdini | `psychology` | `social-psychology` | |
+| *High Output Management* | Andrew S. Grove | `business-strategy` | `management-leadership` | |
+| *Zero to One* | Peter Thiel | `business-strategy` | `entrepreneurship` | |
+| *Sapiens: A Brief History of Humankind* | Yuval Noah Harari | `history-civilisation` | `world-history` | |
+
+---
+
+## 5. Summary Checklists
+
+Before executing this automated reorganization, review this checklist to prevent data loss or duplicate routes:
+
+- `[ ]` **Back Up Existing Data:** Zip or copy your current flat `books/` or `books_flat/` folder before running scripts.
+- `[ ]` **Verify Slug Matches:** Ensure directory names in `books_flat/` match the `slug` fields inside their respective `metadata.json` files.
+- `[ ]` **Run in Dry-Run Mode first:** If modifying the script, add a log output instead of calling `fs.rename` to preview changes.
+- `[ ]` **Build Astro Routing:** Create dynamic layouts under `src/pages/books/[...slug].astro` to map these nested folders to URLs dynamically using Astro loaders.
+
+---
+
+*This is Part 3 of the [Lifetime Reading Curriculum](/blog/lifetime-reading-curriculum-book-categories) series. Part 1 covers the GitHub repository architecture and file format. Part 2 details the category taxonomy and rules.*
