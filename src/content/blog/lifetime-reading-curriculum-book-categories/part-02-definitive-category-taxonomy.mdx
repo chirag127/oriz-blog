@@ -1,0 +1,1090 @@
+---
+title: "Part 2: The Definitive Book Category Taxonomy — 20 Domains, 150+ Subcategories, Every Classification Rule Explained"
+description: "An exhaustively researched, 5000-word guide to categorising books for a lifetime reading library on GitHub. Covers every category decision rule, explains how libraries, publishers, and the BISAC system classify books — and provides the complete folder architecture for an unlimited-scale MDX book repository."
+pubDate: 2026-06-08
+tags:
+  - Reading List
+  - Books
+  - Taxonomy
+  - Knowledge Management
+  - Library Science
+  - BISAC
+  - Dewey Decimal
+  - GitHub
+  - MDX
+  - Curriculum Design
+category: "Learning & Growth"
+author: "Chirag Singhal"
+series: "Lifetime Reading Curriculum"
+part: 2
+draft: false
+---
+
+# Part 2: The Definitive Book Category Taxonomy
+
+> **The hardest problem in building a 5000-book library is not finding
+> books. It is deciding where each book lives — exactly once, without
+> ambiguity, forever.**
+
+In [Part 1](/blog/lifetime-reading-curriculum-book-categories), we
+established the GitHub repository architecture, the file format
+(`index.mdx`, `analysis.mdx`, `narration.mdx`, `metadata.json`),
+and a first-pass taxonomy of 20 categories.
+
+This article goes deeper. It:
+
+1. Explains the **classification science** behind book categorisation
+2. Defines **20 top-level categories** and **150+ subcategories** with
+   justification for every single placement decision
+3. Provides the **exact decision rules** for assigning any book to
+   exactly one category — even cross-disciplinary books
+4. Shows the **complete folder tree** as a GitHub-ready directory
+   structure
+
+---
+
+## 1. The Science of Categorising Books
+
+### 1.1 Why "One Book, One Category" Is Non-Negotiable
+
+In a physical library, a book can only sit on one shelf. In a
+GitHub repository, a file can only live in one directory path. This
+constraint is a feature, not a limitation — it forces you to make a
+decision about what a book is *primarily* about.
+
+The three global classification systems all enforce this:
+
+| System | Used By | How It Works |
+|:-------|:--------|:-------------|
+| **Dewey Decimal (DDC)** | Public & school libraries | 10 numeric classes (000–999), each divided into 10 divisions → 100 sections → decimal expansion |
+| **Library of Congress (LCC)** | Academic & research libraries | 21 alphanumeric classes (A–Z), deeply nested with letter+number codes |
+| **BISAC** | Publishers, bookstores, Amazon | Hierarchical text codes like `COMPUTERS / Software Development / General` |
+
+All three require a **single primary class** per book. Cross-references
+are handled in metadata (catalogues, tags, subject headings) — not by
+placing the book in multiple locations.
+
+### 1.2 The Decision Rules for Category Assignment
+
+When a book spans multiple domains, use these rules **in order**:
+
+1. **Dominant Subject Rule** — Which domain occupies >50% of the
+   book's content? That domain wins.
+2. **Intended Audience Rule** — If content is split 50/50, who is
+   the book *written for*? A book on "Mathematics for Machine Learning"
+   is primarily for ML practitioners → classify under AI/ML, not
+   Mathematics.
+3. **Specificity Rule** — If two categories could work, the more
+   specific one wins. "The Psychology of Money" could go under
+   Psychology or Finance. Finance → Behavioral Finance is more
+   specific and more useful for discovery.
+4. **Shelf-Proximity Rule** — Place the book where a reader most
+   likely to need it would browse. A biography of Warren Buffett
+   goes under Investing, not Biography, because investors will look
+   for it there.
+5. **Cross-Reference in Metadata** — After assigning the canonical
+   category, add all secondary categories as tags in `metadata.json`.
+   The search system handles the rest.
+
+### 1.3 Hard Examples: Where Do These Books Go?
+
+| Book | Candidate Categories | **Assigned To** | Rule Applied |
+|:-----|:---------------------|:-----------------|:-------------|
+| *Thinking, Fast and Slow* | Psychology, Decision Making, Economics | **Psychology → Cognitive Psychology** | Dominant Subject (85% cognitive psych research) |
+| *The Psychology of Money* | Psychology, Personal Finance | **Finance → Behavioral Finance** | Shelf-Proximity (finance readers seek it) |
+| *Sapiens* | History, Anthropology, Biology | **History → World History** | Dominant Subject (chronological human history) |
+| *Poor Charlie's Almanack* | Investing, Mental Models, Biography | **Decision Making → Multidisciplinary Wisdom** | Intended Audience (readers seeking mental models) |
+| *Atomic Habits* | Psychology, Productivity, Self-Help | **Productivity → Habit Formation** | Specificity (habit formation is the precise topic) |
+| *Guns, Germs, and Steel* | History, Anthropology, Geography | **History → World History** | Dominant Subject (macro-historical narrative) |
+| *Man's Search for Meaning* | Psychology, Philosophy, Memoir | **Philosophy → Existentialism** | Intended Audience (philosophical seekers) |
+| *Steve Jobs* (Isaacson) | Biography, Technology, Business | **Biography → Technology Founders** | Dominant Subject (full life account) |
+| *SICP* | CS, Programming, Mathematics | **Computer Science → Programming Languages → SICP** | Specificity |
+| *Mathematics for ML* | Mathematics, AI/ML | **AI/ML → ML Fundamentals** | Intended Audience (ML practitioners) |
+| *Designing Data-Intensive Apps* | Distributed Systems, Databases, Architecture | **Systems Design → Distributed Systems** | Dominant Subject |
+| *Why Nations Fail* | Economics, Political Science, History | **Economics → Political Economy** | Dominant Subject (institutional economics thesis) |
+
+---
+
+## 2. The Complete 20-Category Taxonomy
+
+Below is every category, every subcategory, and where needed, every
+sub-subcategory. Each includes:
+
+- **Why it exists as its own category** (not merged into another)
+- **What distinguishes it** from adjacent categories
+- **How many books** this category can absorb at scale
+
+---
+
+### CATEGORY 01 — Computer Science
+
+**Why standalone:** CS is the bedrock discipline for a software
+engineer. It is theoretical and foundational — distinct from the
+*practice* of building software (Category 02) and the *application*
+of AI (Category 03).
+
+**Scope:** Algorithms, data structures, operating systems, networking,
+compilers, databases, security, and the mathematical foundations that
+underpin all of computing.
+
+```
+books/computer-science/
+├── algorithms-and-data-structures/
+│   ├── introduction-to-algorithms-cormen/
+│   ├── algorithm-design-manual-skiena/
+│   ├── grokking-algorithms-bhargava/
+│   ├── art-of-computer-programming-vol-1-knuth/
+│   ├── art-of-computer-programming-vol-2-knuth/
+│   └── programming-pearls-bentley/
+├── programming-languages/
+│   ├── python/
+│   │   ├── fluent-python-ramalho/
+│   │   ├── effective-python-slatkin/
+│   │   ├── python-cookbook-beazley/
+│   │   └── python-tricks-bader/
+│   ├── systems-programming/
+│   │   └── code-petzold/
+│   └── functional-programming/
+│       └── structure-interpretation-computer-programs-abelson/
+├── operating-systems/
+│   ├── operating-systems-three-easy-pieces-arpaci-dusseau/
+│   ├── modern-operating-systems-tanenbaum/
+│   ├── linux-kernel-development-love/
+│   └── understanding-the-linux-kernel-bovet/
+├── computer-networking/
+│   ├── computer-networking-top-down-approach-kurose/
+│   ├── tcp-ip-illustrated-vol-1-fall/
+│   ├── high-performance-browser-networking-grigorik/
+│   └── network-warrior-donahue/
+├── compilers-and-interpreters/
+│   └── compiler-design-hassan-ernest/
+├── computer-architecture/
+│   └── computer-systems-programmers-perspective-bryant/
+├── databases/
+│   ├── database-internals-petrov/
+│   ├── high-performance-mysql-schwartz/
+│   ├── seven-databases-in-seven-weeks-redmond/
+│   └── sql-antipatterns-karwin/
+├── security-and-cryptography/
+│   └── practical-binary-analysis-andriesse/
+└── mathematics-for-cs/
+    ├── how-not-to-be-wrong-ellenberg/
+    ├── introduction-to-probability-blitzstein/
+    └── infinite-powers-strogatz/
+```
+
+**Distinguishing principle:** If the book teaches *how computers
+work at a theoretical level*, it belongs here. If it teaches *how
+to build software systems*, it goes to Category 02.
+
+**Estimated capacity:** 200–400 books at scale (textbooks, language
+references, protocol guides, etc.).
+
+---
+
+### CATEGORY 02 — Software Engineering & Architecture
+
+**Why separate from CS:** Software engineering is the *applied
+discipline* of building real systems. Clean Code is not about
+algorithms — it is about the craft of writing maintainable software
+in teams. Architecture patterns are not CS theory — they are
+engineering trade-offs.
+
+**Scope:** Code quality, design patterns, software architecture,
+distributed systems, microservices, reliability engineering,
+performance, and engineering culture.
+
+```
+books/software-engineering/
+├── code-quality/
+│   ├── clean-code-martin/
+│   ├── refactoring-fowler/
+│   ├── code-complete-mcconnell/
+│   └── working-effectively-with-legacy-code-feathers/
+├── software-design/
+│   ├── design-patterns-gamma/
+│   ├── head-first-design-patterns-freeman/
+│   ├── domain-driven-design-evans/
+│   ├── implementing-domain-driven-design-vernon/
+│   ├── clean-architecture-martin/
+│   ├── clean-agile-martin/
+│   └── philosophy-of-software-design-ousterhout/
+├── distributed-systems/
+│   ├── designing-data-intensive-applications-kleppmann/
+│   ├── understanding-distributed-systems-vitillo/
+│   ├── designing-distributed-systems-burns/
+│   └── designing-event-driven-systems-stopford/
+├── system-design-interviews/
+│   ├── system-design-interview-vol-1-xu/
+│   └── system-design-interview-vol-2-xu/
+├── software-architecture/
+│   ├── fundamentals-of-software-architecture-richards/
+│   ├── software-architecture-in-practice-bass/
+│   └── architecture-patterns-with-python-percival/
+├── microservices/
+│   ├── building-microservices-newman/
+│   └── monolith-to-microservices-newman/
+├── reliability-and-devops/
+│   ├── site-reliability-engineering-beyer/
+│   ├── release-it-nygard/
+│   ├── accelerate-forsgren/
+│   └── art-of-scalability-abbott/
+├── web-performance/
+│   └── web-scalability-for-startup-engineers-ejsmont/
+├── pragmatic-craft/
+│   └── pragmatic-programmer-hunt/
+└── engineering-culture/
+    ├── software-engineering-at-google-winters/
+    ├── mythical-man-month-brooks/
+    └── software-engineers-guidebook-orosz/
+```
+
+**Estimated capacity:** 200–400 books.
+
+---
+
+### CATEGORY 03 — Artificial Intelligence & Machine Learning
+
+**Why standalone:** AI/ML is too large, too deep, and too important
+to nest under Computer Science. It has its own mathematical
+foundations, its own engineering practices (MLOps), its own ethics
+debate (AI Safety), and its own history. It deserves top-level
+status.
+
+```
+books/artificial-intelligence/
+├── ml-fundamentals/
+│   ├── hands-on-machine-learning-geron/
+│   ├── pattern-recognition-and-machine-learning-bishop/
+│   ├── machine-learning-engineering-burkov/
+│   ├── practical-statistics-for-data-scientists-bruce/
+│   └── mathematics-for-machine-learning-deisenroth/
+├── deep-learning/
+│   ├── deep-learning-goodfellow/
+│   └── deep-learning-with-python-chollet/
+├── natural-language-processing/
+│   ├── natural-language-processing-with-transformers-tunstall/
+│   └── build-large-language-model-from-scratch-raschka/
+├── computer-vision/
+├── reinforcement-learning/
+├── mlops-and-production-ai/
+│   └── designing-machine-learning-systems-huyen/
+├── ai-safety-and-alignment/
+├── ai-history-and-philosophy/
+│   └── artificial-intelligence-modern-approach-russell/
+└── applied-ai/
+```
+
+**Distinguishing principle:** If the primary subject is *how machines
+learn from data or reason*, it goes here. If AI is merely a *tool*
+used in a different domain (e.g., AI for trading), the book goes to
+that domain.
+
+**Estimated capacity:** 200–500 books (this domain is exploding).
+
+---
+
+### CATEGORY 04 — Mathematics
+
+**Why separate from CS math:** Pure mathematics stands alone as a
+discipline. Topology, number theory, and analysis have nothing to do
+with computers — they are about the structure of abstract thought.
+CS-specific math (discrete math, information theory) can live here or
+in CS depending on the Intended Audience Rule.
+
+```
+books/mathematics/
+├── calculus-and-analysis/
+├── linear-algebra/
+├── probability-and-statistics/
+│   ├── naked-statistics-wheelan/
+│   └── introduction-to-probability-blitzstein/
+├── number-theory/
+├── topology/
+├── logic-and-foundations/
+└── applied-mathematics/
+    └── algorithms-to-live-by-christian/
+```
+
+**Estimated capacity:** 100–300 books.
+
+---
+
+### CATEGORY 05 — Finance
+
+**Why "Finance" not "Investing" or "Personal Finance":** Finance is
+the unified domain covering how money works, grows, and compounds.
+Splitting "Personal Finance" and "Investing" into separate top-level
+categories creates a false boundary — both are subdomains of capital
+allocation. By unifying them, we also capture venture capital, real
+estate, Indian-specific finance, and financial history under one roof.
+
+```
+books/finance/
+├── personal-finance/
+│   ├── richest-man-in-babylon-clason/
+│   ├── rich-dad-poor-dad-kiyosaki/
+│   ├── total-money-makeover-ramsey/
+│   ├── your-money-or-your-life-robin/
+│   ├── simple-path-to-wealth-collins/
+│   ├── die-with-zero-perkins/
+│   ├── i-will-teach-you-to-be-rich-sethi/
+│   ├── automatic-millionaire-bach/
+│   ├── cashflow-quadrant-kiyosaki/
+│   ├── profit-first-michalowicz/
+│   └── millionaire-next-door-stanley/
+├── investing-fundamentals/
+│   ├── intelligent-investor-graham/
+│   ├── little-book-common-sense-investing-bogle/
+│   ├── common-sense-on-mutual-funds-bogle/
+│   ├── random-walk-down-wall-street-malkiel/
+│   ├── investors-manifesto-bernstein/
+│   └── stocks-for-the-long-run-siegel/
+├── value-investing/
+│   ├── security-analysis-graham/
+│   ├── common-stocks-uncommon-profits-fisher/
+│   ├── margin-of-safety-klarman/
+│   ├── dhando-investor-pabrai/
+│   ├── one-up-on-wall-street-lynch/
+│   ├── 100-baggers-mayer/
+│   ├── what-works-on-wall-street-oshaughnessy/
+│   ├── warren-buffett-way-hagstrom/
+│   ├── education-of-a-value-investor-spier/
+│   ├── berkshire-hathaway-shareholder-letters-buffett/
+│   ├── buffett-partnership-letters-buffett/
+│   ├── essays-of-warren-buffett-cunningham/
+│   ├── poor-charlies-almanack-munger/
+│   └── poor-charlies-almanack-companion-kaufman/
+├── quantitative-investing/
+├── behavioral-finance/
+│   ├── psychology-of-money-housel/
+│   ├── value-investing-behavioral-finance-jain/
+│   └── investing-between-the-lines-weintraub/
+├── macroeconomic-investing/
+│   ├── most-important-thing-marks/
+│   └── mastering-the-market-cycle-marks/
+├── venture-and-private-equity/
+│   └── venture-deals-feld/
+├── real-estate/
+├── indian-finance/
+│   ├── coffee-can-investing-mukherjea/
+│   └── joys-of-compounding-baid/
+├── global-finance/
+├── cryptocurrency-and-digital/
+└── financial-history/
+```
+
+**Why Indian Finance is its own subcategory:** PPF, NPS, ELSS, Section
+80C, HRA, and the Indian mutual fund landscape are entirely distinct
+from US/EU/SG finance. An Indian software engineer needs a dedicated
+shelf for books that speak to their tax regime, brokerage ecosystem,
+and rupee-denominated wealth-building.
+
+**Why Global Finance is its own subcategory:** When you emigrate
+(US, EU, Singapore, Canada), your entire financial stack changes —
+401(k), Roth IRA, capital gains regimes, estate planning. Having a
+pre-built category for post-immigration finance is strategic foresight.
+
+**Estimated capacity:** 300–600 books.
+
+---
+
+### CATEGORY 06 — Economics
+
+**Why separate from Finance:** Economics studies *how economies work*.
+Finance studies *how to allocate capital*. Microeconomics, game theory,
+development economics, and the history of economic thought have nothing
+to do with personal portfolio construction.
+
+```
+books/economics/
+├── microeconomics/
+├── macroeconomics/
+│   ├── basic-economics-sowell/
+│   ├── economics-in-one-lesson-hazlitt/
+│   ├── capitalism-and-freedom-friedman/
+│   ├── free-to-choose-friedman/
+│   └── road-to-serfdom-hayek/
+├── game-theory/
+├── behavioral-economics/
+│   ├── freakonomics-levitt/
+│   ├── superfreakonomics-levitt/
+│   ├── predictably-irrational-ariely/
+│   └── undercover-economist-harford/
+├── development-economics/
+│   └── why-nations-fail-acemoglu/
+├── political-economy/
+│   └── wealth-of-nations-smith/
+├── indian-economy/
+├── history-of-economic-thought/
+└── complexity-economics/
+```
+
+**Estimated capacity:** 150–300 books.
+
+---
+
+### CATEGORY 07 — Business
+
+**Why standalone:** Business is distinct from both Economics (theory)
+and Finance (capital). Business books teach you to *build, run, and
+grow* organisations. Startups, product management, sales, marketing,
+management, leadership, and corporate strategy all cluster here.
+
+```
+books/business/
+├── entrepreneurship/
+│   ├── zero-to-one-thiel/
+│   ├── lean-startup-ries/
+│   ├── hard-thing-about-hard-things-horowitz/
+│   ├── startup-owners-manual-blank/
+│   ├── founders-at-work-livingston/
+│   ├── e-myth-revisited-gerber/
+│   └── disciplined-entrepreneurship-aulet/
+├── startups/
+│   ├── mom-test-fitzpatrick/
+│   ├── traction-weinberg/
+│   ├── crossing-the-chasm-moore/
+│   └── company-of-one-jarvis/
+├── product-management/
+│   └── change-function-coburn/
+├── marketing-and-growth/
+│   ├── positioning-ries/
+│   ├── blue-ocean-strategy-kim/
+│   ├── building-a-storybrand-miller/
+│   ├── scientific-advertising-hopkins/
+│   ├── ogilvy-on-advertising-ogilvy/
+│   ├── boron-letters-halbert/
+│   └── copywriters-handbook-bly/
+├── sales/
+├── operations-and-execution/
+│   ├── goal-goldratt/
+│   ├── measure-what-matters-doerr/
+│   ├── rework-fried/
+│   └── checklist-manifesto-gawande/
+├── management-and-leadership/
+│   ├── high-output-management-grove/
+│   ├── effective-executive-drucker/
+│   ├── first-90-days-watkins/
+│   ├── extreme-ownership-willink/
+│   ├── turn-the-ship-around-marquet/
+│   ├── leaders-eat-last-sinek/
+│   ├── five-dysfunctions-of-a-team-lencioni/
+│   ├── radical-candor-scott/
+│   ├── multipliers-wiseman/
+│   ├── dare-to-lead-brown/
+│   ├── staff-engineer-larson/
+│   └── built-to-last-collins/
+├── business-strategy/
+│   └── good-strategy-bad-strategy-rumelt/
+├── corporate-finance/
+│   └── personal-mba-kaufman/
+├── negotiation/
+│   ├── never-split-the-difference-voss/
+│   └── crucial-conversations-patterson/
+└── consulting-and-frameworks/
+```
+
+**Why Marketing lives under Business, not its own category:** Marketing
+is a *function within a business*. It lacks enough independent depth
+to justify a top-level category when you are optimising for knowledge
+per shelf. If your library grows past 2000 marketing books, split it.
+
+**Estimated capacity:** 400–800 books.
+
+---
+
+### CATEGORY 08 — Psychology
+
+**Why standalone (not merged with Decision Making):** Psychology is
+the *science* of mind and behaviour. Decision Making is an *applied
+discipline* that draws on psychology, statistics, and philosophy.
+Keeping them separate means cognitive psychology research (Kahneman)
+stays with the science, while applied frameworks (Parrish's Mental
+Models) get their own home.
+
+```
+books/psychology/
+├── cognitive-psychology/
+│   ├── thinking-fast-and-slow-kahneman/
+│   ├── mistakes-were-made-but-not-by-me-tavris/
+│   └── scout-mindset-galef/
+├── behavioral-psychology/
+│   └── influence-cialdini/
+├── social-psychology/
+│   ├── laws-of-human-nature-greene/
+│   ├── righteous-mind-haidt/
+│   └── culture-of-fear-glassner/
+├── evolutionary-psychology/
+├── positive-psychology/
+│   ├── flow-csikszentmihalyi/
+│   ├── happiness-hypothesis-haidt/
+│   └── drive-pink/
+├── clinical-and-abnormal/
+│   ├── anxiety-phobia-workbook-bourne/
+│   └── highly-sensitive-person-aron/
+├── developmental-psychology/
+│   ├── mindset-dweck/
+│   └── grit-duckworth/
+├── neuropsychology/
+└── psychoanalysis/
+    └── denial-of-death-becker/
+```
+
+**Estimated capacity:** 200–400 books.
+
+---
+
+### CATEGORY 09 — Decision Making
+
+**Why standalone (not under Psychology):** This is the *applied*
+domain of better thinking. Mental models, systems thinking,
+probabilistic reasoning, and forecasting are drawn from psychology,
+mathematics, philosophy, and military strategy. No single parent
+discipline owns this domain.
+
+```
+books/decision-making/
+├── mental-models/
+│   ├── great-mental-models-vol-1-parrish/
+│   ├── great-mental-models-vol-2-parrish/
+│   ├── great-mental-models-vol-5-parrish/
+│   ├── seeking-wisdom-bevelin/
+│   └── algorithms-to-live-by-christian/
+├── systems-thinking/
+│   ├── antifragile-taleb/
+│   ├── skin-in-the-game-taleb/
+│   └── stafford-beer-cybernetician/
+├── probabilistic-thinking/
+│   ├── thinking-in-bets-duke/
+│   ├── fooled-by-randomness-taleb/
+│   ├── black-swan-taleb/
+│   └── superforecasting-tetlock/
+├── risk-and-uncertainty/
+│   └── matrix-decision-making-georgiy/
+├── first-principles/
+├── critical-thinking/
+│   └── how-not-to-be-wrong-ellenberg/
+└── judgment-and-forecasting/
+    └── range-epstein/
+```
+
+**Estimated capacity:** 100–200 books.
+
+---
+
+### CATEGORY 10 — Communication
+
+**Why standalone:** Communication is not a subset of Business or
+Psychology. It is its own discipline: writing, speaking, persuading,
+negotiating, and storytelling are *skills* with their own craft
+traditions, textbooks, and masters.
+
+```
+books/communication/
+├── writing/
+│   ├── on-writing-well-zinsser/
+│   ├── everybody-writes-handley/
+│   ├── pyramid-principle-minto/
+│   └── how-to-take-smart-notes-ahrens/
+├── public-speaking/
+│   ├── talk-like-ted-gallo/
+│   ├── presentation-zen-reynolds/
+│   └── resonate-duarte/
+├── storytelling/
+│   ├── storyworthy-daigneau/
+│   ├── made-to-stick-heath/
+│   └── building-a-storybrand-miller/
+├── persuasion-and-rhetoric/
+│   ├── thank-you-for-arguing-heinrichs/
+│   ├── words-that-work-luntz/
+│   └── influence-is-your-superpower-lederman/
+├── negotiation/
+│   └── never-split-the-difference-voss/
+├── technical-writing/
+├── copywriting/
+│   ├── boron-letters-halbert/
+│   └── copywriters-handbook-bly/
+└── cross-cultural-communication/
+```
+
+**Note on duplicate books:** *Never Split the Difference* appears
+in both Business → Negotiation and Communication → Negotiation. Per
+Rule 1, it is canonically placed in **Communication → Negotiation**
+because the book is primarily about *communication technique*. The
+Business/Negotiation folder holds only a symlink or cross-reference.
+
+**Estimated capacity:** 150–300 books.
+
+---
+
+### CATEGORY 11 — History
+
+**Why standalone:** History is the largest empirical dataset of human
+experiments. It is not a subset of Social Science — it is the *mother
+discipline* that provides context for economics, geopolitics, military
+strategy, and the rise and fall of civilisations.
+
+```
+books/history/
+├── world-history/
+│   ├── sapiens-harari/
+│   ├── guns-germs-and-steel-diamond/
+│   ├── silk-roads-frankopan/
+│   ├── short-history-of-nearly-everything-bryson/
+│   ├── lessons-of-history-durant/
+│   └── destiny-disrupted-ansary/
+├── ancient-history/
+├── medieval-history/
+├── modern-history/
+│   └── rise-and-fall-of-the-third-reich-shirer/
+├── contemporary-history/
+│   ├── postwar-judt/
+│   ├── team-of-rivals-goodwin/
+│   └── 1984-orwell/
+├── indian-history/
+├── economic-history/
+├── history-of-science/
+│   ├── emperor-of-all-maladies-mukherjee/
+│   └── gene-mukherjee/
+├── history-of-technology/
+├── military-history/
+├── political-history/
+│   └── peoples-history-united-states-zinn/
+└── history-of-ideas/
+    └── factfulness-rosling/
+```
+
+**Why Indian History is a subcategory:** For an Indian reader, having
+a dedicated shelf for the subcontinent's history — from the Indus
+Valley to liberalisation to the tech boom — is essential for
+intellectual self-understanding.
+
+**Estimated capacity:** 300–600 books.
+
+---
+
+### CATEGORY 12 — Philosophy
+
+**Scope:** Stoicism, existentialism, epistemology, ethics, political
+philosophy, philosophy of science, philosophy of mind, Eastern
+philosophy (Chinese, Japanese), and Indian philosophy (Vedanta,
+Buddhism, Nyaya, Samkhya).
+
+```
+books/philosophy/
+├── stoicism/
+│   ├── meditations-marcus-aurelius/
+│   ├── letters-from-a-stoic-seneca/
+│   └── daily-stoic-holiday/
+├── existentialism/
+│   ├── mans-search-for-meaning-frankl/
+│   ├── beyond-good-and-evil-nietzsche/
+│   └── thus-spoke-zarathustra-nietzsche/
+├── epistemology/
+├── ethics-and-morality/
+│   └── nicomachean-ethics-aristotle/
+├── political-philosophy/
+│   └── republic-plato/
+├── philosophy-of-science/
+├── philosophy-of-mind/
+├── eastern-philosophy/
+├── indian-philosophy/
+│   ├── vedanta/
+│   ├── buddhism/
+│   ├── nyaya/
+│   ├── samkhya/
+│   ├── yoga-sutras/
+│   └── jainism/
+├── logic-and-rationalism/
+└── metaphysics/
+```
+
+**Why Indian Philosophy is a sub-subcategory under Philosophy:**
+The six Orthodox (*Astika*) and four Heterodox (*Nastika*) schools
+of Indian philosophy — Nyaya (logic), Vaisheshika (atomism), Samkhya
+(dualism), Yoga, Purva Mimamsa (ritual), Vedanta (metaphysics),
+Buddhism, Jainism, Charvaka (materialism), and Ajivika (determinism)
+— constitute one of the world's deepest philosophical traditions.
+They deserve granular sub-subcategories.
+
+**Estimated capacity:** 200–400 books.
+
+---
+
+### CATEGORY 13 — Science
+
+**Why not merged with Mathematics or CS:** Science is empirical
+observation and explanation of the natural world. Mathematics is
+abstract structure. Computer Science is information processing. These
+are three distinct epistemological traditions.
+
+```
+books/science/
+├── physics/
+├── biology-and-evolution/
+│   ├── selfish-gene-dawkins/
+│   └── gene-mukherjee/
+├── neuroscience/
+├── chemistry/
+├── cosmology-and-astronomy/
+├── genetics-and-genomics/
+├── complexity-and-chaos/
+├── ecology-and-environment/
+└── medicine-and-health-science/
+    └── emperor-of-all-maladies-mukherjee/
+```
+
+**Estimated capacity:** 200–400 books.
+
+---
+
+### CATEGORY 14 — Productivity & Performance
+
+**Scope:** Deep work, focus, habit formation, learning techniques,
+time management, energy management, goal setting, creativity,
+and knowledge management (Zettelkasten, etc.).
+
+```
+books/productivity-and-performance/
+├── deep-work-and-focus/
+│   ├── deep-work-newport/
+│   ├── digital-minimalism-newport/
+│   ├── indistractable-eyal/
+│   └── essentialism-mckeown/
+├── habit-formation/
+│   ├── atomic-habits-clear/
+│   ├── the-one-thing-keller/
+│   └── eat-that-frog-tracy/
+├── learning-and-memory/
+│   ├── how-to-read-a-book-adler/
+│   ├── make-it-stick-brown/
+│   ├── ultralearning-young/
+│   ├── learning-how-to-learn-oakley/
+│   ├── mind-for-numbers-oakley/
+│   └── how-to-take-smart-notes-ahrens/
+├── time-management/
+│   ├── getting-things-done-allen/
+│   └── four-thousand-weeks-burkeman/
+├── energy-management/
+│   └── war-of-art-pressfield/
+├── goal-setting/
+├── creativity/
+│   ├── originals-grant/
+│   ├── creative-confidence-kelley/
+│   ├── steal-like-an-artist-kleon/
+│   └── show-your-work-kleon/
+└── knowledge-management/
+```
+
+**Estimated capacity:** 150–300 books.
+
+---
+
+### CATEGORY 15 — Health & Longevity
+
+**Why standalone:** Health is not productivity. Sleep, nutrition,
+fitness, and mental health are *physiological domains* with their own
+research base, not life-hacking techniques. An engineer optimising
+for a 60-year career must treat health as a first-class domain.
+
+```
+books/health-and-longevity/
+├── sleep/
+│   └── why-we-sleep-walker/
+├── nutrition-and-diet/
+├── exercise-and-fitness/
+├── mental-health/
+│   └── anxiety-phobia-workbook-bourne/
+├── longevity-research/
+└── peak-performance/
+    ├── peak-ericsson/
+    └── art-of-learning-waitzkin/
+```
+
+**Estimated capacity:** 100–200 books.
+
+---
+
+### CATEGORY 16 — Biography & Memoirs
+
+**Why standalone (not scattered into subject areas):** Biography is a
+*literary form*, not a subject. A biography of Steve Jobs is not a
+technology book — it is the story of a human life. Keeping biographies
+together allows you to study leadership, resilience, and character
+development *across* domains.
+
+```
+books/biography-and-memoirs/
+├── technology-founders/
+├── investors-and-financiers/
+├── scientists-and-thinkers/
+├── political-and-military-leaders/
+├── artists-and-writers/
+│   └── walden-thoreau/
+├── entrepreneurs/
+└── philosophers-and-intellectuals/
+```
+
+**Estimated capacity:** 200–500 books.
+
+---
+
+### CATEGORY 17 — Society & Culture
+
+**Scope:** Sociology, anthropology, geopolitics, global mobility and
+immigration, social dynamics, relationships and family, parenting,
+religion and spirituality, and gender and identity.
+
+```
+books/society-and-culture/
+├── sociology/
+├── anthropology/
+├── geopolitics/
+│   └── homo-deus-harari/
+├── global-mobility-and-immigration/
+├── social-dynamics/
+│   └── how-to-win-friends-influence-people-carnegie/
+├── relationships-and-family/
+├── parenting/
+├── religion-and-spirituality/
+└── gender-and-identity/
+```
+
+**Why "Global Mobility and Immigration" exists:** For an Indian
+software engineer considering H-1B, EB-1, Canada PR, Singapore EP, or
+EU Blue Card, this is not abstract geopolitics — it is life-changing
+practical knowledge. Books on visa strategy, cultural assimilation,
+and the economics of migration deserve their own shelf.
+
+**Estimated capacity:** 200–400 books.
+
+---
+
+### CATEGORY 18 — Technology & Future
+
+**Scope:** The *societal implications* of technology — not the
+technology itself (that lives in CS or AI). This category covers AI
+policy, surveillance, blockchain as a social force, the future of
+work, biotechnology ethics, and climate/energy technology.
+
+```
+books/technology-and-future/
+├── future-of-technology/
+├── tech-policy-and-regulation/
+├── surveillance-and-privacy/
+├── future-of-work/
+├── blockchain-and-decentralization/
+├── biotechnology/
+└── climate-and-energy/
+```
+
+**Estimated capacity:** 100–200 books.
+
+---
+
+### CATEGORY 19 — Career Development
+
+**Why standalone:** Career strategy books are not productivity books
+(those are about *how you work*). Career books are about *where you
+go* — promotions, transitions, personal branding, the Staff Engineer
+track, and professional resilience.
+
+```
+books/career-development/
+├── engineering-career/
+│   ├── software-engineers-guidebook-orosz/
+│   └── staff-engineer-larson/
+├── career-transitions/
+│   └── first-90-days-watkins/
+├── personal-brand/
+│   ├── show-your-work-kleon/
+│   └── steal-like-an-artist-kleon/
+├── charisma-and-presence/
+│   └── charisma-myth-cabane/
+└── resilience/
+    ├── mindset-dweck/
+    └── war-of-art-pressfield/
+```
+
+**Estimated capacity:** 50–100 books.
+
+---
+
+### CATEGORY 20 — Fiction
+
+**Why fiction is in a technical reading library:** Fiction builds
+empathy, narrative comprehension, and the ability to think in
+abstractions. Dostoevsky teaches you more about human nature than any
+psychology textbook. Orwell teaches systems thinking through story.
+Science fiction stress-tests your mental models of the future.
+
+```
+books/fiction/
+├── literary-fiction/
+│   ├── indian-literature/
+│   ├── russian-classics/
+│   ├── american-literature/
+│   ├── latin-american-literature/
+│   └── world-literature/
+├── science-fiction/
+│   ├── hard-sci-fi/
+│   ├── ai-and-technology/
+│   ├── dystopian/
+│   │   └── 1984-orwell/
+│   └── space-opera/
+├── philosophical-fiction/
+├── historical-fiction/
+├── mythology-and-epics/
+│   ├── indian-mythology/
+│   ├── greek-and-roman/
+│   └── world-mythology/
+├── short-stories-and-essays/
+└── poetry-and-drama/
+```
+
+**Estimated capacity:** 500–2000 books (fiction is the largest single
+domain in any library).
+
+---
+
+## 3. The Full Taxonomy Summary
+
+| # | Category | Subcategories | Sub-subcategories | Est. Capacity |
+|--:|:---------|:-------------:|:-----------------:|:-------------:|
+| 01 | Computer Science | 9 | 3 | 200–400 |
+| 02 | Software Engineering | 10 | 0 | 200–400 |
+| 03 | Artificial Intelligence | 9 | 0 | 200–500 |
+| 04 | Mathematics | 7 | 0 | 100–300 |
+| 05 | Finance | 12 | 0 | 300–600 |
+| 06 | Economics | 9 | 0 | 150–300 |
+| 07 | Business | 11 | 0 | 400–800 |
+| 08 | Psychology | 9 | 0 | 200–400 |
+| 09 | Decision Making | 7 | 0 | 100–200 |
+| 10 | Communication | 8 | 0 | 150–300 |
+| 11 | History | 12 | 0 | 300–600 |
+| 12 | Philosophy | 11 | 6 | 200–400 |
+| 13 | Science | 9 | 0 | 200–400 |
+| 14 | Productivity & Performance | 8 | 0 | 150–300 |
+| 15 | Health & Longevity | 6 | 0 | 100–200 |
+| 16 | Biography & Memoirs | 7 | 0 | 200–500 |
+| 17 | Society & Culture | 9 | 0 | 200–400 |
+| 18 | Technology & Future | 7 | 0 | 100–200 |
+| 19 | Career Development | 5 | 0 | 50–100 |
+| 20 | Fiction | 7 | 8 | 500–2000 |
+| **Total** | — | **165** | **17** | **3600–8400** |
+
+The taxonomy supports **3,600 to 8,400 books** without any structural
+changes. At 5,000 books, the average subcategory holds ~30 books —
+well within the browsability threshold.
+
+---
+
+## 4. How This Taxonomy Scales
+
+### 4.1 Adding Sub-Subcategories
+
+When any subcategory exceeds ~50 books, promote its internal clusters
+into named sub-subcategories. For example:
+
+```
+Before:
+books/finance/value-investing/
+    ├── intelligent-investor-graham/
+    ├── berkshire-letters-buffett/
+    ├── ... (55 books)
+
+After:
+books/finance/value-investing/
+    ├── foundational-texts/
+    │   └── intelligent-investor-graham/
+    ├── buffett-and-munger/
+    │   └── berkshire-letters-buffett/
+    └── modern-practitioners/
+```
+
+### 4.2 Adding New Top-Level Categories
+
+The 20-category structure has room for growth. Likely candidates for
+promotion to top-level status at 10,000+ books:
+
+- **Law & Regulation** (currently scattered across Business, Economics)
+- **Design & User Experience** (currently under Business → Product)
+- **Education & Pedagogy** (currently under Productivity → Learning)
+
+### 4.3 The Metadata Safety Net
+
+Even if a book's folder path feels imperfect, the `metadata.json`
+carries `tags`, `companion_books`, and `secondary_categories` fields.
+The search and filter system uses metadata, not folder paths, for
+cross-domain discovery. The folder path is for *human browsing*; the
+metadata is for *machine searching*.
+
+---
+
+## 5. Why Each Category Earns Its Place
+
+Every top-level category exists because it satisfies **at least three**
+of these criteria:
+
+1. **Distinct epistemology** — It has its own way of producing knowledge
+   (science uses experiments; history uses primary sources; philosophy
+   uses logical argument).
+2. **Independent skill tree** — Mastering it makes you measurably better
+   at something *different* from any other category.
+3. **Sufficient depth** — It can absorb >100 books without becoming a
+   grab-bag.
+4. **Relevance to your goals** — It directly impacts wealth, career,
+   relationships, or intellectual development for a 23-year-old Indian
+   software engineer.
+
+| Category | Epistemology | Skill Tree | Depth | Relevance |
+|:---------|:----------:|:----------:|:-----:|:---------:|
+| CS | ✓ | ✓ | ✓ | ✓ |
+| Software Eng | ✓ | ✓ | ✓ | ✓ |
+| AI/ML | ✓ | ✓ | ✓ | ✓ |
+| Mathematics | ✓ | ✓ | ✓ | ✓ |
+| Finance | ✓ | ✓ | ✓ | ✓ |
+| Economics | ✓ | ✓ | ✓ | ✓ |
+| Business | — | ✓ | ✓ | ✓ |
+| Psychology | ✓ | ✓ | ✓ | ✓ |
+| Decision Making | — | ✓ | ✓ | ✓ |
+| Communication | — | ✓ | ✓ | ✓ |
+| History | ✓ | ✓ | ✓ | ✓ |
+| Philosophy | ✓ | ✓ | ✓ | ✓ |
+| Science | ✓ | ✓ | ✓ | ✓ |
+| Productivity | — | ✓ | ✓ | ✓ |
+| Health | ✓ | ✓ | ✓ | ✓ |
+| Biography | — | ✓ | ✓ | ✓ |
+| Society | ✓ | ✓ | ✓ | ✓ |
+| Tech & Future | — | ✓ | ✓ | ✓ |
+| Career | — | ✓ | — | ✓ |
+| Fiction | ✓ | ✓ | ✓ | ✓ |
+
+---
+
+## 6. Conclusion: A Library Is a Living System
+
+This taxonomy is not a static spreadsheet. It is a **living
+classification system** designed to grow with you over decades.
+
+The rules are simple:
+
+1. **One book, one folder.** No duplicates.
+2. **Five decision rules** resolve every ambiguous case.
+3. **Metadata carries the cross-references.** Tags, not folders,
+   handle interdisciplinary discovery.
+4. **Sub-subcategories emerge organically** when a subcategory exceeds
+   50 books.
+5. **New top-level categories are promoted** when a subcategory
+   consistently exceeds 200 books and has a distinct epistemology.
+
+Build the folders. Fill the shelves. Compound the knowledge.
+
+---
+
+*This is Part 2 of the
+[Lifetime Reading Curriculum](/blog/lifetime-reading-curriculum-book-categories)
+series. Part 1 covers the GitHub repository architecture and file
+format. Part 3 will map every book in the existing collection to its
+canonical category.*
