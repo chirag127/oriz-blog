@@ -1,0 +1,1873 @@
+---
+title: "Part 5: The Universal Book Classification Taxonomy — 30 Categories, 200+ Subcategories, Every Decision Rule Grounded in Library Science"
+description: "A 7000-word exhaustive guide to organizing any library from first principles. Synthesizes the Dewey Decimal System, Library of Congress Classification, BISAC's 54 major headings, Ranganathan's Colon Classification, and modern personal library research into a single, universal taxonomy anyone can implement immediately."
+pubDate: 2026-06-08
+tags:
+  - Reading List
+  - Books
+  - Taxonomy
+  - Library Science
+  - Classification
+  - BISAC
+  - Dewey Decimal
+  - Library of Congress
+  - Ranganathan
+  - Knowledge Management
+category: "Learning & Growth"
+author: "Chirag Singhal"
+series: "Lifetime Reading Curriculum"
+part: 5
+draft: false
+---
+
+# Part 5: The Universal Book Classification Taxonomy
+
+> **Premise:** A library without a taxonomy is a pile of paper.
+> A library with a bad taxonomy is a maze. A library with a *universal,
+> principled* taxonomy is an intellectual operating system that upgrades
+> your thinking every time you browse it.
+
+In [Part 1](/blog/lifetime-reading-curriculum-book-categories), we laid
+out the repository architecture. In
+[Part 2](/blog/lifetime-reading-curriculum-book-categories/part-02-definitive-category-taxonomy),
+we explored the reasoning behind a 20-domain taxonomy. In
+[Part 3](/blog/lifetime-reading-curriculum-book-categories/part-03-automated-library-organizer),
+we built the automated validation layer. In
+[Part 4](/blog/lifetime-reading-curriculum-book-categories/part-04-personalized-category-taxonomy),
+we designed a personalized taxonomy optimized for a specific profile.
+
+This article does something different. It answers the question that
+precedes all of that:
+
+**How do professional classification systems actually decide which
+categories to create — and how can we synthesize those decisions into
+a universal taxonomy that works for anyone?**
+
+The answer requires studying five major systems: the Dewey Decimal
+Classification (DDC), the Library of Congress Classification (LCC), the
+BISAC Subject Headings, Ranganathan's Colon Classification (CC), and the
+Universal Decimal Classification (UDC). From these, we derive a
+30-category, 200+ subcategory, 300+ sub-subcategory taxonomy that is
+research-validated, future-proof, and immediately deployable.
+
+---
+
+## Chapter 1: The Five Classification Systems That Define How All Books Are Organized
+
+### 1.1 The Dewey Decimal Classification (DDC)
+
+The DDC is the world's most widely used library classification system.
+It was created by Melvil Dewey in 1876 and is now maintained by OCLC
+(Online Computer Library Center). Over 200,000 libraries in 135 countries
+use it.
+
+Its organizing principle is elegantly simple: **divide all human knowledge
+into ten main classes, then subdivide each class into ten divisions, each
+division into ten sections, and expand further using decimal notation.**
+The result is a theoretical capacity of millions of unique addresses for
+individual subjects.
+
+The ten main classes are:
+
+| Class | Range | Domain |
+|:------|:------:|:-------|
+| 0 | 000–099 | Computer Science, Information & General Works |
+| 1 | 100–199 | Philosophy & Psychology |
+| 2 | 200–299 | Religion & Theology |
+| 3 | 300–399 | Social Sciences |
+| 4 | 400–499 | Language & Linguistics |
+| 5 | 500–599 | Pure Sciences |
+| 6 | 600–699 | Applied Sciences & Technology |
+| 7 | 700–799 | Arts & Recreation |
+| 8 | 800–899 | Literature |
+| 9 | 900–999 | History & Geography |
+
+Within the Social Sciences class (300s), the 100 divisions allocate
+specific numerical ranges to Statistics (310), Political Science (320),
+Economics (330), Law (340), Public Administration & Military Science (350),
+Social Problems & Social Services (360), Education (370), Commerce,
+Communications & Transportation (380), and Customs, Etiquette & Folklore
+(390). This precision matters: when you arrive at the 330s shelf, you
+know exactly which Economics books live there.
+
+**Key Limitation of DDC for Personal Libraries:** The DDC was designed
+for a symmetric world where every domain gets equal shelf space. In a
+personal library, you will have 500 technology books and 5 books on
+gardening. Applying DDC directly would create enormous imbalances. Instead,
+we extract its *decision logic* — what subjects deserve independent
+top-level status — and adapt it.
+
+### 1.2 The Library of Congress Classification (LCC)
+
+The LCC system, maintained by the U.S. Library of Congress, is used by
+most research universities and academic libraries worldwide. It organizes
+all knowledge into **21 main classes**, each identified by a letter of
+the alphabet. Unlike DDC's purely numeric structure, LCC uses alphanumeric
+codes (e.g., QA for Mathematics, HG for Finance) to enable deep nesting
+without running out of address space.
+
+The 21 LCC classes are:
+
+| Letter | Domain |
+|:------:|:-------|
+| A | General Works |
+| B | Philosophy, Psychology, and Religion |
+| C | Auxiliary Sciences of History |
+| D | World History (excluding Americas) |
+| E–F | History of the Americas |
+| G | Geography, Anthropology & Recreation |
+| H | Social Sciences |
+| J | Political Science |
+| K | Law |
+| L | Education |
+| M | Music |
+| N | Fine Arts |
+| P | Language and Literature |
+| Q | Science |
+| R | Medicine |
+| S | Agriculture |
+| T | Technology |
+| U | Military Science |
+| V | Naval Science |
+| Z | Bibliography & Library Science |
+
+**Key Insight from LCC:** The LCC separates what many systems conflate.
+Philosophy is distinct from Psychology (both under B, but subdivided).
+History is divided by *geography*, not *era* — World History (D),
+Americas (E–F), each with their own letter-class. The Fine Arts (N) are
+entirely separate from Music (M). These separations are not arbitrary;
+they reflect centuries of academic specialization and the fact that
+a musicologist and an art historian browse very different sections.
+
+### 1.3 The BISAC Subject Headings
+
+The **Book Industry Standards and Communications (BISAC)** subject
+headings are the publishing industry's standard for metadata, maintained
+by the Book Industry Study Group (BISG). Updated annually, the 2024
+edition has **54 major subject headings** containing approximately
+**6,000 specific alphanumeric codes**.
+
+The 54 major BISAC headings are:
+
+ANTIQUES & COLLECTIBLES — ARCHITECTURE — ART — BIBLES — BIOGRAPHY &
+AUTOBIOGRAPHY — BUSINESS & ECONOMICS — COMICS & GRAPHIC NOVELS —
+COMPUTERS — COOKING — CRAFTS & HOBBIES — DESIGN — DRAMA — EDUCATION —
+FAMILY & RELATIONSHIPS — FICTION — GAMES & ACTIVITIES — GARDENING —
+HEALTH & FITNESS — HISTORY — HOUSE & HOME — HUMOR — JUVENILE FICTION —
+JUVENILE NONFICTION — LANGUAGE ARTS & DISCIPLINES — LANGUAGE STUDY —
+LAW — LITERARY CRITICISM — MATHEMATICS — MEDICAL — MIND, BODY, SPIRIT —
+MUSIC — NATURE — PERFORMING ARTS — PETS — PHILOSOPHY — PHOTOGRAPHY —
+POETRY — POLITICAL SCIENCE — PSYCHOLOGY — REFERENCE — RELIGION —
+SCIENCE — SELF-HELP — SOCIAL SCIENCE — SPORTS & RECREATION — STUDY
+AIDS — TECHNOLOGY & ENGINEERING — TRANSPORTATION — TRAVEL — TRUE CRIME —
+YOUNG ADULT FICTION — YOUNG ADULT NONFICTION
+
+**Key Insights from BISAC:**
+
+- BISAC separates SELF-HELP from PSYCHOLOGY. These are different
+  disciplines: Psychology is the *science* of mind; Self-Help is the
+  *applied practice* of behavior change. Most personal libraries
+  conflate them.
+- BISAC separates BUSINESS & ECONOMICS as one category but LCC places
+  them in H (Social Sciences). In a personal library, given the density
+  of books in these domains, they deserve to be split.
+- BISAC has separate headings for MIND, BODY, SPIRIT (spirituality
+  and alternative philosophy) and RELIGION (formal theology and
+  scripture). This is an important distinction.
+- BISAC updated "Foreign Language Study" to simply "LANGUAGE STUDY"
+  in 2024, reflecting that non-native language acquisition is now
+  understood independently of academic linguistics.
+- Comics, Graphic Novels, Drama, Poetry, and Performing Arts all
+  earn separate headings — a signal that each has enough depth to
+  be browsed independently.
+
+### 1.4 Ranganathan's Colon Classification (CC) and Facet Analysis
+
+S.R. Ranganathan was an Indian mathematician and librarian who, in 1933,
+developed an entirely different philosophical approach to classification.
+Instead of assigning fixed pre-determined numbers to subjects, he proposed
+**faceted classification**: any subject can be decomposed into fundamental
+constituent aspects, then re-synthesized into a unique, precise
+classification code.
+
+His five fundamental categories are: **PMEST**
+
+| Facet | Meaning | Example (for "Tuberculosis of the Lungs") |
+|:-----:|:--------|:------------------------------------------|
+| P | Personality (primary subject) | Lungs |
+| M | Matter (material or property) | Tuberculosis |
+| E | Energy (process or operation) | Treatment |
+| S | Space (geographic context) | India |
+| T | Time (chronological period) | 1950 |
+
+**Why PMEST Matters for Personal Library Design:**
+
+Ranganathan teaches us that a book is not a monolithic object —
+it is a multi-faceted artifact. When you ask "where does this book
+go?", you are really asking: *which facet of this book is primary?*
+A book on "Behavioral Finance" has facets in both Psychology (the
+behavioral science) and Finance (the market application). PMEST
+gives us a principled way to determine which facet dominates.
+
+Ranganathan also gave us three critical ordering principles:
+
+- **Wall-Picture Principle:** One concept depends logically on another
+  (the wall must exist for the picture to be hung). In classification,
+  foundational subjects come before applied subjects.
+- **Whole-Organ Principle:** The whole entity is classified before its
+  parts. A book on "Human Biology" precedes one on "Cardiac Physiology".
+- **Cow-Calf Principle:** Closely related concepts are kept together,
+  even if strict alphabetical or numerical ordering would separate them.
+
+These principles solve the problem of cross-disciplinary books without
+requiring arbitrary tie-breaking rules.
+
+### 1.5 The Universal Decimal Classification (UDC)
+
+The UDC was developed in 1905 as a faceted extension of the DDC. It is
+used in international and specialized libraries and handles
+multidisciplinary subjects better than DDC by providing **auxiliary tables**
+— add-on codes that modify a base subject with language, place, form,
+point of view, or time qualifiers. A UDC number for "History of Computing
+in India in the 20th Century" can be built systematically rather than
+assigned from a fixed list.
+
+**Key Insight:** The UDC's auxiliary tables are the conceptual ancestor
+of what we now call *tags* in digital systems. In a GitHub-hosted MDX
+library, the folder hierarchy provides the primary PMEST classification
+while the `metadata.json` tags file serves as the auxiliary table.
+
+---
+
+## Chapter 2: The Threshold Analysis — When Does a Category Earn Top-Level Status?
+
+### 2.1 The Goldilocks Rule
+
+Research on personal libraries of 1,000-10,000 books consistently points
+to a "Goldilocks Rule" for categories:
+
+- **Too few categories (below 10):** Every section has 100-500 books.
+  Browsing becomes overwhelming. "Business" becomes a pile, not a shelf.
+- **Too many categories (above 50):** Many folders have 1-5 books.
+  The taxonomy is more complex than the collection it organizes.
+- **Optimal range:** 15-30 top-level categories for libraries of
+  1,000-5,000 books. Subcategorize any section exceeding 100 books.
+
+### 2.2 The Five Criteria for Top-Level Status
+
+A category earns a top-level position in the taxonomy if and only if
+it satisfies a majority of these five criteria:
+
+**Criterion 1: Industry Precedent**
+Does the BISAC system assign it a dedicated top-level heading? Does the
+LCC give it its own letter-class? Does the DDC give it its own 100-block?
+If two or more major systems recognize it independently, it has earned
+top-level status.
+
+**Criterion 2: Volume Threshold**
+Can this category generate at least 50 serious books in a lifetime reading
+library? A category that has only 5-10 books should be a subcategory
+of something larger.
+
+**Criterion 3: Epistemological Independence**
+Does this domain have its own methods, vocabulary, and tradition of inquiry?
+A physicist approaches the world differently from a sociologist — even when
+studying the same phenomenon. If a domain has its own epistemology, it
+deserves its own folder.
+
+**Criterion 4: Audience Independence**
+Would a reader browse this section independently without crossing into
+another section? A programmer browsing algorithms does not browse poetry
+simultaneously. Independent browsing behavior signals that two domains
+do not belong together.
+
+**Criterion 5: Non-Overlap**
+Can books in this category be clearly distinguished from books in all
+adjacent categories by applying the Dominant Subject Rule? If 40% of
+books in a proposed category could as easily belong to an adjacent one,
+the boundary is too weak for top-level status.
+
+### 2.3 The Maximum Nesting Depth: Three Levels
+
+Research and practical experience both support a maximum nesting depth of
+three levels for browsable libraries:
+
+- **Level 1 (Top Category):** The 30 major domains.
+- **Level 2 (Subcategory):** Subject clusters within each domain (e.g.,
+  "Value Investing" within "Finance & Investing").
+- **Level 3 (Sub-subcategory):** Specific specializations within a subject
+  cluster (e.g., "Special Situations Investing" within "Value Investing").
+
+Beyond three levels, the taxonomy becomes harder to navigate than simply
+searching the catalog.
+
+---
+
+## Chapter 3: The Universal 30-Category Taxonomy
+
+Below is the complete universal taxonomy with full justification for each
+category, its subcategories, and sub-subcategories. Categories are ordered
+by the PMEST principle of primacy — from the foundational (pure science and
+logic) to the applied (craft, self-development, and art).
+
+---
+
+### Category 01: Mathematics & Statistics
+
+**Epistemological basis:** Mathematics is the language of all scientific
+disciplines. It is not a subset of Science — it is a discipline with its
+own axioms, proofs, and methods. The DDC places it at 510, LCC at Q, and
+BISAC treats it as a standalone heading.
+
+**What belongs here:** Pure mathematics (algebra, analysis, topology,
+number theory, geometry), applied mathematics (differential equations,
+numerical analysis, optimization), probability theory, and statistics.
+
+**What does not belong here:** Mathematics textbooks written explicitly
+for Computer Science (classify under CS), or statistics books written
+for social scientists (classify under Social Sciences with a metadata
+cross-reference).
+
+Subcategories:
+
+- Foundations of Mathematics and Logic
+  - Set Theory and Foundations
+  - Mathematical Logic and Proof Theory
+  - Philosophy of Mathematics
+- Algebra and Number Theory
+  - Abstract Algebra and Group Theory
+  - Linear Algebra and Matrix Theory
+  - Number Theory and Cryptographic Foundations
+- Analysis and Calculus
+  - Real Analysis and Measure Theory
+  - Complex Analysis
+  - Differential Equations and Dynamical Systems
+- Geometry and Topology
+  - Euclidean and Non-Euclidean Geometry
+  - Differential Geometry
+  - Algebraic Topology
+- Probability Theory
+  - Discrete Probability Models
+  - Continuous Probability Distributions
+  - Stochastic Processes and Markov Chains
+- Statistics and Data Analysis
+  - Frequentist Statistical Inference
+  - Bayesian Statistics
+  - Experimental Design and Hypothesis Testing
+- Applied and Computational Mathematics
+  - Numerical Methods and Scientific Computing
+  - Optimization Theory
+  - Information Theory and Entropy
+- Mathematics for a General Audience
+  - Popular Mathematics and Mathematical Storytelling
+  - History of Mathematical Ideas
+
+---
+
+### Category 02: Computer Science
+
+**Epistemological basis:** Computer Science studies the theory of
+computation, information processing, algorithms, and the limits of what
+machines can compute. It is distinct from Software Engineering (the practice
+of building systems) and Artificial Intelligence (a domain that applies CS
+theory to learning systems). The DDC places CS at 000-006; BISAC has a
+dedicated COMPUTERS heading; LCC uses QA for mathematics of CS.
+
+**What belongs here:** Algorithms, data structures, theory of computation,
+programming language theory, compilers, operating systems internals,
+computer architecture, computer networks at the protocol level, security
+theory, and database theory.
+
+**What does not belong here:** Software engineering practice (Category 03),
+Machine Learning (Category 04), or web development tutorials.
+
+Subcategories:
+
+- Algorithms and Data Structures
+  - Classical Algorithms (sorting, searching, graph traversal)
+  - Advanced Data Structures (trees, heaps, hash tables, skip lists)
+  - Computational Complexity and Computability Theory
+  - Algorithm Design Paradigms (greedy, divide and conquer, DP)
+- Programming Languages and Paradigms
+  - Theory of Programming Languages (type systems, semantics)
+  - Functional Programming
+  - Object-Oriented Programming Principles
+  - Systems Programming Languages (C, Rust, Go, Zig)
+  - Interpreted and Scripting Languages (Python, Ruby, JavaScript)
+- Operating Systems Internals
+  - Process Scheduling and Memory Management
+  - File Systems and I/O
+  - Virtualization and Containerization Theory
+  - Kernel Design and Architecture
+- Computer Architecture and Organization
+  - CPU Architecture (RISC vs CISC, pipeline design)
+  - Memory Hierarchy and Cache Design
+  - Parallel and Concurrent Hardware Architectures
+- Computer Networking (Protocol Level)
+  - Network Protocol Stack (TCP/IP, UDP, HTTP)
+  - Routing, Switching and Network Infrastructure
+  - Wireless Networks and Mobile Protocols
+- Databases and Storage Theory
+  - Relational Model and SQL Theory
+  - NoSQL Data Models (Document, Key-Value, Graph, Column)
+  - Database Internals (storage engines, WAL, MVCC, indexing)
+  - Distributed Database Theory and CAP Theorem
+- Security and Cryptography
+  - Cryptographic Primitives (hashes, ciphers, signatures)
+  - Public Key Infrastructure and Certificate Authorities
+  - Systems Security and Penetration Testing
+  - Network Security and Threat Modeling
+- Compilers and Language Runtimes
+  - Lexical Analysis and Parsing
+  - Intermediate Representations and Optimization Passes
+  - Code Generation and Runtime Systems
+- Theory of Computation
+  - Automata Theory (DFA, NFA, Pushdown Automata, Turing Machines)
+  - Formal Languages and Grammars
+  - Computability, Decidability and Halting Problem
+  - Computational Complexity Classes (P, NP, PSPACE)
+- Information Theory and Coding
+  - Shannon's Information Theory
+  - Error-Correcting Codes
+  - Data Compression Theory
+
+---
+
+### Category 03: Software Engineering & Systems Architecture
+
+**Epistemological basis:** Software engineering is the *applied discipline*
+of designing, building, testing, and maintaining large-scale software
+systems. It is distinct from CS theory (Category 02) because it deals with
+real-world trade-offs: team dynamics, code maintainability, deployment
+pipelines, and reliability under production conditions. BISAC categorizes
+this under COMPUTERS with its own subcodes; the DDC uses 005 for computer
+programming. The LCC uses QA76 for most software topics.
+
+**What belongs here:** Code quality and clean code, design patterns,
+software architecture, distributed systems implementation, microservices,
+API design, testing methodologies, site reliability engineering, DevOps
+pipelines, and software project management.
+
+Subcategories:
+
+- Code Quality and Craft
+  - Readable Code and Code Maintainability Principles
+  - Refactoring Techniques and Legacy Code
+  - Automated Testing (Unit, Integration, E2E)
+  - Code Review Practices and Pair Programming
+- Software Design Principles
+  - Object-Oriented Design Principles (SOLID)
+  - Design Patterns (Creational, Structural, Behavioral)
+  - Domain-Driven Design (DDD)
+  - Event Sourcing and CQRS
+- Software Architecture
+  - Clean Architecture and Hexagonal Architecture
+  - Monolithic Architecture and When to Use It
+  - Microservices Architecture
+  - Event-Driven Architecture and Message Brokers
+  - Service Mesh and API Gateway Patterns
+- Distributed Systems Implementation
+  - Building Distributed Systems (consensus, replication)
+  - Distributed Messaging Systems
+  - Distributed Caching and Session Management
+  - Data Streaming and Event Processing
+- System Design and Scalability
+  - Scalability Patterns and Load Balancing
+  - Caching Strategies (CDN, Redis, Memcached)
+  - System Design Interview Frameworks
+  - High-Availability Architecture
+- DevOps, SRE and Platform Engineering
+  - Continuous Integration and Continuous Delivery (CI/CD)
+  - Infrastructure as Code (Terraform, Ansible, Pulumi)
+  - Container Orchestration (Kubernetes, Docker Swarm)
+  - Monitoring, Observability and SLOs
+  - Incident Management and On-Call Engineering
+  - Site Reliability Engineering (SRE) Practice
+- API Design and Integration
+  - RESTful API Design Principles
+  - GraphQL Architecture
+  - gRPC and Protocol Buffers
+  - Webhook and Event-Driven API Patterns
+- Engineering Culture and Team Dynamics
+  - Engineering Productivity and Developer Experience
+  - Technical Leadership and Staff Engineering
+  - Managing Technical Debt
+  - Remote Engineering Teams
+
+---
+
+### Category 04: Artificial Intelligence & Machine Learning
+
+**Epistemological basis:** AI/ML has grown large enough to warrant its
+own top-level category. It spans pure mathematics (optimization theory,
+linear algebra), computer science (graph algorithms, search), statistics
+(probability, Bayesian inference), neuroscience (neural architectures
+inspired by the brain), and philosophy (consciousness, alignment). No
+single parent category can hold it. BISAC places AI/ML under COMPUTERS
+with dedicated subcodes; DDC uses 006.3 for Artificial Intelligence.
+
+**What belongs here:** The mathematical theory of learning, neural network
+architectures, computer vision, natural language processing, reinforcement
+learning, generative models, AI safety, MLOps, and the ethics and policy
+of artificial intelligence.
+
+Subcategories:
+
+- Machine Learning Foundations
+  - Supervised Learning Theory and Algorithms
+  - Unsupervised Learning and Clustering
+  - Semi-Supervised and Self-Supervised Learning
+  - Feature Engineering and Selection
+  - Applied Statistics for Machine Learning
+- Deep Learning and Neural Architectures
+  - Feedforward Neural Networks and Backpropagation
+  - Convolutional Neural Networks (CNN) and Computer Vision
+  - Recurrent Networks, LSTMs and Sequence Modeling
+  - Transformers and Attention Mechanisms
+  - Generative Models (VAE, GAN, Diffusion)
+- Natural Language Processing
+  - Text Preprocessing and Tokenization Theory
+  - Classical NLP (TF-IDF, n-grams, named entity recognition)
+  - Large Language Models and Prompt Engineering
+  - Retrieval-Augmented Generation (RAG) Systems
+  - Semantic Search and Vector Databases
+- Computer Vision
+  - Image Recognition and Object Detection
+  - Image Segmentation and Instance Segmentation
+  - Video Understanding and Optical Flow
+  - Multimodal Vision-Language Models
+- Reinforcement Learning
+  - Markov Decision Processes and Policy Gradients
+  - Model-Based Reinforcement Learning
+  - Multi-Agent Reinforcement Learning
+  - Applications of RL to Real-World Environments
+- MLOps and Production AI
+  - Model Training Infrastructure and Distributed Training
+  - Model Deployment, Serving and Inference Optimization
+  - Model Monitoring, Drift Detection, and Retraining
+  - Feature Stores and ML Metadata Management
+- AI Safety and Alignment
+  - Value Alignment and the Control Problem
+  - Interpretability and Explainability
+  - Adversarial Robustness and Red-Teaming
+  - AI Governance and Regulation Frameworks
+- AI History, Philosophy and Ethics
+  - History of Artificial Intelligence as a Field
+  - Philosophy of Mind and Strong vs Weak AI
+  - Societal Impacts and Automation Economics
+  - Ethics of AI Decision-Making
+
+---
+
+### Category 05: Pure Sciences
+
+**Epistemological basis:** The natural sciences — physics, chemistry,
+biology, astronomy, earth sciences — study the empirical world through
+observation and experiment. They are distinct from mathematics (abstract
+reasoning) and technology (applied knowledge). DDC places Science at
+500-590; LCC uses Q; BISAC has a SCIENCE heading with extensive
+subcategories.
+
+**What belongs here:** Physics (classical and modern), chemistry, molecular
+biology, evolutionary biology, genetics, genomics, neuroscience at the
+biological level, ecology, astronomy, astrophysics, cosmology, geology,
+oceanography, climatology, and the philosophy and history of science.
+
+Subcategories:
+
+- Physics
+  - Classical Mechanics and Thermodynamics
+  - Electromagnetism and Optics
+  - Quantum Mechanics and Quantum Field Theory
+  - Relativity (Special and General)
+  - Particle Physics and the Standard Model
+  - Condensed Matter Physics
+- Chemistry
+  - Inorganic and Organic Chemistry Fundamentals
+  - Physical Chemistry and Thermochemistry
+  - Biochemistry and Molecular Chemistry
+- Biology and Evolution
+  - Cell Biology and Molecular Biology
+  - Genetics and Genomics
+  - Evolutionary Biology and Natural Selection
+  - Ecology and Systems Biology
+  - Microbiology and Virology
+- Neuroscience
+  - Neuroanatomy and Brain Architecture
+  - Cognitive Neuroscience and Decision-Making
+  - Neuropharmacology and Behavioral Neuroscience
+- Astronomy, Astrophysics and Cosmology
+  - Solar System and Planetary Science
+  - Stellar Astrophysics and Galaxy Formation
+  - Cosmology and the Origin of the Universe
+- Earth Sciences and Climate
+  - Geology and Tectonic Theory
+  - Oceanography and Marine Science
+  - Climatology and Climate Systems
+- Philosophy and History of Science
+  - Scientific Method, Falsifiability and Paradigm Shifts
+  - History of Scientific Revolutions
+  - Philosophy of Physics, Biology and Mind
+- Popular Science and Science Communication
+  - Science for General Readers
+  - Science Narrative and Journalism
+
+---
+
+### Category 06: Technology & Engineering
+
+**Epistemological basis:** Technology applies scientific knowledge to
+solve practical problems. Engineering designs systems within physical and
+economic constraints. Both are distinct from pure science (Category 05),
+which discovers knowledge without requiring application. DDC places
+Technology and Applied Science at 600-699. LCC uses T. BISAC has a
+TECHNOLOGY & ENGINEERING heading alongside COMPUTERS.
+
+**What belongs here:** Civil engineering, mechanical engineering,
+electrical engineering, chemical engineering, biomedical engineering,
+materials science, environmental engineering, robotics, energy systems,
+infrastructure, and the history and philosophy of technology.
+
+Subcategories:
+
+- Electrical and Electronics Engineering
+  - Circuit Theory and Electronic Design
+  - Embedded Systems and Microcontrollers
+  - Signal Processing and Communications Engineering
+  - Power Systems and Electrical Infrastructure
+- Mechanical Engineering
+  - Classical Mechanics and Structural Analysis
+  - Thermodynamics and Heat Transfer
+  - Manufacturing Processes and Industrial Design
+- Civil and Infrastructure Engineering
+  - Structural Engineering and Construction
+  - Transportation Systems and Urban Infrastructure
+  - Water Resources and Hydraulics
+- Robotics and Automation
+  - Autonomous Systems and Motion Planning
+  - Industrial Robotics and Human-Robot Interaction
+  - Drone Technology and Autonomous Vehicles
+- Biomedical Engineering
+  - Medical Device Design
+  - Bioinformatics and Computational Biology
+  - Neural Engineering and Prosthetics
+- Energy and Sustainability Engineering
+  - Renewable Energy Systems (solar, wind, hydro)
+  - Nuclear Engineering
+  - Energy Storage and Grid Systems
+- Materials Science and Nanotechnology
+  - Polymer Science and Composite Materials
+  - Nanomaterials and Nanofabrication
+  - Semiconductor Materials and Manufacturing
+- History and Philosophy of Technology
+  - Industrial Revolutions and Technological Transitions
+  - Philosophy of Technology and Human-Machine Relations
+  - Future of Technology and Technological Determinism
+
+---
+
+### Category 07: Medicine & Health Sciences
+
+**Epistemological basis:** Medicine and the health sciences form a vast
+domain of applied biology centered on the human body: its normal function
+(physiology), dysfunction (pathophysiology), treatment (clinical medicine),
+and prevention (public health). DDC places Medicine at 610. LCC uses R.
+BISAC separates MEDICAL from HEALTH & FITNESS.
+
+**What belongs here:** Anatomy, physiology, pathophysiology, pharmacology,
+clinical medicine by specialty, surgery, psychiatry and clinical psychology,
+epidemiology, public health, global health, medical history, and bioethics.
+
+Subcategories:
+
+- Anatomy and Physiology
+  - Human Anatomy: Gross and Regional
+  - Physiology: Systems (cardiovascular, respiratory, renal, endocrine)
+- Pathophysiology and Clinical Medicine
+  - Internal Medicine and Clinical Reasoning
+  - Surgical Principles and Procedures
+  - Emergency Medicine and Critical Care
+  - Oncology and Cancer Biology
+  - Infectious Disease and Epidemiology
+- Psychiatry and Mental Health (Clinical)
+  - Clinical Psychology and Psychopathology
+  - Neuropharmacology and Psychopharmacology
+  - Evidence-Based Psychotherapy Approaches
+- Pharmacology
+  - Drug Discovery and Development
+  - Clinical Pharmacology and Drug Interactions
+- Public Health and Epidemiology
+  - Epidemiological Methods and Study Design
+  - Global Health and Infectious Disease Control
+  - Health Policy and Healthcare Systems
+- Medical History and Bioethics
+  - History of Medicine and Great Medical Discoveries
+  - Bioethical Principles and Medical Decision-Making
+- Nutrition Science
+  - Evidence-Based Nutrition and Dietetics
+  - Macronutrient and Micronutrient Science
+  - Clinical Nutrition and Metabolic Medicine
+
+---
+
+### Category 08: Finance & Investing
+
+**Epistemological basis:** Finance is the discipline of how money, capital,
+and risk are valued and allocated over time. It is distinct from Economics
+(which studies how economies work at a macro level) and from Business
+(which studies organizational operations). BISAC categorizes investing under
+BUSINESS & ECONOMICS; however, the subject density of financial books
+— especially in personal libraries — justifies an independent top-level
+category. The LCC uses HG specifically for Finance.
+
+**What belongs here:** Personal finance, investment theory, equity investing
+(value investing, growth investing, quantitative investing), fixed income,
+derivatives and options, alternative investments, real estate investing,
+venture capital, private equity, behavioral finance, global and
+cross-border investing, financial history, and quantitative finance.
+
+Subcategories:
+
+- Personal Finance and Wealth Building
+  - Budgeting, Saving and Emergency Funds
+  - Debt Elimination and Credit Management
+  - Insurance, Estate Planning and Wealth Protection
+  - Financial Independence and Early Retirement (FIRE)
+- Investment Theory and Principles
+  - Modern Portfolio Theory and Asset Allocation
+  - Efficient Market Hypothesis and Its Critiques
+  - Capital Asset Pricing Model (CAPM) and Factor Investing
+  - Dollar-Cost Averaging and Long-Term Investing
+- Equity Investing
+  - Fundamental Analysis (financial statements, ratios)
+  - Value Investing Philosophy and Practice
+  - Growth Investing and Quality Investing
+  - Quantitative Equity Strategies
+  - Special Situations (mergers, spin-offs, distressed)
+- Fixed Income and Bond Markets
+  - Government Bonds and Sovereign Debt
+  - Corporate Bonds and Credit Analysis
+  - Yield Curve, Duration and Interest Rate Risk
+- Derivatives and Structured Products
+  - Options Theory and Derivative Pricing Models
+  - Futures, Forwards and Swap Contracts
+  - Volatility Trading and Risk Premium Harvesting
+  - Structured Products and Exotic Derivatives
+- Alternative Investments
+  - Hedge Fund Strategies and Alternative Alpha
+  - Commodities and Natural Resources
+  - Cryptocurrency and Digital Assets
+- Real Estate Investing
+  - Residential and Commercial Real Estate Analysis
+  - Real Estate Investment Trusts (REITs)
+  - Real Estate Private Equity and Syndications
+- Venture Capital and Private Equity
+  - Startup Valuation and Deal Structuring
+  - Private Equity Buyouts and LBOs
+  - Venture Portfolio Construction
+- Behavioral Finance
+  - Cognitive Biases in Investor Decision-Making
+  - Market Psychology and Crowd Behavior
+  - Contrarian Investing and Sentiment Analysis
+- Macro Investing and Global Markets
+  - Macro Trading and Global Asset Allocation
+  - Emerging Market Investing
+  - Currency Markets and FX Strategy
+- Financial History
+  - Market Crashes, Panics and Crises
+  - History of Banking and Central Banking
+  - Evolution of Financial Instruments
+- Indian Finance
+  - Equity Market Investing in India (NSE, BSE)
+  - Mutual Funds, SIPs and the Indian Fund Ecosystem
+  - Indian Taxation (Section 80C, 44ADA, LTCG, STCG)
+  - Indian Personal Finance Planning
+- Quantitative Finance
+  - Mathematical Finance and Stochastic Calculus
+  - Algorithmic Trading and Market Microstructure
+  - Risk Management (VaR, CVaR, Tail Risk)
+
+---
+
+### Category 09: Economics & Economic Theory
+
+**Epistemological basis:** Economics studies how individuals, firms, and
+governments allocate scarce resources. It is distinct from Finance (which
+studies capital allocation within existing markets) and from Business
+(which studies organizational operation). DDC places Economics at 330;
+LCC uses HB-HD and HJ.
+
+Subcategories:
+
+- Microeconomics
+  - Price Theory and Market Structures
+  - Consumer Theory and Demand Analysis
+  - Game Theory and Strategic Interaction
+  - Information Economics and Principal-Agent Problems
+- Macroeconomics
+  - GDP, Inflation, Employment and Business Cycles
+  - Monetary Policy and Central Banking
+  - Fiscal Policy and Government Finance
+  - International Macroeconomics and Exchange Rates
+- Behavioral Economics
+  - Heuristics and Biases in Economic Behavior
+  - Nudge Theory and Choice Architecture
+  - Experimental Economics
+- Development Economics
+  - Economic Growth Theory
+  - Poverty, Inequality and Economic Mobility
+  - Aid, Institutions and Political Economy of Development
+- Political Economy
+  - Political Institutions and Economic Outcomes
+  - Comparative Political Economy
+  - Public Choice Theory
+- History of Economic Thought
+  - Classical Economics (Smith, Ricardo, Mill)
+  - Neoclassical, Keynesian and Monetarist Schools
+  - Institutional, Post-Keynesian and Heterodox Schools
+- International Trade and Globalization
+  - Trade Theory (comparative advantage, Heckscher-Ohlin)
+  - Trade Policy, Tariffs and Trade Agreements
+  - Globalization and Its Critics
+- Ecological and Environmental Economics
+  - Externalities and Market Failure
+  - Carbon Markets and Environmental Pricing
+  - Sustainable Development Economics
+
+---
+
+### Category 10: Business, Management & Entrepreneurship
+
+**Epistemological basis:** Business is the discipline of how organizations
+are created, structured, managed, and grown. It encompasses both the
+internal operations of firms (management, HR, finance, operations) and
+the external competitive environment (strategy, marketing, sales). DDC
+uses 650-659 for Management; LCC uses HD; BISAC places all of these under
+BUSINESS & ECONOMICS.
+
+Subcategories:
+
+- Entrepreneurship and Startups
+  - Lean Startup Methodology and Rapid Experimentation
+  - Startup Fundraising and Investor Relations
+  - Founder Psychology and Resilience
+  - Bootstrapping and Capital-Efficient Startups
+  - Indie Hacking and Solo Founders
+- Product Management
+  - Product Discovery and Customer Development
+  - Roadmapping and Prioritization Frameworks
+  - Product-Market Fit and Growth Loops
+  - B2B vs B2C Product Strategy
+- Marketing and Brand Strategy
+  - Brand Architecture and Positioning Theory
+  - Content Marketing and Organic Growth
+  - Performance Marketing and Paid Acquisition
+  - Copywriting and Conversion Optimization
+  - Community Building and Product-Led Growth
+- Sales and Business Development
+  - Enterprise Sales and Complex B2B Deals
+  - Consultative Selling and Solution Selling
+  - Sales Funnel Management and CRM Systems
+- Management and Organizational Behavior
+  - People Management and Performance Reviews
+  - Organizational Culture and Change Management
+  - Diversity, Equity and Inclusion in Organizations
+- Leadership and Executive Development
+  - Executive Leadership and Corporate Governance
+  - Strategic Planning and Corporate Strategy
+  - Crisis Leadership and Decision-Making Under Pressure
+- Operations and Supply Chain
+  - Theory of Constraints and Lean Operations
+  - Supply Chain Design and Logistics
+  - Project Management Methodologies (Agile, PMP, OKRs)
+- Business Strategy
+  - Competitive Strategy (Porter's Five Forces)
+  - Platform Strategy and Network Effects
+  - Blue Ocean Strategy and Non-Competitive Markets
+- Corporate Finance and Accounting
+  - Financial Statements for Non-Finance Professionals
+  - Corporate Valuation and Capital Budgeting
+  - Mergers, Acquisitions and Corporate Restructuring
+- Consulting and Frameworks
+  - McKinsey-Style Problem Solving
+  - Case Interview Preparation
+  - Management Consulting Methodologies
+- Small Business and Micro-Enterprises
+  - Micro-Agency Operations and Service Productization
+  - Freelancing and Independent Contracting
+  - Local Business Development and Community Commerce
+
+---
+
+### Category 11: Law & Legal Systems
+
+**Epistemological basis:** Law is an autonomous discipline with its own
+methods (legal reasoning, statutory interpretation, precedent), vocabulary
+(tortious liability, mens rea, subrogation), and institutions (courts,
+legislatures, regulatory bodies). DDC uses 340; LCC dedicates the entire
+K class to Law.
+
+Subcategories:
+
+- Foundations of Law
+  - Jurisprudence and Philosophy of Law
+  - Legal Reasoning and Statutory Interpretation
+  - Constitutional Principles and Human Rights
+- Common Law Traditions
+  - Contract Law, Tort Law and Property Law
+  - Criminal Law and Criminal Procedure
+  - Civil Procedure and Litigation
+- Corporate and Commercial Law
+  - Company Law, Partnerships and LLP Structures
+  - Intellectual Property Law (Patents, Copyright, Trademarks)
+  - Competition Law and Antitrust
+  - Securities Regulation and Capital Markets Law
+- International Law
+  - Public International Law and Treaty Law
+  - International Trade Law and WTO
+  - International Human Rights and Humanitarian Law
+- Indian Law
+  - Indian Constitutional Law
+  - Indian Contract Act and Commercial Law
+  - Indian Taxation Law and GST
+  - Indian Labor Law and Employment Relations
+- Legal Practice and Career
+  - Legal Research and Writing
+  - Legal Ethics and Professional Responsibility
+  - Alternative Dispute Resolution and Arbitration
+
+---
+
+### Category 12: History
+
+**Epistemological basis:** History is the study of human experience over
+time. It is not a subset of Social Science — it is the source discipline
+that provides context for every other domain. Without history, economics
+becomes untethered theory, politics becomes propaganda, and technology
+becomes unmoored innovation. DDC places History at 900-909 (World
+History) and expands regionally from 910-990. LCC dedicates C-F to
+History with geographic subdivisions.
+
+Subcategories:
+
+- World History and Civilizations
+  - Prehistoric and Ancient History (to 500 CE)
+  - Classical Civilizations (Greece, Rome, Persia, China, India)
+  - Medieval and Early Modern History (500-1700 CE)
+  - Age of Exploration and Colonial Expansion
+- Modern World History (1700-1945)
+  - Industrial Revolution and Its Consequences
+  - Age of Empires and Colonial Powers
+  - World War I: Causes, Conduct and Consequences
+  - World War II and the Holocaust
+  - The Interwar Period and the Rise of Totalitarianism
+- Contemporary History (1945-Present)
+  - Cold War and Superpower Competition
+  - Decolonization and Post-Colonial Struggles
+  - Globalization and Its Historical Origins
+  - Digital Revolution and the Information Age
+- Regional History
+  - Indian History (Ancient, Medieval, Colonial, Modern)
+  - Chinese History and East Asian Civilizations
+  - History of the Islamic World
+  - African History and the Transatlantic Slave Trade
+  - Latin American History
+  - European History (Regional and National)
+  - History of the United States
+- Economic and Financial History
+  - History of Banking, Money and Credit
+  - History of Trade, Commerce and Global Markets
+  - History of Financial Crises and Market Manias
+- Military History
+  - History of Warfare and Military Strategy
+  - Great Military Campaigns and Commanders
+  - Military Technology and its Societal Impact
+- History of Ideas and Intellectual History
+  - History of Science and Scientific Revolutions
+  - History of Philosophy and Philosophical Movements
+  - History of Political Ideas
+  - History of Religion and Theology
+- History of Technology
+  - Industrial Technology and Manufacturing
+  - Digital Technology and the Internet Era
+  - History of Computing and Programming
+
+---
+
+### Category 13: Political Science & Geopolitics
+
+**Epistemological basis:** Political science is a distinct academic
+discipline from History (which is descriptive and temporal) and from
+Economics (which is primarily about resource allocation). It studies
+power, governance, legitimacy, international relations, and political
+institutions using its own empirical and theoretical methods. DDC uses
+320; LCC uses J.
+
+Subcategories:
+
+- Political Theory and Philosophy
+  - Classical Political Philosophy (Plato, Aristotle, Machiavelli)
+  - Enlightenment and Social Contract Theory (Locke, Rousseau, Hobbes)
+  - Modern Political Philosophy (Rawls, Nozick, Walzer)
+  - Authoritarianism, Totalitarianism and Illiberal Democracy
+- Comparative Politics
+  - Democratic Systems and Electoral Theory
+  - Presidential vs Parliamentary Systems
+  - Federalism and Decentralization
+  - Political Parties and Party Systems
+- International Relations
+  - Realism, Liberalism and Constructivism in IR
+  - International Organizations (UN, NATO, IMF, WTO)
+  - Diplomatic History and Foreign Policy Analysis
+- Geopolitics and Great Power Competition
+  - Geography, Power and National Interest
+  - US-China Competition and the New Cold War
+  - India in the Global Order
+  - Rise of Regional Powers and Middle Powers
+- Public Policy and Governance
+  - Policy Design, Implementation and Evaluation
+  - Regulatory Theory and Administrative Law
+  - Digital Governance and Technology Policy
+- Political Economy
+  - Political Economy of Developing Nations
+  - Industrial Policy and State Capitalism
+  - Taxation, Welfare State and Social Democracy
+- Democracy, Media and Civil Society
+  - Disinformation, Media Literacy and Democratic Backsliding
+  - Civil Society, Social Movements and Collective Action
+  - Electoral Integrity and Voting Systems
+
+---
+
+### Category 14: Philosophy
+
+**Epistemological basis:** Philosophy is the discipline that interrogates
+the most fundamental questions: What can we know? What is real? What is
+the good life? What is justice? These questions do not belong to any
+empirical science — they are conceptually prior to science. Philosophy
+has its own methods (argument, conceptual analysis, thought experiments)
+and its own traditions (Western, Eastern, African, Indian). DDC places
+Philosophy at 100-109; LCC uses B.
+
+Subcategories:
+
+- Metaphysics and Ontology
+  - Philosophy of Being and Reality
+  - Personal Identity and Philosophy of Mind
+  - Free Will and Determinism
+- Epistemology
+  - The Nature of Knowledge and Justified True Belief
+  - Rationalism vs Empiricism
+  - Philosophy of Science and Scientific Explanation
+- Ethics and Moral Philosophy
+  - Consequentialism and Utilitarian Ethics
+  - Deontological Ethics (Kantian Tradition)
+  - Virtue Ethics (Aristotelian Tradition)
+  - Moral Relativism and Moral Realism
+  - Applied Ethics (Bioethics, Business Ethics, AI Ethics)
+- Political Philosophy
+  - Justice, Equality and Rights
+  - Liberalism, Communitarianism and Libertarianism
+  - Social Contract and Legitimacy
+- Philosophy of Mind and Language
+  - Philosophy of Consciousness
+  - Language, Meaning and Truth
+  - Philosophy of Perception
+- Aesthetics
+  - Philosophy of Art and Aesthetic Experience
+  - Philosophy of Music and Literature
+- Logic and Critical Thinking
+  - Formal Logic (Propositional and Predicate)
+  - Informal Logic and Argumentation Theory
+  - Epistemology of Disagreement
+- Western Philosophy by Era
+  - Ancient Greek and Roman Philosophy
+  - Medieval and Renaissance Philosophy
+  - Early Modern Philosophy (Descartes, Spinoza, Leibniz, Hume)
+  - German Idealism (Kant, Hegel, Schopenhauer)
+  - Existentialism and Phenomenology (Kierkegaard, Nietzsche, Heidegger, Sartre)
+  - Analytic Philosophy (Russell, Wittgenstein, Quine)
+  - Postmodern and Continental Philosophy (Derrida, Foucault)
+- Eastern Philosophy
+  - Chinese Philosophy (Confucianism, Daoism, Legalism, Buddhism)
+  - Japanese Philosophy (Zen, Kyoto School, Bushido)
+  - Korean and Southeast Asian Philosophy
+- Indian Philosophy
+  - The Six Orthodox Schools (Nyaya, Vaisheshika, Samkhya, Yoga,
+    Mimamsa, Vedanta)
+  - The Heterodox Schools (Buddhism, Jainism, Charvaka)
+  - Advaita Vedanta (Adi Shankaracharya)
+  - Dvaita Vedanta (Madhvacharya)
+  - Vishishtadvaita (Ramanujacharya)
+  - Modern Indian Philosophy (Vivekananda, Aurobindo, Gandhi,
+    Ambedkar, Radhakrishnan)
+  - Indian Logic: Navya-Nyaya and Pramana Theory
+  - Buddhist Philosophy (Madhyamaka, Yogacara, Theravada)
+  - Jain Philosophy and Anekantavada
+
+---
+
+### Category 15: Religion & Spirituality
+
+**Epistemological basis:** Religion and spirituality are not the same as
+philosophy. Religion involves communities, rituals, scripture, and
+institutional forms of meaning-making. Spirituality is the individual's
+orientation toward transcendence and ultimate meaning. Both are distinct
+from the philosophical investigation of metaphysics (which seeks logical
+arguments rather than revelation). BISAC separates RELIGION and MIND,
+BODY, SPIRIT. DDC uses 200-290.
+
+Subcategories:
+
+- Abrahamic Religions
+  - Judaism (Torah, Talmud, Kabbalah)
+  - Christianity (Bible, Theology, Church History)
+  - Islam (Quran, Hadith, Islamic Jurisprudence)
+- Dharmic Religions
+  - Hinduism (Vedas, Upanishads, Puranas, Bhagavad Gita)
+  - Buddhism (Tipitaka, Mahayana Sutras, Zen Texts)
+  - Jainism (Agamas and Jain Literature)
+  - Sikhism (Guru Granth Sahib and Sikh History)
+- East Asian Religions
+  - Confucianism as Religious Tradition
+  - Daoism as Religious Practice
+  - Shinto and Japanese Folk Religion
+- Comparative Religion
+  - History of World Religions
+  - Religion and Society (Sociology of Religion)
+  - Interfaith Dialogue and Religious Pluralism
+- Mysticism and Esoteric Traditions
+  - Sufi Mysticism
+  - Christian Mysticism (Meister Eckhart, Theresa of Avila)
+  - Jewish Mysticism (Kabbalah, Hasidism)
+  - Hindu Mysticism and the Tantric Tradition
+- Mind, Body, Spirit and Spirituality
+  - Mindfulness, Meditation and Contemplative Practice
+  - New Age and Alternative Spirituality
+  - Astrology, Cosmology and Symbolic Systems
+- Atheism, Agnosticism and Secular Humanism
+
+---
+
+### Category 16: Psychology
+
+**Epistemological basis:** Psychology is the scientific study of mind
+and behavior. It is distinct from Philosophy (which reasons a priori
+about mind) and from Self-Help (which is applied behavior change for
+mass audiences). Its methods are empirical: experiments, surveys,
+brain imaging, and behavioral observation. DDC uses 150-159; LCC uses
+BF for most psychology; BISAC has a dedicated PSYCHOLOGY heading.
+
+Subcategories:
+
+- Cognitive Psychology
+  - Memory, Attention and Executive Function
+  - Perception and Pattern Recognition
+  - Language Processing and Psycholinguistics
+- Behavioral Psychology and Learning Theory
+  - Classical and Operant Conditioning
+  - Behavior Modification and Applied Behavior Analysis
+- Developmental Psychology
+  - Child Development (Piaget, Vygotsky, Attachment Theory)
+  - Adolescent Psychology and Identity Formation
+  - Adult Development and Aging
+- Social Psychology
+  - Group Dynamics, Conformity and Obedience
+  - Prejudice, Discrimination and Intergroup Relations
+  - Prosocial Behavior and Altruism
+- Personality Psychology
+  - Big Five Personality Model and Its Predictive Power
+  - Personality Disorders and Clinical Typologies
+  - Personality Across Cultures
+- Clinical Psychology and Psychotherapy
+  - Evidence-Based Psychotherapy (CBT, DBT, ACT, Psychodynamic)
+  - Diagnosis and Classification (DSM-5)
+  - Trauma and Post-Traumatic Growth
+- Neuropsychology and Biological Psychology
+  - Brain-Behavior Relationships
+  - Neuroscience of Emotion and Motivation
+  - Psychopharmacology
+- Evolutionary Psychology
+  - Evolutionary Origins of Human Behavior
+  - Mating, Cooperation and Competition
+  - Cross-Cultural Universals of Human Behavior
+- Positive Psychology
+  - Well-Being Science and the PERMA Model
+  - Character Strengths and Virtues
+  - Flow, Meaning and Eudaimonia
+- Industrial-Organizational Psychology
+  - Workplace Motivation and Engagement
+  - Leadership Psychology
+  - Team Dynamics and Group Decision-Making
+
+---
+
+### Category 17: Social Sciences & Sociology
+
+**Epistemological basis:** The social sciences study society, social
+institutions, and human behavior at a collective level — beyond individual
+psychology. Sociology, anthropology, and cultural studies examine how
+groups form, function, and change over time. DDC uses 300-390 (Social
+Sciences); LCC uses H (Social Sciences).
+
+Subcategories:
+
+- Sociology
+  - Social Theory (Marx, Durkheim, Weber, Parsons)
+  - Social Stratification and Class
+  - Sociology of Organizations and Institutions
+  - Sociology of Technology and Digital Society
+- Anthropology
+  - Cultural Anthropology and Ethnography
+  - Social Anthropology and Kinship Systems
+  - Physical and Evolutionary Anthropology
+  - Linguistic Anthropology
+- Cultural Studies
+  - Cultural Theory and Media Studies
+  - Popular Culture and Mass Media
+  - Postcolonial Theory and Cultural Identity
+- Gender, Race and Ethnicity
+  - Feminist Theory and Gender Studies
+  - Critical Race Theory
+  - Identity Politics and Intersectionality
+- Demographics and Population Studies
+  - Demography and Population Dynamics
+  - Urban Sociology and Urban Planning
+  - Migration, Diaspora and Transnationalism
+- Social Problems and Social Policy
+  - Poverty and Social Welfare
+  - Crime, Deviance and Criminal Justice
+  - Education Policy and Social Reproduction
+- Global Society and World-Systems
+  - World-Systems Theory (Wallerstein)
+  - Globalization and Cultural Homogenization
+
+---
+
+### Category 18: Communication, Language & Linguistics
+
+**Epistemological basis:** Language is the medium through which all
+knowledge is transmitted. Linguistics studies how language works as a
+formal system. Communication studies how meaning is constructed, transmitted,
+and misunderstood across individuals and media. Both are distinct from
+Literature (which uses language artistically) and from Psychology (which
+studies the cognitive processing of language). DDC uses 400-490; LCC uses
+P; BISAC has dedicated headings for LANGUAGE ARTS & DISCIPLINES and
+LANGUAGE STUDY.
+
+Subcategories:
+
+- Linguistics
+  - Phonetics and Phonology
+  - Morphology and Syntax
+  - Semantics and Pragmatics
+  - Historical and Comparative Linguistics
+  - Sociolinguistics and Language Variation
+  - Cognitive Linguistics and Metaphor Theory
+- Language Acquisition and Learning
+  - First Language Acquisition in Children
+  - Second Language Acquisition Theory
+  - Language Learning Methodologies (immersion, spaced repetition)
+- Communication Theory
+  - Mass Communication and Media Theory
+  - Interpersonal Communication
+  - Organizational Communication
+  - Nonverbal Communication
+- Writing Craft and Nonfiction Writing
+  - Academic and Scholarly Writing
+  - Journalism and Feature Writing
+  - Technical and Scientific Writing
+  - Narrative Nonfiction Craft
+- Public Speaking and Presentation
+  - Rhetorical Theory from Aristotle to Today
+  - Presentation Design and Visual Communication
+  - Improvisational Speaking and Debate
+- Persuasion and Rhetoric
+  - Classical Rhetoric (Logos, Ethos, Pathos)
+  - Applied Persuasion and Influence Techniques
+  - Argumentation Theory and Informal Logic
+- Storytelling
+  - Story Structure and Narrative Theory
+  - Brand Storytelling and Corporate Narrative
+- Specific Languages
+  - English Language History, Grammar and Usage
+  - Sanskrit, Pali and Classical Indian Languages
+  - Latin, Ancient Greek and Classical Languages
+  - World Languages (Mandarin, Spanish, Arabic, etc.)
+
+---
+
+### Category 19: Education & Pedagogy
+
+**Epistemological basis:** Education is not the same as learning. Education
+is a social institution and a professional practice with its own research
+base, policy debates, and pedagogical theories. Pedagogy (the art and
+science of teaching) and didactics (the theory of instruction) are
+disciplines with independent epistemological standing. DDC uses 370; LCC
+uses L; BISAC has an EDUCATION heading.
+
+Subcategories:
+
+- Philosophy and History of Education
+  - Classical Theories of Education (Plato, Dewey, Freire)
+  - History of Formal Schooling and University Systems
+  - Critical Pedagogy and Education for Liberation
+- Learning Science and Cognitive Science of Learning
+  - How Memory Works in Educational Contexts
+  - Spaced Repetition, Retrieval Practice and Interleaving
+  - Deliberate Practice and Expertise Development
+- Curriculum Design and Instructional Design
+  - Curriculum Theory and Subject Matter Structure
+  - Instructional Design Models (ADDIE, Gagne)
+  - Learning Objectives and Assessment Design
+- Educational Technology
+  - E-Learning and Online Education Platforms
+  - AI in Education and Adaptive Learning
+  - Gamification in Learning Environments
+- Special Education and Inclusive Pedagogy
+- Higher Education
+  - University Systems and Academic Culture
+  - Research University and the Production of Knowledge
+  - Graduate Education and Mentorship
+
+---
+
+### Category 20: Self-Help & Personal Development
+
+**Epistemological basis:** BISAC explicitly separates SELF-HELP from
+PSYCHOLOGY. This distinction is crucial. Self-help books are not peer-
+reviewed research — they are applied frameworks, personal narratives, and
+actionable prescriptions. They draw on psychology, philosophy, and
+business, but they are primarily written for the individual seeking
+to change their behavior, improve their circumstances, or reframe their
+thinking. The target audience is not the professional practitioner; it is
+the general reader seeking growth.
+
+Subcategories:
+
+- Mindset and Belief Systems
+  - Fixed vs Growth Mindset Theory and Application
+  - Limiting Beliefs and Cognitive Reframing
+  - Stoic Self-Improvement and Virtue Building
+- Goal Setting and Achievement
+  - Goal Setting Frameworks (SMART, OKR, WOOP)
+  - Systems Thinking for Personal Goals
+  - Motivation Science Applied to Personal Achievement
+- Confidence, Self-Esteem and Assertiveness
+  - Building Self-Worth and Internal Validation
+  - Assertiveness Training and Boundary Setting
+  - Overcoming Imposter Syndrome
+- Relationships and Social Skills
+  - Interpersonal Skills and Emotional Intelligence
+  - Building Deep Friendships and Networks
+  - Romantic Relationships: Communication and Attachment
+- Mental Health and Emotional Well-Being (Applied)
+  - Anxiety and Stress Management Techniques
+  - Managing Depression Through Behavioral Activation
+  - Building Resilience and Post-Traumatic Growth
+- Spirituality and Life Meaning
+  - Finding Purpose and Meaning in Modern Life
+  - Spirituality Without Religion
+  - Death, Impermanence and Living Fully
+- Financial Self-Help
+  - Money Mindset and Wealth Psychology
+  - Breaking Scarcity Mindset
+- Men's and Women's Personal Development
+  - Gender-Specific Self-Development Literature
+  - Navigating Gender Roles and Modern Identity
+
+---
+
+### Category 21: Productivity & Performance
+
+**Epistemological basis:** Productivity is distinct from Self-Help in
+that it is mechanistic: it deals with systems, workflows, tools, and
+habits that produce measurable output. Performance science draws on
+sports psychology, cognitive science, and neuroscience. BISAC places
+productivity books under SELF-HELP; however, given the distinct methods,
+audience, and book density of this domain, it merits a standalone category.
+
+Subcategories:
+
+- Attention Management and Deep Work
+  - Distraction, Focus and Cognitive Bandwidth
+  - Deep Work Theory and Practice
+  - Digital Minimalism and Technology Boundaries
+- Habit Formation and Behavioral Systems
+  - Habit Loops and Cue-Routine-Reward Models
+  - Keystone Habits and Identity-Based Change
+  - Behavioral Design for Personal Systems
+- Time Management and Prioritization
+  - Time Blocking and Calendar Architecture
+  - Eisenhower Matrix and Priority Frameworks
+  - Getting Things Done (GTD) and Zero-Inbox Systems
+- Knowledge Management
+  - Personal Knowledge Management (PKM) Systems
+  - Zettelkasten, Roam Research, Obsidian
+  - Note-Taking as Thinking
+- Learning and Skill Acquisition
+  - How to Read Actively and Efficiently
+  - Spaced Repetition and Anki for Self-Directed Learning
+  - Ultralearning and Rapid Skill Acquisition
+  - Meta-Learning and Learning to Learn
+- Energy Management
+  - Circadian Rhythms and Chronobiology of Performance
+  - Recovery, Rest and Strategic Downtime
+  - The Role of Nutrition and Exercise on Cognitive Output
+- Creativity and Innovation
+  - Creative Process and Overcoming Creative Blocks
+  - Design Thinking and Creative Problem-Solving
+  - Originality, Taste and the Creative Personality
+
+---
+
+### Category 22: Health, Fitness & Longevity
+
+**Epistemological basis:** Health and fitness literature for the general
+reader is distinct from clinical medicine (Category 07) and from
+productivity (which treats health instrumentally). This category holds
+books written for individuals seeking to optimize their physical and
+cognitive health through exercise, nutrition, sleep, and lifestyle design.
+BISAC has a dedicated HEALTH & FITNESS heading.
+
+Subcategories:
+
+- Sleep Science and Optimization
+  - Sleep Biology and Circadian Mechanisms
+  - Evidence-Based Sleep Hygiene Practices
+  - Sleep Disorders and Their Management
+- Exercise Science and Physical Training
+  - Strength Training Principles
+  - Cardiovascular and Aerobic Conditioning
+  - Flexibility, Mobility and Injury Prevention
+  - Sports Performance and High-Performance Athletics
+- Nutrition for Performance and Health
+  - Evidence-Based Dietary Frameworks
+  - Macronutrient Optimization
+  - Gut Microbiome and Metabolic Health
+  - Intermittent Fasting and Time-Restricted Eating
+- Longevity Research and Aging
+  - Biology of Aging and Senescence
+  - Interventions That Extend Healthspan (caloric restriction, mTOR)
+  - Preventive Medicine and Biomarker Tracking
+- Mental Health and Neurocognitive Performance
+  - Brain Health and Neuroplasticity
+  - Stress Physiology and Hormonal Balance
+  - Psychedelics and Consciousness (Clinical Research Context)
+- Peak Physical Performance
+  - Elite Athletic Training Methodologies
+  - Mental Toughness and Grit in Physical Context
+  - Recovery Science for Optimal Performance
+
+---
+
+### Category 23: Decision Making & Systems Thinking
+
+**Epistemological basis:** Decision making is the applied discipline of
+making better choices under uncertainty, using frameworks drawn from
+cognitive psychology, statistics, philosophy, game theory, and military
+strategy. It is distinct from psychology (which describes how people
+actually make decisions) because it is prescriptive: how should we
+make decisions? Systems thinking is the discipline of understanding
+feedback loops, emergence, and complex adaptive systems. Both cross
+many disciplines without belonging to any one of them.
+
+Subcategories:
+
+- Mental Models and Multidisciplinary Thinking
+  - First Principles Thinking
+  - Inversion and Thought Experiments
+  - Lattices of Mental Models Across Disciplines
+- Systems Thinking and Cybernetics
+  - Feedback Loops and System Archetypes
+  - Emergence, Self-Organization and Complexity
+  - Organizational Systems Dynamics
+- Probabilistic and Bayesian Reasoning
+  - Bayesian Updating and Prior Beliefs
+  - Base Rates, Reference Classes and Outside View
+  - Calibrated Uncertainty and Confidence Intervals
+- Forecasting and Prediction
+  - Superforecasting Techniques
+  - Limits of Prediction and Fundamental Uncertainty
+  - Scenario Planning and Strategic Foresight
+- Risk and Uncertainty
+  - Expected Value and Utility Theory
+  - Tail Risk, Black Swans and Antifragility
+  - The Risk of Ruin and Kelly Criterion
+- Cognitive Biases and Debiasing
+  - Catalogue of Human Cognitive Biases
+  - Debiasing Strategies and Decision Hygiene
+  - Behavioral Traps in Organizations
+- Game Theory Applied
+  - Strategic Interaction and Nash Equilibrium
+  - Cooperative vs Non-Cooperative Games
+  - Mechanism Design and Incentive Engineering
+
+---
+
+### Category 24: Biography & Memoir
+
+**Epistemological basis:** Biography is a literary form, not a subject
+classification. A biography of a scientist is not a science book; a
+biography of a general is not a military history book. Biographies are
+read for the quality of a human life, the arc of character development,
+and the lessons embedded in a lived example. They constitute a distinct
+genre of non-fiction with its own craft standards (narrative structure,
+use of primary sources, balance of interpretation and fact). DDC places
+biography at 920; LCC uses CT.
+
+Subcategories:
+
+- Technology Leaders and Founders
+- Investors and Financiers
+- Scientists and Mathematicians
+- Political and Military Leaders
+- Artists, Writers and Musicians
+- Philosophers and Intellectuals
+- Entrepreneurs and Business Builders
+- Sports Figures and Athletes
+- Social Activists and Reformers
+- Autobiographies and Personal Memoirs
+- Collected and Group Biographies
+
+---
+
+### Category 25: Fiction
+
+**Epistemological basis:** Fiction is not merely entertainment. Great
+fiction is a simulation engine for human experience — it builds empathy,
+trains moral imagination, and models consequences of choices in compressed
+narrative form. Aristotle placed literature alongside philosophy as a
+means of achieving catharsis. DDC uses 800-890 for Literature; LCC uses
+P; BISAC devotes its largest section to FICTION.
+
+Subcategories:
+
+- Literary Fiction
+  - World Literature (African, Latin American, South Asian, East Asian)
+  - Russian Literature (Tolstoy, Dostoevsky, Chekhov)
+  - American Literature (Hemingway, Faulkner, Morrison, Steinbeck)
+  - British and Irish Literature
+  - Indian Writing in English and Regional Languages
+- Science Fiction
+  - Hard Science Fiction (scientifically rigorous extrapolation)
+  - Space Opera and Galactic Civilization
+  - Cyberpunk and Dystopian Futures
+  - AI and Technology-Centered Science Fiction
+- Fantasy
+  - Epic Fantasy and Secondary World Building
+  - Urban Fantasy and Contemporary Fantasy
+  - Mythopoeic Fantasy (inspired by mythology)
+- Historical Fiction
+- Mystery and Crime Fiction
+  - Detective Fiction (Classic and Modern)
+  - Psychological Thriller and Crime Drama
+  - True Crime Narrative Nonfiction
+- Horror and Gothic Literature
+- Romance
+- Graphic Novels and Sequential Art
+- Philosophical and Existential Fiction
+- Short Stories and Flash Fiction
+- Mythology, Legend and Epic
+  - Indian Epics (Mahabharata, Ramayana)
+  - Greek and Roman Mythology
+  - Norse, Celtic and World Mythology
+
+---
+
+### Category 26: Poetry, Drama & Performing Arts
+
+**Epistemological basis:** Poetry is the most concentrated form of
+language. Drama is the written form of theatre and performance. Both
+constitute independent traditions of literary art distinct from fiction.
+BISAC separates POETRY, DRAMA, and PERFORMING ARTS. DDC uses 808-809
+for Literary Arts and 790-799 for Performing Arts.
+
+Subcategories:
+
+- Poetry
+  - Indian Poetry (Sanskrit, Urdu, Hindi, Classical)
+  - Western Poetry (Romantic, Modernist, Contemporary)
+  - Spoken Word and Slam Poetry
+  - Theory and Criticism of Poetry
+- Drama and Theatre
+  - Classical Drama (Greek, Roman, Sanskrit Natyashastra)
+  - Renaissance and Elizabethan Drama (Shakespeare)
+  - Modern Drama (Chekhov, Ibsen, O'Neill, Beckett)
+  - Contemporary Playwriting
+- Performing Arts
+  - Film Studies and Cinema Theory
+  - Dance Theory and Choreography
+  - Opera, Musical Theatre and Performance
+
+---
+
+### Category 27: Literary Criticism & Theory
+
+**Epistemological basis:** Literary criticism is the systematic study of
+literature as an art form — its techniques, conventions, historical
+development, and social functions. BISAC has a dedicated LITERARY CRITICISM
+heading. This discipline produces books that analyze other books, not books
+that simply tell stories.
+
+Subcategories:
+
+- Classical Literary Theory
+  - Plato and Aristotle on Mimesis and Poetics
+  - Longinus and the Sublime
+- Modern Literary Theory
+  - Formalism and New Criticism
+  - Structuralism and Semiotics
+  - Post-Structuralism and Deconstruction
+  - Feminist Literary Criticism
+  - Postcolonial Literary Theory
+  - Ecocriticism and Environmental Humanities
+- Author Studies and Genre Criticism
+  - Monographs on Individual Authors
+  - Genre Theory (Detective Fiction, Science Fiction, etc.)
+
+---
+
+### Category 28: Architecture, Art & Design
+
+**Epistemological basis:** Architecture, visual arts, and design are
+distinct disciplines within the creative arts. Architecture sits at the
+intersection of engineering, aesthetics, and social function. Fine arts
+(painting, sculpture, installation) are pure creative expression. Design
+bridges aesthetics and function. LCC uses NA for Architecture, N for
+Fine Arts; BISAC has separate headings for ARCHITECTURE, ART, DESIGN,
+and PHOTOGRAPHY.
+
+Subcategories:
+
+- Architecture
+  - History of Architecture from Antiquity to Modernism
+  - Architectural Theory and Criticism
+  - Urban Design and City Planning
+  - Sustainable Architecture and Green Building
+- Fine Arts
+  - Western Art History
+  - Indian Art History
+  - Contemporary Art and Art Movements
+  - Art Criticism and Aesthetics
+- Design
+  - Graphic Design and Visual Communication
+  - UI/UX Design and Human-Computer Interaction
+  - Industrial Design and Product Design
+  - Typography and Layout Design
+- Photography
+  - Photographic Technique and Composition
+  - History of Photography
+  - Conceptual and Fine Art Photography
+
+---
+
+### Category 29: Music, Film & Media
+
+**Epistemological basis:** Music and film are major art forms with
+extensive literatures of criticism, history, technique, and cultural
+theory. LCC dedicates M to Music; BISAC has MUSIC and PERFORMING ARTS.
+Film Studies has generated an enormous academic and popular literature
+that justifies standalone status.
+
+Subcategories:
+
+- Music
+  - Music Theory and Harmony
+  - Music History (Western Classical, Jazz, Popular)
+  - Indian Classical Music (Hindustani and Carnatic)
+  - Music Production and Recording Technology
+  - Music Business and the Recording Industry
+- Film Studies
+  - Film History and Cinema Movements
+  - Film Theory and Critical Methods
+  - Documentary Film and Non-Fiction Cinema
+  - Film Production and Screenwriting
+- Media Studies
+  - Television Studies and Broadcast Media
+  - Digital Media and Platform Theory
+  - Journalism and the Press
+
+---
+
+### Category 30: Nature, Environment & Ecology
+
+**Epistemological basis:** Nature writing, environmental science, and
+ecology constitute a distinct literary and scientific tradition. BISAC has
+a dedicated NATURE heading. DDC uses 590 for Zoology, 580 for Botany,
+and 577 for Ecology. This category holds books that explore the natural
+world — its beauty, its mechanisms, its fragility, and its future.
+
+Subcategories:
+
+- Ecology and Environmental Science
+  - Ecosystem Dynamics and Biodiversity
+  - Ecology of Soils, Watersheds and Atmospheric Systems
+  - Conservation Biology and Wildlife Management
+- Climate and Environmental Crisis
+  - Climate Science (current research and data)
+  - Environmental Policy and Climate Agreements
+  - Climate Justice and Inequality
+- Natural History Writing
+  - Natural History Classics (Darwin, Thoreau, Muir)
+  - Modern Nature Writing and Environmental Memoir
+- Botany, Zoology and Biodiversity
+  - Plant Biology and Ethnobotany
+  - Animal Behavior and Ethology
+  - Marine Biology and Oceanography
+
+---
+
+## Chapter 4: Decision Rules for Every Ambiguous Assignment
+
+### The Five Canonical Rules (Priority Order)
+
+When a book spans two or more categories, apply these five rules in the
+order given:
+
+**Rule 1: Dominant Subject Rule**
+Determine which domain occupies more than 50% of the book's actual content.
+That domain wins, regardless of how the book is marketed or what the author
+claims.
+
+**Rule 2: Intended Audience Rule**
+If content is split equally across two domains, ask: who is this book written
+for? The primary audience's professional context determines the category. A
+book mixing statistics and medicine is in Medicine if written for clinicians,
+and in Statistics/Mathematics if written for statisticians.
+
+**Rule 3: Specificity Rule**
+If two categories both apply at equal depth, the more specific one wins.
+"Finance" is more specific than "Business"; "Options Trading" is more
+specific than "Finance".
+
+**Rule 4: Shelf-Proximity Rule**
+Where would the ideal reader look first? A biography of Warren Buffett would
+be sought by investors — it belongs in Finance (Biography of Investors
+subcategory), not in Biography & Memoir.
+
+**Rule 5: Cross-Reference via Metadata Tags**
+After making the canonical assignment, add secondary subjects as tags in
+the book's metadata file. The search system handles discovery across
+categories.
+
+### Hard Disambiguation Examples
+
+| Book Subject Area | Two Candidate Categories | Canonical Assignment | Rule |
+|:------------------|:------------------------|:---------------------|:-----|
+| Money psychology | Psychology / Finance | Finance — Behavioral Finance | Rule 4 |
+| A career self-help book | Self-Help / Career | Career books with personal advice: Self-Help / Career-specific systems: depends on dominant content | Rule 1 |
+| Game theory and economics | Economics / Mathematics | Economics — Game Theory (written for economists) OR Mathematics — Applied Math (written for mathematicians) | Rule 2 |
+| Cognitive biases and investing | Psychology / Finance | Finance — Behavioral Finance | Rule 4 |
+| History of computing | CS / History | History — History of Technology | Rule 2 (historians browse here) |
+| Evolution and philosophy | Biology / Philosophy | Philosophy — Philosophy of Biology | Rule 2 |
+| Biography of Einstein | Science / Biography | Biography — Scientists and Mathematicians | Rule 4 |
+| Quantum physics for laypeople | Physics / Popular Science | Science — Physics — Popular Science | Rule 3 |
+| Urban planning | Architecture / Social Sciences | Architecture — Urban Design | Rule 3 |
+| Climate justice | Environmental Science / Political Science | Nature — Climate and Environmental Crisis | Rule 1 |
+| AI ethics | AI/ML / Philosophy | AI/ML — AI Safety and Ethics (primary audience is AI engineers) | Rule 2 |
+| Statistical mechanics | Physics / Mathematics | Science — Physics | Rule 2 |
+
+---
+
+## Chapter 5: How to Evolve the Taxonomy Over Time
+
+A taxonomy is not a finished product. It is a living framework that must
+adapt as the library grows and as human knowledge itself changes. Here
+are the four rules for evolving this taxonomy:
+
+### When to Split a Category
+
+Split a category into two independent top-level categories when:
+- A subcategory exceeds 200 books and has its own academic journals
+  and professional associations
+- The subcategory's readers never browse the parent category's other
+  sections
+- A clear epistemological boundary separates it from adjacent material
+
+Example: If "Cryptocurrency and Digital Assets" (currently a subcategory
+of Finance) grows to 100+ books and develops its own academic literature,
+it earns a standalone category.
+
+### When to Merge Two Categories
+
+Merge two categories into one when:
+- Neither independently exceeds 50 books after five years of reading
+- The reading audience consistently cross-browses both sections
+- The epistemological boundary between them erodes (e.g., if "Human
+  Psychology" and "Evolutionary Psychology" merge into a unified
+  bio-behavioral science)
+
+### How to Handle Emerging Knowledge Domains
+
+New domains that emerge faster than established classification systems
+can accommodate (e.g., AI in 2015, Crypto in 2017, Synthetic Biology
+in 2020) should be given provisional top-level or subcategory status
+using this process:
+
+1. Create a folder immediately when the domain generates its first 5 books.
+2. Classify it as a subcategory of the closest parent.
+3. Promote to top-level when it reaches 30+ books.
+4. Record the reclassification date in a taxonomy changelog file.
+
+### Versioning the Taxonomy
+
+Treat the taxonomy like software. Maintain a version history:
+
+- Version 1.0: Initial 30 categories established
+- Version 1.1: New subcategory added (e.g., "Longevity Research" promoted
+  within Health)
+- Version 2.0: Major reclassification (e.g., "Cryptocurrency" promoted
+  to top-level category)
+
+---
+
+## Summary Table
+
+| # | Category | BISAC Equivalent | LCC | DDC | Min Top-Level Books |
+|--:|:---------|:----------------|:----|:----|:-------------------:|
+| 01 | Mathematics & Statistics | MATHEMATICS | Q | 510-519 | 50 |
+| 02 | Computer Science | COMPUTERS | QA76 | 000-006 | 100 |
+| 03 | Software Engineering | COMPUTERS | QA76.75 | 005.1 | 100 |
+| 04 | AI & Machine Learning | COMPUTERS | Q335 | 006.3 | 100 |
+| 05 | Pure Sciences | SCIENCE | Q | 500-590 | 80 |
+| 06 | Technology & Engineering | TECHNOLOGY | T | 600-690 | 50 |
+| 07 | Medicine & Health Sciences | MEDICAL | R | 610-619 | 50 |
+| 08 | Finance & Investing | BUSINESS | HG | 330-332 | 150 |
+| 09 | Economics | BUSINESS | HB-HC | 330 | 60 |
+| 10 | Business & Entrepreneurship | BUSINESS | HD | 650 | 150 |
+| 11 | Law & Legal Systems | LAW | K | 340 | 40 |
+| 12 | History | HISTORY | D-F | 900-999 | 100 |
+| 13 | Political Science | POLITICAL SCIENCE | J | 320 | 50 |
+| 14 | Philosophy | PHILOSOPHY | B | 100-190 | 80 |
+| 15 | Religion & Spirituality | RELIGION | BL | 200-290 | 50 |
+| 16 | Psychology | PSYCHOLOGY | BF | 150-159 | 80 |
+| 17 | Social Sciences | SOCIAL SCIENCE | H | 300-390 | 60 |
+| 18 | Communication & Linguistics | LANGUAGE ARTS | P | 400-490 | 60 |
+| 19 | Education | EDUCATION | L | 370 | 30 |
+| 20 | Self-Help | SELF-HELP | BF | 158 | 80 |
+| 21 | Productivity & Performance | SELF-HELP | BF637 | 158.1 | 60 |
+| 22 | Health, Fitness & Longevity | HEALTH & FITNESS | RA | 613 | 60 |
+| 23 | Decision Making & Systems Thinking | SELF-HELP | BF | 153 | 50 |
+| 24 | Biography & Memoir | BIOGRAPHY | CT | 920 | 100 |
+| 25 | Fiction | FICTION | PZ | 800-890 | 300 |
+| 26 | Poetry, Drama & Performing Arts | POETRY / DRAMA | PS/PN | 808-812 | 30 |
+| 27 | Literary Criticism & Theory | LITERARY CRITICISM | PN | 801 | 30 |
+| 28 | Architecture, Art & Design | ARCHITECTURE / ART | N/NA | 700-750 | 30 |
+| 29 | Music, Film & Media | MUSIC | ML | 780 | 30 |
+| 30 | Nature, Environment & Ecology | NATURE | QH | 577-590 | 30 |
+
+---
+
+The taxonomy above is not merely a folder tree. It is a map of the
+boundaries of human knowledge as recognized by five independent
+classification traditions developed over 150 years. Every category
+boundary was drawn using a convergence of BISAC industry precedent,
+LCC academic practice, DDC hierarchical logic, Ranganathan's facet
+analysis, and practical library research on optimal category counts.
+
+When you assign a book to this taxonomy, you are not merely filing it
+away. You are making a precise intellectual claim about what the book is
+primarily about. Over decades, that precision compounds — into a
+collection that is fully browsable, fully searchable, and permanently
+immune to the entropy that destroys all unorganized collections.
