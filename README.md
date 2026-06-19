@@ -1,40 +1,46 @@
-# Blog
+# oriz-blog
 
-A world-class, premium Astro 6 blog platform optimized for speed, SEO, and zero-cost scaling on Cloudflare.
+Long-form writing on engineering, finance, and books — the blog at
+[blog.oriz.in](https://blog.oriz.in). Part of the
+[oriz](https://github.com/chirag127/oriz) family of static sites.
 
-## 🚀 Quick Start
+Built on Astro 6 + React 19 + Tailwind v4, themed with
+[`@chirag127/oriz-ui`](https://github.com/chirag127/oriz-ui), and deployed
+to Cloudflare. Auth + cross-site sign-in via Firebase (`oriz-app`).
 
-### 1. Environment Setup
-Create a `.env` file with your credentials (see `.env.example`).
+## Develop
 
-### 2. Deployment & Automation
-We provide automated scripts to handle the heavy lifting:
-
-- **Full Setup**: `python scripts/setup_cloudflare.py`
-  - Creates Pages project.
-  - Configures Web Analytics.
-  - Sets GitHub Secrets.
-  - **Automates DNS (CNAME)** on Cloudflare.
-
-- **DNS Management**: `python scripts/manage_dns.py`
-  - `--sync`: Ensures `blog.oriz.in` points to Cloudflare Pages.
-  - `--list`: Lists all current DNS records on Cloudflare.
-  - `--spaceship`: Verifies domain status on Spaceship Registry.
-
-### 3. Local Development
 ```bash
 pnpm install
-pnpm dev
+npx envpact-cli@0.2.0          # pulls .env from envpact (shared Firebase + site secrets)
+pnpm dev                        # http://localhost:4321
 ```
 
-## 🛠️ Tech Stack
-- **Framework**: Astro 6 (Static Output)
-- **Styling**: Tailwind CSS 4
-- **Formatting**: Biome.js (Strict)
-- **Deployment**: Cloudflare Pages
-- **DNS**: Cloudflare + Spaceship
+Useful scripts:
 
-## 📜 Engineering Standards
-- **Strict TypeScript**: Type safety across the board.
-- **SOLID Design**: Modular components and maintainable logic.
-- **Performance**: Zero-JS impact tracking via Cloudflare Beacon.
+- `pnpm typecheck` — Astro type check
+- `pnpm lint` / `pnpm format` — Biome
+- `pnpm build` — static build into `dist/`
+- `pnpm preview` — serve the built site locally
+
+## Build &amp; deploy
+
+Cloudflare (custom domain `blog.oriz.in` is bound via the dashboard):
+
+```bash
+pnpm build
+pnpm deploy   # wrangler deploy — uploads ./dist to the oriz-blog Worker
+```
+
+Environment variables required at build time live in `.env.example`. In
+production they're set on the Cloudflare project; locally they come from
+envpact.
+
+## Writing posts
+
+Posts are MDX in `src/content/blog/`. Schema lives in `src/content.config.ts`
+(title, description, pubDate, tags, category, series, draft, …). A multi-part
+series is just a folder; a `<folder>/index.mdx` becomes the series overview.
+
+Drafts (`draft: true`) are excluded from listings and the RSS feed. Decap
+CMS lives at `/admin/` and writes to the same content collection.

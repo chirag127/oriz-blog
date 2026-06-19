@@ -1,34 +1,42 @@
 {
-  "name": "blog",
+  "name": "@chirag127/oriz-blog",
+  "version": "0.0.1",
+  "private": true,
   "type": "module",
-  "version": "1.0.0",
-  "description": "A world-class open-source Astro blog platform with zero cost and global CDN scaling",
+  "packageManager": "pnpm@10.34.3",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && npx pagefind --site dist",
+    "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
+    "deploy": "wrangler deploy",
+    "typecheck": "astro check",
     "lint": "biome check .",
-    "format": "biome format --write .",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "format": "biome format --write ."
   },
   "dependencies": {
-    "@astrojs/mdx": "^5.0.2",
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/react": "^5.0.5",
     "@astrojs/rss": "^4.0.11",
-    "@astrojs/sitemap": "^3.3.0",
-    "astro": "^6.0.5",
-    "astro-expressive-code": "^0.42.0",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "@astrojs/sitemap": "^3.2.0",
+    "@chirag127/oriz-ui": "github:chirag127/oriz-ui#main",
+    "@tailwindcss/vite": "^4.3.1",
+    "astro": "^6.4.7",
+    "firebase": "^12.0.0",
+    "lucide-react": "^0.510.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.0",
     "@biomejs/biome": "^2.4.8",
-    "@playwright/test": "^1.60.0",
-    "@tailwindcss/vite": "^4.2.2",
-    "pagefind": "^1.5.2",
-    "sharp": "^0.33.5",
-    "tailwindcss": "^4.2.2",
-    "typescript": "^5.8.0"
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.102.0"
   }
 }

@@ -1,0 +1,48 @@
+---
+/**
+ * SiteSidebar — wraps the oriz-ui Sidebar React island with this site's
+ * specific link sections. Sections for the blog: Latest posts, Categories,
+ * Series, Tags, Bookmarks. Plus a Family quick-jump at the bottom.
+ */
+import { Sidebar, FAMILY_SITES } from '@chirag127/oriz-ui'
+
+const sections = [
+  {
+    title: 'Read',
+    links: [
+      { label: 'Latest posts', href: '/blog/' },
+      { label: 'Bookmarks', href: '/bookmarks/' },
+      { label: 'RSS feed', href: '/rss.xml' },
+    ],
+  },
+  {
+    title: 'Browse',
+    links: [
+      { label: 'Categories', href: '/categories/' },
+      { label: 'Series', href: '/series/' },
+      { label: 'Tags', href: '/tags/' },
+    ],
+  },
+  {
+    title: 'Site',
+    links: [
+      { label: 'About', href: '/about/' },
+      { label: 'Contact', href: '/contact/' },
+    ],
+  },
+  {
+    title: 'Family',
+    links: FAMILY_SITES.map((s) => ({
+      label: `${s.emoji} ${s.name}`,
+      href: s.url,
+    })),
+  },
+]
+---
+
+<Sidebar
+  client:idle
+  siteName="Blog"
+  siteSlug="blog"
+  sections={sections}
+/>

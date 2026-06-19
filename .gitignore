@@ -1,16 +1,11 @@
-node_modules/
-dist/
-.astro/
-*.tsbuildinfo
+node_modules
+dist
+.astro
+.wrangler
 .env
 .env.local
-.DS_Store
-Thumbs.db
-
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
+.env.example.lock
+*.log
 
 # Playwright
 playwright-report/

@@ -1,42 +1,64 @@
 ---
-import { getCollection } from "astro:content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 
-const allPosts = await getCollection("blog", ({ data }) => !data.draft);
-const tagMap = new Map<string, number>();
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const tagMap = new Map<string, number>()
 
-allPosts.forEach((post) => {
-  post.data.tags.forEach((tag) => {
-    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
-  });
-});
+for (const post of allPosts) {
+  for (const tag of post.data.tags) {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1)
+  }
+}
 
-const sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
+const sortedTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1])
+
+function slugifyTag(value: string): string {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
 ---
 
-<BaseLayout title="Tags">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-    <div class="mb-10 animate-fade-in">
-      <h1 class="text-4xl font-bold tracking-tight mb-3">Tags</h1>
-      <p class="text-lg text-text-secondary">
-        {sortedTags.length} tag{sortedTags.length !== 1 ? "s" : ""}
-      </p>
-    </div>
+<BaseLayout title="Tags — Blog" description="Browse blog posts by tag.">
+  <div class="page">
+    <header class="page-head">
+      <h1>Tags</h1>
+      <p class="meta">{sortedTags.length} tag{sortedTags.length !== 1 ? 's' : ''} across {allPosts.length} posts.</p>
+    </header>
 
-    <div class="flex flex-wrap gap-3">
+    <ul class="tag-cloud">
       {sortedTags.map(([tag, count]) => (
-        <a
-          href={`/tags/${tag.toLowerCase().replace(/\//g, "-").replace(/\s+/g, "-")}`}
-          class="group glass-card px-4 py-2.5 flex items-center gap-2 hover:-translate-y-0.5 transition-all"
-        >
-          <span class="text-text-secondary group-hover:text-accent-light transition-colors">
-            #{tag}
-          </span>
-          <span class="text-xs text-text-tertiary bg-bg-tertiary px-1.5 py-0.5 rounded">
-            {count}
-          </span>
-        </a>
+        <li>
+          <a class="tag-chip" href={`/tags/${slugifyTag(tag)}/`}>
+            <span>#{tag}</span>
+            <span class="tag-count">{count}</span>
+          </a>
+        </li>
       ))}
-    </div>
+    </ul>
   </div>
 </BaseLayout>
+
+<style>
+  .page { padding-block: 2.5rem 4rem; }
+  .page-head { margin-bottom: 1.5rem; }
+  h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .meta { color: var(--color-fg-muted); font-size: 0.9375rem; margin: 0.5rem 0 0; }
+  .tag-cloud { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    color: var(--color-fg-muted);
+    text-decoration: none;
+  }
+  .tag-chip:hover { color: var(--color-fg); border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border)); }
+  .tag-count {
+    padding: 0.0625rem 0.375rem;
+    background: var(--color-bg-muted);
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+  }
+</style>

@@ -1,100 +1,141 @@
 ---
-import "../styles/global.css";
-import { ClientRouter } from "astro:transitions";
-import BackToTop from "../components/BackToTop.astro";
-import Footer from "../components/Footer.astro";
-import Header from "../components/Header.astro";
-import ScrollProgress from "../components/ScrollProgress.astro";
-import { SITE_CONFIG } from "../config";
+import '~/styles/global.css'
+import preflight from '~/lib/preflight.js?raw'
+import Header from '~/components/Header.astro'
+import Footer from '~/components/Footer.astro'
+import SiteSidebar from '~/components/SiteSidebar.astro'
 
 interface Props {
-  title: string;
-  description?: string;
-  ogImage?: string;
+  title?: string
+  description?: string
+  canonical?: string
+  noindex?: boolean
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+  /** Optional OG/Twitter image. Resolved against the site origin. */
+  image?: string
+  /** Override for the OpenGraph type, e.g. 'article' on post pages. */
+  type?: 'website' | 'article'
+  pubDate?: Date
+  updatedDate?: Date
+  /** Hide the left sidebar on this page (e.g. legal/about). */
+  hideSidebar?: boolean
 }
 
-const { title, description = SITE_CONFIG.description, ogImage } = Astro.props;
+const {
+  title = 'Blog — oriz',
+  description = 'Long-form writing on engineering, finance, and books — by Chirag Singhal.',
+  canonical = `https://blog.oriz.in${Astro.url.pathname}`,
+  noindex = false,
+  jsonLd,
+  image,
+  type = 'website',
+  pubDate,
+  updatedDate,
+  hideSidebar = false,
+} = Astro.props
 
-const canonicalURL = new URL(Astro.url.pathname, SITE_CONFIG.url);
-const cfBeacon =
-  import.meta.env.PUBLIC_CF_BEACON || SITE_CONFIG.analytics.cloudflareBeacon;
+const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
+const ga4Id = import.meta.env.PUBLIC_GA4_ID
+
+const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : undefined
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-
-    <title>{title} | {SITE_CONFIG.title}</title>
+    <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalURL} />
-
-    <!-- OpenGraph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={`${title} | ${SITE_CONFIG.title}`} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="oriz Blog" />
     {ogImage && <meta property="og:image" content={ogImage} />}
-    <meta property="og:site_name" content={SITE_CONFIG.title} />
-
-    <!-- Twitter -->
+    {type === 'article' && pubDate && (
+      <meta property="article:published_time" content={pubDate.toISOString()} />
+    )}
+    {type === 'article' && updatedDate && (
+      <meta property="article:modified_time" content={updatedDate.toISOString()} />
+    )}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:creator" content={`@${SITE_CONFIG.social.twitter}`} />
-    <meta name="twitter:title" content={`${title} | ${SITE_CONFIG.title}`} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:site" content="@chirag127" />
 
-    <!-- Favicon & PWA -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0a0a0b" />
-
-    <!-- Sitemap -->
-    <link rel="sitemap" href="/sitemap-index.xml" />
-
-    <!-- RSS -->
-    <link rel="alternate" type="application/rss+xml" title={`${SITE_CONFIG.title} RSS Feed`} href="/rss.xml" />
-
-    <!-- Fonts -->
+    <link rel="alternate" type="application/rss+xml" title="Blog RSS Feed" href="/rss.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
-    <!-- KaTeX Math Rendering (build-time, zero client JS) -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
-      crossorigin="anonymous"
-    />
+    <script is:inline set:html={preflight} />
 
-    <!-- View Transitions (SPA-like navigation) -->
-    <ClientRouter />
+    {jsonLd && (
+      <script
+        is:inline
+        type="application/ld+json"
+        set:html={JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd])}
+      />
+    )}
 
-    <!-- Cloudflare Web Analytics -->
-    {cfBeacon && (
-      <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${cfBeacon}"}`}></script>
+    {adsenseClient && (
+      <script
+        is:inline
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+        crossorigin="anonymous"
+      />
+    )}
+
+    {beaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${beaconToken}"}`}
+      />
+    )}
+
+    {ga4Id && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`} />
+        <script is:inline define:vars={{ ga4Id }}>
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',ga4Id);`}
+        </script>
+      </>
     )}
   </head>
-  <body class="min-h-screen flex flex-col">
-    <ScrollProgress />
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
     <Header />
-    <BackToTop />
-    <main class="flex-1">
-      <slot />
-    </main>
+    <div class="page-shell">
+      {!hideSidebar && <SiteSidebar />}
+      <main id="main" class="page-main"><slot /></main>
+    </div>
     <Footer />
 
-    <!-- Service Worker Registration -->
-    <script is:inline>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
+    <style is:global>
+      .page-shell {
+        max-width: var(--container-page, 1200px);
+        margin-inline: auto;
+        padding-inline: clamp(1rem, 4vw, 2rem);
       }
-    </script>
+      .page-main { min-width: 0; }
+      @media (min-width: 1024px) {
+        .page-shell {
+          display: grid;
+          grid-template-columns: 240px minmax(0, 1fr);
+          gap: 2.5rem;
+          align-items: start;
+        }
+      }
+    </style>
   </body>
 </html>

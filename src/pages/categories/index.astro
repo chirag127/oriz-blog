@@ -1,43 +1,67 @@
 ---
-import { getCollection } from "astro:content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 
-const allPosts = await getCollection("blog", ({ data }) => !data.draft);
-const categoryMap = new Map<string, number>();
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const categoryMap = new Map<string, number>()
 
-allPosts.forEach((post) => {
-  categoryMap.set(
-    post.data.category,
-    (categoryMap.get(post.data.category) || 0) + 1,
-  );
-});
+for (const post of allPosts) {
+  categoryMap.set(post.data.category, (categoryMap.get(post.data.category) || 0) + 1)
+}
 
-const sortedCategories = [...categoryMap.entries()].sort((a, b) => b[1] - a[1]);
+const sortedCategories = [...categoryMap.entries()].sort((a, b) => b[1] - a[1])
+
+function slugifyTag(value: string): string {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
 ---
 
-<BaseLayout title="Categories">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-    <div class="mb-10 animate-fade-in">
-      <h1 class="text-4xl font-bold tracking-tight mb-3">Categories</h1>
-      <p class="text-lg text-text-secondary">
-        {sortedCategories.length} categor{sortedCategories.length !== 1 ? "ies" : "y"}
-      </p>
-    </div>
+<BaseLayout title="Categories — Blog" description="Browse blog posts by category.">
+  <div class="page">
+    <header class="page-head">
+      <h1>Categories</h1>
+      <p class="meta">{sortedCategories.length} categor{sortedCategories.length === 1 ? 'y' : 'ies'} across {allPosts.length} posts.</p>
+    </header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {sortedCategories.map(([category, count]) => (
-        <a
-          href={`/categories/${category.toLowerCase().replace(/[\s\/]+/g, "-")}`}
-          class="group glass-card p-6 hover:-translate-y-1 transition-all hover:shadow-card"
-        >
-          <h3 class="text-lg font-semibold text-text-primary group-hover:text-accent-light transition-colors">
-            {category}
-          </h3>
-          <p class="text-sm text-text-tertiary mt-1">
-            {count} post{count !== 1 ? "s" : ""}
-          </p>
-        </a>
+    <ul class="cat-grid">
+      {sortedCategories.map(([cat, count]) => (
+        <li>
+          <a class="cat-card" href={`/categories/${slugifyTag(cat)}/`}>
+            <span class="cat-name">{cat}</span>
+            <span class="cat-count">{count}</span>
+          </a>
+        </li>
       ))}
-    </div>
+    </ul>
   </div>
 </BaseLayout>
+
+<style>
+  .page { padding-block: 2.5rem 4rem; }
+  .page-head { margin-bottom: 1.5rem; }
+  h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .meta { color: var(--color-fg-muted); font-size: 0.9375rem; margin: 0.5rem 0 0; }
+  .cat-grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: 0.625rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .cat-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.875rem 1.125rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    color: var(--color-fg);
+    text-decoration: none;
+  }
+  .cat-card:hover { border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border)); }
+  .cat-name { font-weight: 500; }
+  .cat-count {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    background: var(--color-bg-muted);
+    border-radius: 0.25rem;
+  }
+</style>

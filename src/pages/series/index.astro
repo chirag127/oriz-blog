@@ -1,133 +1,99 @@
 ---
 /**
- * /series — Browse all blog series (folders)
+ * /series — Browse all blog series (folders).
  *
- * Dynamically detects every multi-part series by
- * scanning for posts whose `id` contains a `/`
- * (i.e. lives inside a subfolder). Groups them by
- * folder, picks the index post's metadata as the
- * series title/description, and renders premium cards.
+ * Dynamically detects every multi-part series by scanning for posts whose
+ * `id` contains a `/` (i.e. lives inside a subfolder). Groups them by
+ * folder, picks the index post's metadata as the series title/description.
  */
-import { getCollection } from "astro:content";
-import SeriesCard from "../../components/SeriesCard.astro";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from 'astro:content'
+import BaseLayout from '~/layouts/BaseLayout.astro'
 
-const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
 
-/**
- * Build a map: folderSlug → array of posts.
- * Only posts whose id contains "/" are in folders.
- */
-const folderMap = new Map<string, typeof allPosts>();
-
+const folderMap = new Map<string, typeof allPosts>()
 for (const post of allPosts) {
-  const slashIndex = post.id.indexOf("/");
-  if (slashIndex === -1) continue;
-  const folder = post.id.substring(0, slashIndex);
-  const existing = folderMap.get(folder) ?? [];
-  existing.push(post);
-  folderMap.set(folder, existing);
+  const slashIndex = post.id.indexOf('/')
+  if (slashIndex === -1) continue
+  const folder = post.id.substring(0, slashIndex)
+  const existing = folderMap.get(folder) ?? []
+  existing.push(post)
+  folderMap.set(folder, existing)
 }
 
-/**
- * For each folder, find the "index" post (if any)
- * to use as the series title/description.
- * Fall back to the first post alphabetically.
- */
-interface SeriesInfo {
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  postCount: number;
-  latestDate: Date;
-}
-
-const seriesList: SeriesInfo[] = [];
-
-for (const [folder, posts] of folderMap.entries()) {
-  const indexPost =
-    posts.find(
-      (p) =>
-        p.id.endsWith("/index") ||
-        p.id.endsWith("/index.mdx") ||
-        p.id.endsWith("/index.md"),
-    ) ?? posts.find((p) => p.id === `${folder}/index`);
-
-  const representative = indexPost ?? posts[0];
-
-  // Count only non-index posts as "parts"
-  const partPosts = posts.filter(
-    (p) => p.id !== `${folder}/index` && !p.id.endsWith("/index"),
-  );
-
-  const latestDate = posts.reduce(
+const series = [...folderMap.entries()].map(([folder, posts]) => {
+  const indexPost = posts.find((p) => p.id === `${folder}/index`)
+  const rep = indexPost ?? posts[0]
+  const parts = posts.filter((p) => p.id !== `${folder}/index`)
+  const latest = posts.reduce(
     (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
     posts[0].data.pubDate,
-  );
-
-  seriesList.push({
+  )
+  return {
     slug: folder,
-    title: representative.data.title,
-    description: representative.data.description,
-    category: representative.data.category,
-    postCount: partPosts.length,
-    latestDate,
-  });
-}
-
-// Sort: newest first
-seriesList.sort((a, b) => b.latestDate.valueOf() - a.latestDate.valueOf());
+    title: rep.data.title,
+    description: rep.data.description,
+    category: rep.data.category,
+    postCount: parts.length,
+    latestDate: latest,
+  }
+})
+series.sort((a, b) => b.latestDate.valueOf() - a.latestDate.valueOf())
 ---
 
-<BaseLayout
-  title="Series"
-  description="Browse all multi-part blog series and encyclopedias on healthcare, finance, technology, and more."
->
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-    <!-- Page header -->
-    <div class="mb-10 animate-fade-in">
-      <h1
-        class="text-4xl font-bold tracking-tight mb-3"
-      >
-        Series &amp; Encyclopedias
-      </h1>
-      <p class="text-lg text-text-secondary max-w-2xl">
-        Deep-dive into {seriesList.length} comprehensive
-        multi-part guides covering healthcare, finance,
-        and technology.
-      </p>
-    </div>
+<BaseLayout title="Series — Blog" description="Browse multi-part blog series.">
+  <div class="page">
+    <header class="page-head">
+      <h1>Series</h1>
+      <p class="meta">{series.length} series — {series.reduce((sum, s) => sum + s.postCount, 0)} posts.</p>
+    </header>
 
-    <!-- Series grid -->
-    <div
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-    >
-      {seriesList.map((series, index) => (
-        <div
-          class="animate-slide-up"
-          style={`animation-delay: ${index * 70}ms`}
-        >
-          <SeriesCard
-            slug={series.slug}
-            title={series.title}
-            description={series.description}
-            category={series.category}
-            postCount={series.postCount}
-            latestDate={series.latestDate}
-            index={index}
-          />
-        </div>
+    <ul class="series-grid">
+      {series.map((s) => (
+        <li>
+          <a class="series-card" href={`/series/${s.slug}/`}>
+            <span class="series-cat">{s.category}</span>
+            <h3>{s.title}</h3>
+            <p>{s.description}</p>
+            <span class="series-meta">{s.postCount} part{s.postCount !== 1 ? 's' : ''}</span>
+          </a>
+        </li>
       ))}
-    </div>
-
-    <!-- Empty state (unlikely but defensive) -->
-    {seriesList.length === 0 && (
-      <div class="text-center py-20 text-text-tertiary">
-        <p class="text-lg">
-          No series found yet.
-        </p>
-      </div>
-    )}
+    </ul>
   </div>
 </BaseLayout>
+
+<style>
+  .page { padding-block: 2.5rem 4rem; }
+  .page-head { margin-bottom: 1.5rem; }
+  h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+  .meta { color: var(--color-fg-muted); font-size: 0.9375rem; margin: 0.5rem 0 0; }
+  .series-grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  .series-card {
+    display: grid; gap: 0.5rem;
+    padding: 1.125rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    color: var(--color-fg);
+    text-decoration: none;
+  }
+  .series-card:hover { border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border)); }
+  .series-cat {
+    align-self: start;
+    padding: 0.125rem 0.5rem;
+    background: var(--color-bg-muted);
+    border-radius: 0.25rem;
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .series-card h3 { margin: 0; font-size: 1.0625rem; font-weight: 600; line-height: 1.35; }
+  .series-card p { margin: 0; color: var(--color-fg-muted); font-size: 0.9375rem; }
+  .series-meta { color: var(--color-fg-soft); font-size: 0.8125rem; }
+</style>
