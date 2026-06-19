@@ -1,0 +1,472 @@
+---
+title: "Build Your Digital Twin in 2026: A Public Lifestream That Tracks Everything You Consume"
+description: "The fourth and final post in the trackers series — flip the architecture from private extension to a public digital twin website. Many extensions feeding one database, periodic exports from Google Takeout / Apple Health / YouTube history, real-time webhooks from Strava and Last.fm, displayed beautifully on web and mobile PWA. Free hosting, free database, your data, your face on the internet."
+pubDate: "2026-06-19"
+tags: ["Digital-Twin", "Lifestream", "Personal-Website", "Quantified-Self", "Now-Page", "Astro", "Turso", "Supabase", "Cloudflare-Pages", "Google-Takeout", "Last.fm", "Strava", "PWA", "Self-Tracking"]
+category: "Engineering"
+author: "Chirag Singhal"
+draft: false
+---
+
+# Build Your Digital Twin in 2026: A Public Lifestream That Tracks Everything You Consume
+
+The previous three posts in this series walked from "which tracker
+should I use?" to "which tracker should I use that's free and ad-free?"
+to "which APIs should I hit from my own browser extension?". Each post
+narrowed the scope. This one widens it again — to the right shape for
+what you actually want.
+
+What you actually want, stated cleanly:
+
+> A public website — my digital twin — that shows everything I consume.
+> Movies, TV, anime, manga, books, audiobooks, podcasts, music, games,
+> visual novels, fitness, YouTube history, location, code commits,
+> photos, places I've been. Tracked automatically wherever possible,
+> manually when needed. Many browser extensions, each scrobbling its own
+> source. Periodic exports (Google Takeout, Apple Health, YouTube
+> history) downloaded and uploaded to a single database. Beautiful UX
+> on web and mobile. Free. Mine. The face of me on the internet that no
+> one else gets to define.
+
+That's not a tracker. That's a **digital twin**. The architecture is
+different from a private extension and it's worth a fourth post to lay
+it out properly.
+
+---
+
+## What a digital twin actually is
+
+The pattern has roots going back to early 2000s "lifestreams" (Tom
+Critchlow, Anand Sanwal, Buster Benson) and the more recent "/now page"
+movement (nownownow.com). It also has 2026-vintage examples worth
+copying:
+
+* **[jonas.how](https://jonas.how)** — Astro static site showing books
+  read this year, films watched, countries visited, weather, top
+  Spotify tracks, fitness streak. Mix of API-at-request-time and
+  static JSON. A clean reference design for what "tasteful" looks like
+  at this scope.
+* **[teal.dotmavriq.life](https://teal.dotmavriq.life)** — Laravel +
+  Postgres aggregator that unifies books, films, anime, comics, games,
+  board games, albums, and concerts in one grid. Self-hosted, but the
+  schema and UI are worth studying.
+* **[Rewind](https://api.rewind.rest)** — REST API that aggregates
+  Last.fm + Apple Music + Strava + Plex + Letterboxd + Discogs +
+  Trakt + Instapaper into one normalized feed, plus an MCP server so
+  you can ask Claude questions about your own data.
+* **[omg.lol](https://home.omg.lol)** — $5/year personal-profile-as-a-
+  service with /now page, link-in-bio, Mastodon, and full DNS. Not free
+  but worth knowing.
+* **[Lomnia](https://github.com/lorenzopicoli/lomnia)** — personal data
+  warehouse pulling Owntracks GPS, Garmin health, Spotify, weather,
+  browser history, Obsidian notes, and Beancount finance. Not designed
+  for public reuse but the source range is the most ambitious of the
+  bunch.
+
+Pattern is the same across all of them: **N data sources fan in to one
+store, one site renders the store**. The interesting question isn't
+"what UI do I want," it's **how each of those N arrows actually
+delivers data**.
+
+---
+
+## The architecture in one diagram
+
+```
+                    +-----------------------+
+                    |    Your digital       |
+                    |    twin website       |
+                    |  (Astro, mobile PWA)  |
+                    +----------+------------+
+                               |
+                               | reads
+                               v
+                    +-----------------------+
+                    |    One database       |
+                    |  (Turso / Supabase /  |
+                    |   Cloudflare D1)      |
+                    +----------+------------+
+                               ^
+                               | writes from many sources
+            +------------------+------------------+
+            |                  |                  |
++-----------+--------+ +-------+-------+ +--------+--------+
+| Browser extensions | | Webhooks      | | Periodic ingest |
+| (one per source)   | | (Strava,      | | (cron job pulls |
+| - Netflix scrobble | |  GitHub,      | |  Google Takeout,|
+| - YouTube watch    | |  Last.fm)     | |  Apple Health,  |
+| - Crunchyroll      | |               | |  YT history,    |
+| - Spotify Web      | |               | |  Spotify GDPR)  |
+| - manual "log" UI  | |               | |                 |
++--------------------+ +---------------+ +-----------------+
+```
+
+Three ingestion modes — extensions, webhooks, periodic exports — feed
+one database. One site reads it. That's the whole system.
+
+---
+
+## Three ingestion modes, in detail
+
+### Mode 1 — Browser extensions for real-time scrobbling
+
+The third post in this series covered this in depth. The summary: you
+write **multiple small browser extensions** (one per source, or one
+extension with many content scripts), each detecting "user finished
+consuming X" on its respective site, and POSTing to your own
+`/api/scrobble/<source>` endpoint.
+
+You don't have to write all twelve at once — and you don't have to
+write any of them yourself for sources that already have a public
+scrobble extension. Reuse where possible:
+
+* **Music** — install Web Scrobbler (open-source, ad-free). It already
+  scrobbles to Last.fm and ListenBrainz from 100+ web players. Point
+  your ingester at *those* and you're done.
+* **Anime** — MAL-Sync (open-source) already scrobbles Crunchyroll,
+  HiDive, etc. to AniList/MAL/Kitsu. Same trick — pull from AniList,
+  not the streaming sites.
+* **Movies/TV** — Trakt has community extensions for Netflix, Disney+,
+  Prime Video. Same pattern.
+* **YouTube** — this one you do write yourself, because **the YouTube
+  Data API doesn't expose watch history**. A simple content script on
+  `youtube.com/watch*` that listens for `>80% playback` and POSTs to
+  your endpoint is ~50 lines.
+* **Manual entry** — a tiny "log this" popup in your extension for
+  things that don't auto-scrobble (books finished offline, podcasts on
+  a phone, a TV episode you watched at a friend's place). Just a form
+  with media type + title + date.
+
+Plan to **own** maybe 3–4 of the extensions in this stack and **reuse**
+the rest by pointing your ingester at the canonical platforms (Last.fm,
+ListenBrainz, AniList, Trakt) where the existing community extensions
+already deposit data.
+
+### Mode 2 — Real-time webhooks from sources that push
+
+Some sources push events to a URL you specify — no polling needed.
+These are the cleanest integrations in the whole system because the
+provider does the work:
+
+* **GitHub** — repository → Settings → Webhooks → POST your URL on
+  push, PR, issue. Free, instant, zero-effort code-activity tracking.
+* **Strava** — register a webhook callback in the Strava developer
+  portal. Each completed activity POSTs to your URL. (Strava's API
+  went paid for new developers in 2025; if you're a new applicant
+  this may not be available — falling back to Fitbit or the periodic
+  export is the workaround.)
+* **Last.fm / ListenBrainz** — both can push real-time scrobbles via
+  webhooks if you configure the relay; otherwise poll their `recent
+  tracks` endpoint every minute, which is also fine.
+* **Trakt** — webhooks fire on scrobble events. Wire them to your
+  store and movie/TV/anime tracking is real-time.
+* **Mastodon / IndieWeb** — if you have a Mastodon account or a
+  micro.blog presence, ActivityPub webhooks (or RSS polling) capture
+  every post.
+
+The webhook pattern is the cheapest in compute terms — your endpoint
+sleeps until the world says something happened.
+
+### Mode 3 — Periodic exports for everything that won't scrobble
+
+This is the part that solves the YouTube/Apple Health/Spotify-history
+problem you correctly identified. Most "data lock-in" services have
+been forced (largely by GDPR and Google's own takeout policy) to
+**give you a downloadable archive of your data** — usually as a JSON
+or CSV ZIP. You ingest these periodically.
+
+| Source | Export | Format | Cadence | What you get |
+|---|---|---|---|---|
+| **Google Takeout** | takeout.google.com | ZIP of JSON/CSV | Monthly | YouTube watch history, Maps timeline (locations + visits), Chrome history, Photos metadata, Gmail, Calendar, Tasks, Fit |
+| **Apple Health** | iPhone Settings → Health → Export | XML in ZIP | Weekly via Shortcuts automation | Steps, workouts, heart rate, sleep, mindfulness, every metric Apple tracks |
+| **Spotify Extended History** | spotify.com/account/privacy | JSON | One-time + refresh every 6 months | **Lifetime** listen history (the API only gives last 50) |
+| **Apple Music Privacy Export** | privacy.apple.com | CSV | 7 days to prepare | Full play activity |
+| **Netflix** | Account → Download Personal Information | CSV | Monthly | Viewing history with timestamps |
+| **YouTube** | Inside Google Takeout | JSON | Monthly | Watch history, search history, comments, likes |
+| **Letterboxd** | Settings → Import & Export | CSV | Manual | Films + ratings + reviews |
+| **Goodreads** | Goodreads export page | CSV | Manual | Books + shelves + ratings |
+| **Steam** | Steam Web API (no export needed) | JSON via API | Continuous | Owned games, recently played, hours played |
+| **Strava** | Settings → Download Your Data | CSV/GPX | Monthly fallback | All activities |
+| **Reddit / Discord / Twitter** | Settings → Request Your Data | ZIP | Quarterly | Full archive |
+| **GitHub** | git log + GitHub API | JSON | Continuous | All your commits, PRs, issues across repos |
+
+**Health Connect** (Android) replaced Google Fit in 2024–2025; it's
+the canonical Android health export and Health Connect → CSV export is
+straightforward. Apple HealthKit is iOS-side; the Apple Health XML
+export is the path. Tools like
+[`google_takeout_parser`](https://github.com/purarue/google_takeout_parser)
+already exist for the Google export, and
+[`health-auto-export`](https://github.com/Lybron/health-auto-export)
+relays Apple Health to a HTTP endpoint automatically.
+
+The cadence model: **monthly Takeout downloads, weekly Apple Health
+exports via Shortcuts, real-time webhooks for the rest**. A scheduled
+GitHub Action or Cloudflare Worker Cron runs an ingest script that
+parses the latest archive in your private storage bucket and upserts
+into your database.
+
+---
+
+## The free-tier stack (genuinely free in 2026)
+
+Concrete recommendation, all free, all "always-on" (no sleep), no
+credit card required for the listed tiers:
+
+| Layer | Pick | Free tier (verify on the pricing page) | Why |
+|---|---|---|---|
+| **Database** | **Turso** (SQLite over libSQL) | Generous free tier — billions of reads, hundreds of millions of writes, multiple GB | SQLite semantics, embedded edge replicas, easy schema |
+| **Database (alt)** | **Supabase** | 500 MB Postgres + 1 GB storage + 50K MAU auth + realtime | If you want Postgres + auth + storage + realtime in one |
+| **Database (alt 2)** | **Cloudflare D1** | Free tier with daily row caps | Stays inside Cloudflare ecosystem if you also use Pages/Workers |
+| **Database (alt 3)** | **Firebase Firestore** | Spark plan: 50K reads + 20K writes/day, 1 GB storage | Already used elsewhere in this oriz family per AGENTS.md |
+| **Hosting (static + functions)** | **Cloudflare Pages** | Unlimited requests, 500 builds/month | The most generous free tier for static + edge functions |
+| **Hosting (alt)** | **Vercel hobby** | 100 GB bandwidth/mo, ISR, generous functions | Best DX if you're on Next.js |
+| **Cron / scheduled jobs** | **GitHub Actions cron** | 2000 min/mo (private repo), unlimited (public repo) | Free, version-controlled, no separate infra |
+| **Cron (alt)** | **Cloudflare Workers Cron Triggers** | Included free with Workers | If your ingest is short and stateless |
+| **Object storage** | **Cloudflare R2** | 10 GB storage + free egress | Store the raw export ZIPs |
+| **Object storage (alt)** | **Backblaze B2** | 10 GB free | Same shape, different vendor |
+| **Auth** | **Supabase Auth** or **Firebase Auth** | Both have generous free tiers | You only need to authenticate yourself, the admin |
+| **Search (in-page)** | **Pagefind** | Static, free, runs in-browser | Indexes your site at build time, zero infra |
+
+Stack you should actually pick if you want zero decisions: **Astro on
+Cloudflare Pages + Turso (data) + Cloudflare R2 (raw exports) +
+GitHub Actions (cron) + Pagefind (search)**.
+
+This is the same hosting target the rest of the `oriz-blog` family
+uses, which means you can deploy the digital twin alongside your
+existing sites without learning a new platform.
+
+### Recently-killed free tiers to avoid
+
+* **PlanetScale** — killed the free tier in early 2024.
+* **Railway** — free tier removed in 2023, now requires a paid plan.
+* **Render Postgres** — free tier removed.
+* **Heroku free dynos** — gone since November 2022.
+* **Strava API** — moved to subscription-only for new developers in
+  2025.
+
+If a tutorial older than 2024 tells you to "just use PlanetScale free,"
+ignore it. The free-tier landscape has consolidated to the providers
+in the table above.
+
+---
+
+## Schema — one table that takes everything
+
+The temptation is to build twelve perfect schemas, one per medium.
+Don't. Build **one events table** with a discriminator column, and
+normalize later if you need to. This is the event-sourcing pattern and
+it survives everything:
+
+```sql
+CREATE TABLE events (
+  id            TEXT PRIMARY KEY,           -- ULID
+  occurred_at   DATETIME NOT NULL,           -- when it happened
+  source        TEXT NOT NULL,               -- 'lastfm' | 'trakt' | 'youtube' | 'apple_health' | 'manual'
+  kind          TEXT NOT NULL,               -- 'song' | 'movie' | 'episode' | 'book' | 'workout' | 'place' | 'commit'
+  title         TEXT,                        -- "The Substance" / "Frieren ep 18" / "5 km run"
+  subtitle      TEXT,                        -- artist / show name / book author
+  external_id   TEXT,                        -- TMDB ID / AniList ID / ISBN / Strava activity ID
+  external_url  TEXT,                        -- canonical link
+  cover_url     TEXT,                        -- poster / album art / book cover
+  progress      REAL,                        -- 0..1 (% complete) or step count or distance
+  rating        REAL,                        -- user rating if any
+  metadata      TEXT,                        -- JSON blob, anything source-specific
+  ingested_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id, occurred_at)   -- dedupe re-imports
+);
+
+CREATE INDEX idx_events_when    ON events(occurred_at DESC);
+CREATE INDEX idx_events_kind    ON events(kind, occurred_at DESC);
+CREATE INDEX idx_events_source  ON events(source, occurred_at DESC);
+```
+
+Three things this gets right:
+
+1. **Re-imports are idempotent** — `UNIQUE(source, external_id, occurred_at)`
+   means re-running an export doesn't duplicate entries. Use `INSERT OR
+   IGNORE` (SQLite) or `ON CONFLICT DO NOTHING` (Postgres).
+2. **New media types don't need a schema migration** — adding visual
+   novels or fitness or location is just a new `kind` value. The
+   metadata JSON column absorbs whatever extra fields each source
+   sends.
+3. **Queries are simple** — "everything I did this week" is one
+   index scan, "every book I read in 2026" is two.
+
+Add a small lookup table `sources(name, last_synced_at, last_error)`
+so the UI can show "Spotify last synced 2 hours ago, Apple Health 3
+days ago," and you'll instantly know when ingestion has broken. This
+is the single most important piece of operational tooling — it's how
+you avoid the "abandonment death" pitfall.
+
+---
+
+## The site — Astro + a mobile PWA
+
+You said you want it to look good on web *and* on mobile. Astro hits
+both with one codebase:
+
+* **Astro for the static shell** — build-time renders the home page,
+  per-medium pages, year-in-review summaries. Everything that doesn't
+  change minute-to-minute.
+* **React or Solid islands for live data** — "what I'm listening to
+  right now" and "today's steps" hydrate on the client and poll the
+  database via a Cloudflare Worker.
+* **PWA manifest** — `manifest.webmanifest` + a service worker via
+  `@vite-pwa/astro`. Installable on iOS, Android, desktop.
+  Add-to-home-screen and you have an "app" without writing one.
+* **Offline cache** — the service worker caches the last 30 days of
+  events so the app opens instantly even with no signal. Useful when
+  you want to log "I'm reading this right now" on a train.
+* **Manual entry** — a single `/log` route with a simple form: media
+  type dropdown, title autocomplete (queries the right metadata API),
+  rating, notes. The form posts to a Cloudflare Worker that writes
+  the event. You can also wire it as a PWA share target so "Share to
+  digital twin" works from any other app on your phone.
+* **Touch-first navigation** — bottom-tab nav on mobile (`Today`,
+  `Year`, `Music`, `Watch`, `Read`, `More`), sidebar on desktop. Use
+  the `@chirag127/oriz-ui` tokens that the rest of `oriz-blog` already
+  uses, so it matches your site family.
+
+The pages you actually want, in order of "ship this first":
+
+1. **`/`** — today's activity in reverse-chronological order. Your
+   "now" page. One feed of every event from the last 24 hours.
+2. **`/year/2026`** — heatmap calendar of activity, top 10 of each
+   medium, total counts. The page you'll show people.
+3. **`/music`**, **`/watch`**, **`/read`**, **`/play`**, **`/move`** —
+   one page per medium with all-time history and stats.
+4. **`/places`** — a Mapbox or Leaflet view of your Maps Timeline data.
+5. **`/code`** — GitHub commits as a calendar heatmap (separate from
+   GitHub's own — yours, your colors, your context).
+6. **`/log`** — manual entry form, only visible to you (Supabase or
+   Firebase Auth gate).
+
+---
+
+## What goes public, what stays private
+
+A digital twin isn't useful if you over-share. The defensible
+defaults:
+
+* **Public**: counts, lists of titles, ratings, books read, films
+  watched, code commits, fitness streaks, music history, year-in-
+  review aggregates.
+* **Hidden by default**: location with full timestamps (downsample to
+  city-level + show in monthly aggregates), exact wake/sleep times,
+  health vitals, search history.
+* **Private (admin only)**: raw exports, IDs of unfinished books, DMs,
+  email metadata, anything you'd be embarrassed to see on a screenshot.
+
+Implement this with a single `events.visibility` column (`public` /
+`unlisted` / `private`) and have the public site filter to `public`
+only. Your admin login (Supabase Auth or Firebase Auth) sees
+everything.
+
+---
+
+## A 4-week shipping plan that actually finishes
+
+The biggest pitfall in lifestream projects isn't engineering — it's
+that people start with twelve sources at once, get exhausted, and
+never deploy. Don't.
+
+* **Week 1 — one source, one page.** Pick **music**. Set up Astro on
+  Cloudflare Pages with a Turso database, write a single ingest
+  function that pulls Last.fm scrobbles every 15 minutes via GitHub
+  Actions cron, build the `/music` page. Ship that to your domain.
+* **Week 2 — second source, one more page.** Add **books** via Open
+  Library Reading Log + a one-shot Goodreads CSV import for the
+  backfill. Build `/read`. Add the home `/` feed that merges both
+  sources.
+* **Week 3 — periodic exports.** Add **YouTube watch history** via
+  monthly Google Takeout ingestion. Write the parser, the upsert, the
+  `/watch` page. This is the hardest one because of the file size;
+  doing it now (with a working pipeline) means you never need to do
+  it again.
+* **Week 4 — the rest.** Add **Strava** (or Fitbit), **GitHub
+  webhooks**, **manual /log entry**, and the **PWA manifest**.
+  Polish mobile.
+
+After week 4 you have a working twin with five sources. Add new
+sources at one per week, no rush. The system never breaks because
+each source is independent.
+
+---
+
+## On reusing browser extensions instead of writing them all
+
+You said "I might use many many many browser extensions." Good
+instinct — and the move is **point your ingester at the canonical
+platforms** that those extensions already deposit data into, instead
+of writing per-streaming-site extensions yourself:
+
+* Install **Web Scrobbler** → it sends to Last.fm → your ingester
+  reads from Last.fm. Done. You support 100+ web players for free.
+* Install **MAL-Sync** → it sends to AniList → your ingester reads
+  from AniList. Done. You support every anime streaming site for free.
+* Install community **Trakt scrobbler extensions** → they send to
+  Trakt → your ingester reads from Trakt. Done.
+
+For the gaps where no community extension exists (YouTube watch
+history is the big one), you write your own — but it's just a content
+script that POSTs to your endpoint. Fifty lines of code per site.
+
+This is the trick that makes the project tractable: **you maintain
+exactly one ingest worker per canonical platform, not one per
+streaming site**. Three or four ingest workers cover everything.
+
+---
+
+## Why this is the right shape
+
+You said: "no one is able to define my everything." That's the actual
+goal here, and it's not a tracker goal — it's a **personal-platform**
+goal. The architecture above gets you there because:
+
+1. **The data lives in your database.** Not on Letterboxd, not on
+   Goodreads, not on Spotify. Those are sources you copy from. They
+   can shut down (Goodreads will eventually) and you keep your
+   history.
+2. **The site is yours.** Not a profile on someone else's site that
+   they can rate-limit, throttle, or take down. Your domain, your
+   colors, your URL structure.
+3. **Ingestion is decoupled from display.** The ingester can break
+   and the site keeps working with stale data. The site can break
+   and ingestion keeps writing. New sources slot in without breaking
+   anything.
+4. **Free tier stays free.** Every component on the recommended stack
+   is genuinely free for personal scale and has been free for years
+   (Cloudflare Pages, Turso, GitHub Actions). Recurring cost: zero.
+5. **No self-hosting.** Cloudflare runs your code. Turso runs your
+   database. GitHub runs your cron. You run nothing.
+
+---
+
+## Closing the four-post arc
+
+The four posts in this series have walked through:
+
+1. [The best platforms to track movies, TV, anime, and
+   manga](/blog/best-platforms-track-movies-tv-anime-manga-2026/) —
+   pick three or four focused trackers.
+2. [Free + ad-free + cloud-only options](/blog/track-everything-free-no-ads-no-self-hosting-2026/)
+   — strict-rules version of the above.
+3. [Free public APIs + a browser extension stack](/blog/track-everything-via-apis-browser-extension-2026/)
+   — the developer-grade automation answer.
+4. **This post** — the right shape if you want a public digital twin,
+   not a private tracker.
+
+You don't have to pick one. The posts compose: extensions from post 3
+feed events into the database described in this post, and the public
+site renders them. The previous trackers from posts 1 and 2 become
+*sources* — your ingester pulls from AniList, Trakt, Last.fm,
+Hardcover, the platforms that store your data on their side, and your
+own database aggregates and displays them.
+
+The trick is realising that **you don't need to build a tracker**.
+You need to build a thin layer of ingestion + display on top of
+trackers that already exist. The platforms keep your data normalized
+and current. Your site assembles the picture.
+
+Build it in four weeks. Add one source per week after that. In a
+year you'll have the only twin of yourself that you control.
