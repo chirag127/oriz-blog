@@ -58,6 +58,11 @@ const gitSha = import.meta.env.PUBLIC_GIT_SHA ?? 'dev'
     <p class="line line-3">
       <a href="/rss.xml">rss</a>
       <span class="dot" aria-hidden="true">·</span>
+      {/*
+        /sitemap-index.xml is emitted by `@astrojs/sitemap` at BUILD time only
+        (dev server returns 404 — expected). Available in production via
+        `pnpm build` → dist/sitemap-index.xml. Listed in robots.txt.
+      */}
       <a href="/sitemap-index.xml">sitemap</a>
       <span class="dot" aria-hidden="true">·</span>
       <a href="https://github.com/chirag127/oriz-blog">source on github</a>

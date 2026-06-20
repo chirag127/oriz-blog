@@ -2,6 +2,26 @@
 import { getCollection } from 'astro:content'
 import BaseLayout from '~/layouts/BaseLayout.astro'
 
+/**
+ * Inbound URL aliases — old/external slugs that should resolve to an
+ * existing series folder. Added after dev-server logs flagged 404s for
+ * these (likely indexed by search engines or hand-typed):
+ *
+ *   degrees-while-working-india        → degrees-while-working
+ *   wsl-free-windows-home-server       → windows-native-home-server
+ *   the-2026-it-career-blueprint       → it-career-guide
+ *   puri-travel-guide-from-bhubaneswar → puri-travel-guide-bhubaneswar
+ *
+ * Each alias re-emits the same props as the canonical slug; both URLs
+ * render identical pages so old links don't break.
+ */
+const SERIES_ALIASES: Record<string, string> = {
+  'degrees-while-working-india': 'degrees-while-working',
+  'wsl-free-windows-home-server': 'windows-native-home-server',
+  'the-2026-it-career-blueprint': 'it-career-guide',
+  'puri-travel-guide-from-bhubaneswar': 'puri-travel-guide-bhubaneswar',
+}
+
 export async function getStaticPaths() {
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
   const folderMap = new Map<string, typeof allPosts>()
@@ -15,22 +35,38 @@ export async function getStaticPaths() {
     folderMap.set(folder, existing)
   }
 
-  return [...folderMap.entries()].map(([folder, posts]) => ({
+  const canonicalEntries = [...folderMap.entries()].map(([folder, posts]) => ({
     params: { slug: folder },
     props: { posts },
   }))
+
+  // Emit alias slugs that point at an existing folder.
+  const aliasEntries = Object.entries(SERIES_ALIASES).flatMap(([alias, target]) => {
+    const posts = folderMap.get(target)
+    if (!posts) return []
+    return [{ params: { slug: alias }, props: { posts } }]
+  })
+
+  return [...canonicalEntries, ...aliasEntries]
 }
 
 const { slug } = Astro.params
 const { posts } = Astro.props
 
-const indexPost = posts.find((p) => p.id === `${slug}/index` || p.id.endsWith('/index'))
+// Posts share a common folder prefix (the canonical slug). When this
+// route was reached via an alias (e.g. `degrees-while-working-india` →
+// `degrees-while-working`), `slug` won't match the post folder — derive
+// the real folder from the first post's id so index/non-index detection
+// still works.
+const canonicalSlug = posts[0].id.substring(0, posts[0].id.indexOf('/'))
+
+const indexPost = posts.find((p) => p.id === `${canonicalSlug}/index` || p.id.endsWith('/index'))
 const representative = indexPost ?? posts[0]
 const seriesTitle = representative.data.title
 const seriesDescription = representative.data.description
 const seriesCategory = representative.data.category
 
-const partPosts = posts.filter((p) => p.id !== `${slug}/index` && !p.id.endsWith('/index'))
+const partPosts = posts.filter((p) => p.id !== `${canonicalSlug}/index` && !p.id.endsWith('/index'))
 
 const sortedParts = [...partPosts].sort((a, b) => {
   const partA = a.data.part
