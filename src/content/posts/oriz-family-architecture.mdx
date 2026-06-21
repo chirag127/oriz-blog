@@ -98,13 +98,13 @@ oriz-omnipost has a single place to read about it.
 
 ## Shared kit, not shared monorepo
 
-`astro-shell` and `astro-chrome` are published npm packages, not
-workspace packages. Every site `pnpm add @chirag127/astro-shell
-@chirag127/astro-chrome`s the versions it wants and bumps on its
-own cadence. This was a deliberate trade-off against
-turborepo-style live-linking: the price is one extra publish step
-per kit change; the benefit is that no site is ever broken by a
-kit change it didn't opt into. Per the
+Each family site uses Astro 6, React 19, and Tailwind v4 directly,
+with small community libraries (`firebase`, `lucide-react`,
+`react-hook-form`, `zod`, `@vite-pwa/astro`, `@fontsource/*`) pulled
+in per-app. Shared primitives — `BaseLayout`, `Footer`,
+`<JsonLd>`, `<MultiSearch>`, `<StatusBanner>` — are copied (not
+linked) between sites so no app is ever broken by an upstream
+change it didn't opt into. Per the
 [no-turborepo decision](https://github.com/chirag127/oriz/blob/main/knowledge/decisions/architecture/no-monorepo-tooling.md),
 each site is its own repo with its own deploy.
 
