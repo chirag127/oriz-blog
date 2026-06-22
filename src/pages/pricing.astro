@@ -1,0 +1,40 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="Pricing — Blog"
+  description="The oriz blog is free to read. No paywall, no subscription required."
+  hideSidebar={true}
+>
+  <header class="page-head">
+    <p class="eyebrow"><a href="/">Blog</a> / Pricing</p>
+    <h1>Pricing</h1>
+  </header>
+
+  <article class="prose">
+    <p class="lede">
+      Reading the oriz blog is free. There is no paywall, no subscription,
+      and no premium tier.
+    </p>
+
+    <h2>What's free</h2>
+    <p>
+      All posts, all archives, all feeds (RSS, Atom, JSON). The newsletter
+      (when it launches) will be free at no charge. The full content is open
+      source under the repo's chosen license.
+    </p>
+
+    <h2>How this is sustainable</h2>
+    <p>
+      The blog runs on free-tier infrastructure (Cloudflare Pages) and the
+      author writes for the long-tail benefit of the oriz family of sites,
+      not for ad revenue. If you want to support the work, the best thing
+      you can do is share a post with one other person.
+    </p>
+
+    <p>
+      Questions: <a href="/contact/">contact</a>.
+    </p>
+  </article>
+</BaseLayout>

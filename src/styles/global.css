@@ -1,25 +1,31 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/inter';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 
 /*
- * oriz-blog — v2 design tokens.
+ * oriz-blog — v0 design tokens (locked brief 2026-06-22).
  *
- * Cream paper surface · cobalt accent · Fraunces display · Source Serif 4 body.
- * One of two sites approved for Fraunces (the other is oriz-finance).
+ * Warm bone paper · ink fg · rust accent · sage secondary · IBM Plex Mono utility.
+ * Display: Source Serif 4 · Body: Inter Variable · Utility: IBM Plex Mono.
  *
- * Family-anchor token names (--paper, --ink, --rule, --cobalt) are stable
- * across the family — sister sites copy this file and swap values. The
- * legacy `--color-*` block at the bottom keeps existing pages compiling
- * while they migrate to the new names.
+ * Legacy `--color-*` aliases retained so existing routes compile unchanged.
+ * Legacy `--cobalt` is aliased to `--color-accent` (rust) since many components
+ * still reference `var(--cobalt)` directly; mapping keeps them on-brand.
  */
 
 @theme {
   --font-display:
-    'Fraunces', 'Source Serif 4', 'GT Sectra', 'Iowan Old Style', Georgia, serif;
+    'Source Serif 4 Variable', 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
   --font-serif:
-    'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+    'Source Serif 4 Variable', 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
   --font-sans:
-    'Inter Tight', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:
+    'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-utility: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --container-spine: 920px;
   --container-prose: 66ch;
@@ -29,53 +35,36 @@
   :root {
     color-scheme: light;
 
-    /* v2 brief tokens — cream + ink + cobalt. */
-    --paper: #fbfaf7;
-    --paper-2: #f4f1ea;
-    --ink: #11131a;
-    --ink-mute: #5a5e6b;
-    --rule: #d9d2c2;
-    --cobalt: #1f4fd8;
+    /* ── Locked brief palette ─────────────────────────────────────────── */
+    --color-bg: #FAF8F2;          /* warm bone */
+    --color-fg: #0F1419;          /* ink */
+    --color-accent: #9F2B1C;      /* rust */
+    --color-sage: #6B7F5C;
+    --color-muted: #52606D;
+    --color-border: rgba(15, 20, 25, 0.1);
 
-    /* Extra hooks needed by the auth/contact data-oriz-* overrides. */
-    --vermilion: #b6371f; /* not used in chrome — error states only */
-    --highlighter: #1f4fd8;
+    /* Internal token aliases (used across components) */
+    --paper: var(--color-bg);
+    --paper-2: #F2EFE6;
+    --ink: var(--color-fg);
+    --ink-mute: var(--color-muted);
+    --rule: var(--color-border);
+    --cobalt: var(--color-accent);   /* legacy alias → rust now */
+    --sage: var(--color-sage);
 
-    /* ---- Legacy --color-* aliases ----
-     * Existing routes reference these; keep them mapped to v2 tokens so
-     * we don't have to rewrite every page in this commit. */
-    --color-bg: var(--paper);
+    --vermilion: var(--color-accent);
+    --highlighter: var(--color-accent);
+
+    /* Legacy --color-* used by existing pages */
     --color-bg-soft: var(--paper-2);
-    --color-bg-muted: #ebe6d8;
-    --color-fg: var(--ink);
+    --color-bg-muted: #EAE6D9;
     --color-prose: var(--ink);
     --color-fg-muted: var(--ink-mute);
     --color-fg-soft: #7d7e88;
-    --color-border: var(--rule);
-    --color-accent: var(--cobalt);
     --color-accent-fg: var(--paper);
     --radius-card: 0;
     --radius-button: 0;
     --container-page: 1100px;
-  }
-
-  /* Dark variant — only when the user explicitly prefers it. */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-      --paper: #12141b;
-      --paper-2: #1a1d27;
-      --ink: #e8e4d8;
-      --ink-mute: #9a9ba8;
-      --rule: #2e3140;
-      --cobalt: #7aa0ff;
-      --vermilion: #e87a5e;
-      --highlighter: #7aa0ff;
-
-      --color-bg-muted: #232634;
-      --color-fg-soft: #7d8090;
-      --color-accent-fg: #0a0c12;
-    }
   }
 
   html {
@@ -87,7 +76,7 @@
   body {
     background: var(--paper);
     color: var(--ink);
-    font-family: var(--font-serif);
+    font-family: var(--font-body);
     font-size: 17px;
     line-height: 1.65;
     overflow-y: scroll;
@@ -102,7 +91,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--cobalt) 25%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 25%, transparent);
     color: var(--ink);
   }
 

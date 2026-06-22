@@ -18,15 +18,16 @@
   margin-inline: auto;
 }
 
-/* The drop-cap signature — Fraunces SOFT 100, cobalt, 4 lines tall. */
+/* The drop-cap signature — Source Serif 4 display weight, rust, 5 lines tall. */
 .prose-blog > p:first-of-type::first-letter,
 .prose-blog .drop-cap::first-letter {
   float: left;
   font-family: var(--font-display);
-  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'wght' 400;
-  font-size: calc(17px * 1.65 * 4);   /* 4 line-heights */
+  font-weight: 700;
+  font-variation-settings: 'opsz' 144, 'wght' 700;
+  font-size: calc(17px * 1.65 * 5);   /* 5 line-heights */
   line-height: 0.85;
-  color: var(--cobalt);
+  color: var(--color-accent);
   margin: 0.05em 0.08em 0 0;
   padding-right: 0.04em;
 }
@@ -39,7 +40,8 @@
 
 .prose-blog h2 {
   font-family: var(--font-display);
-  font-variation-settings: 'opsz' 60, 'SOFT' 40, 'wght' 380;
+  font-variation-settings: 'opsz' 60, 'wght' 600;
+  font-weight: 600;
   font-size: 26.6px;
   letter-spacing: -0.005em;
   line-height: 1.2;
@@ -48,14 +50,16 @@
 }
 .prose-blog h3 {
   font-family: var(--font-display);
-  font-variation-settings: 'opsz' 36, 'SOFT' 40, 'wght' 500;
+  font-variation-settings: 'opsz' 36, 'wght' 600;
+  font-weight: 600;
   font-size: 21.25px;
   color: var(--ink);
   margin: 2em 0 0.5em;
 }
 .prose-blog h4 {
   font-family: var(--font-display);
-  font-variation-settings: 'opsz' 24, 'SOFT' 30, 'wght' 600;
+  font-variation-settings: 'opsz' 24, 'wght' 700;
+  font-weight: 700;
   font-size: 18px;
   color: var(--ink);
   margin: 1.75em 0 0.5em;

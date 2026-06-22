@@ -7,6 +7,7 @@ import expressiveCode from 'astro-expressive-code'
 import pagefind from 'astro-pagefind'
 import tailwindcss from '@tailwindcss/vite'
 import remarkMath from 'remark-math'
+import remarkGfm from 'remark-gfm'
 import rehypeKatex from 'rehype-katex'
 import rehypeSlug from 'rehype-slug'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -59,7 +60,13 @@ export default defineConfig({
       defaultProps: { showLineNumbers: true, wrap: false },
     }),
     react(),
-    mdx(),
+    mdx({
+      remarkPlugins: [remarkGfm, remarkMath],
+      rehypePlugins: [
+        rehypeSlug,
+        [rehypeKatex, { strict: 'ignore', output: 'htmlAndMathml' }],
+      ],
+    }),
     sitemap(),
     pagefind(),
   ],
@@ -72,7 +79,7 @@ export default defineConfig({
     // KaTeX `strict: 'ignore'` silences the "No character metrics for '❌'/'✅'"
     // warnings emitted when emoji land inside accidental `$...$` math spans
     // (e.g. money tables like `$3.99–$19.99`).
-    remarkPlugins: [remarkMath],
+    remarkPlugins: [remarkGfm, remarkMath],
     rehypePlugins: [
       rehypeSlug,
       [rehypeKatex, { strict: 'ignore', output: 'htmlAndMathml' }],

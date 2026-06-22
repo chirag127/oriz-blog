@@ -1,0 +1,41 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="Sign in — Blog"
+  description="Sign in to the oriz blog to sync bookmarks across devices."
+  hideSidebar={true}
+  noindex={true}
+>
+  <header class="page-head">
+    <p class="eyebrow"><a href="/">Blog</a> / Sign in</p>
+    <h1>Sign in</h1>
+  </header>
+
+  <article class="prose">
+    <p class="lede">
+      Sign-in is optional. It is only used to sync your bookmarks across
+      devices. The full blog content is readable without an account.
+    </p>
+
+    <h2>Email magic link</h2>
+    <p>
+      Sign-in uses Firebase email-link authentication. Enter your email and
+      a one-time sign-in link will be sent. The link finishes the sign-in
+      at <a href="/account/finish-sign-in/">/account/finish-sign-in</a>.
+    </p>
+
+    <p>
+      The sign-in widget is wired into the <a href="/account/">account
+      page</a>. This page is a placeholder so the policy footer links
+      resolve cleanly.
+    </p>
+
+    <h2>What we store</h2>
+    <p>
+      Your email and a list of bookmarked slugs. Nothing else. See the
+      <a href="/legal/privacy/">privacy policy</a> for details.
+    </p>
+  </article>
+</BaseLayout>
