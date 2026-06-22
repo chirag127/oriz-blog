@@ -43,6 +43,7 @@ const {
   type = 'website',
   pubDate,
   updatedDate,
+  hideSidebar = false,
 } = Astro.props
 
 const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
@@ -122,7 +123,7 @@ const ogImage = image ? new URL(image, 'https://blog.oriz.in').toString() : unde
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
     <div class="layout-body">
-      <Sidebar><AppSidebarContent /></Sidebar>
+      {!hideSidebar && <Sidebar><AppSidebarContent /></Sidebar>}
       <main id="main"><slot /></main>
     </div>
     <Footer />
