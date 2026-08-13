@@ -26,6 +26,7 @@ import {
   verticalLabel,
 } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
+import { BLOG_SITES } from '~/lib/family'
 
 const allPosts = await getPublishedPosts()
 const lead = allPosts[0]
@@ -240,7 +241,27 @@ const jsonLd = {
         </p>
       </section>
     )}
+
+    <hr class="hairline" />
+
+    {/* Stratum 4 — THE ORIZ BLOG NETWORK (directory of category blogs). */}
+    <section class="stratum stratum-network" aria-labelledby="s-network">
+      <h2 id="s-network" class="stratum-h mono">The oriz blog network</h2>
+      <p class="network-lede">{BLOG_SITES.length} subject desks, each its own publication. Pick a beat.</p>
+      <ul class="network-grid">
+        {BLOG_SITES.map((b) => (
+          <li class="network-cell">
+            <a class="network-link" href={b.url}>
+              <span class="network-name">{b.name}</span>
+              <span class="network-tag">{b.tagline}</span>
+              <span class="network-host mono">{b.slug}.oriz.in</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   </div>
+
 </BaseLayout>
 
 <style>
@@ -582,4 +603,62 @@ const jsonLd = {
     margin-left: 0.25rem;
   }
   .cats-dot { color: var(--rule); margin-inline: 0.625rem; }
+
+  /* ── The oriz blog network (directory) ────────────────────────────── */
+
+  .network-lede {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--ink-mute);
+    margin: -0.5rem 0 1.5rem;
+    max-width: 52ch;
+  }
+  .network-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: color-mix(in oklab, var(--rule) 70%, transparent);
+    border: 1px solid color-mix(in oklab, var(--rule) 70%, transparent);
+  }
+  @media (min-width: 560px) { .network-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .network-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .network-cell { background: var(--paper); }
+  .network-link {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.875rem 1rem;
+    color: var(--ink);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: border-color var(--dur-fast, 120ms) ease, background var(--dur-fast, 120ms) ease;
+  }
+  .network-link:hover, .network-link:focus-visible {
+    border-left-color: var(--accent);
+    background: var(--paper-2, color-mix(in oklab, var(--rule) 22%, transparent));
+  }
+  .network-name {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .network-link:hover .network-name { color: var(--accent); }
+  .network-tag {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    color: var(--ink-mute);
+    line-height: 1.4;
+  }
+  .network-host {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    opacity: 0.7;
+  }
 </style>
